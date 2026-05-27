@@ -1,17 +1,25 @@
 """
-Sovereign BioTech — Otonom MedTech & AI Bülten Motoru
-=====================================================
-RSS → SQLite (dedup) → Gemini 2.5 Flash → Markdown bülten taslağı.
-Yasal: KVKK / ETK / GDPR uyumlu — sadece public RSS, sıfır cold mail.
+Sovereign BioTech — Otonom Bülten Motoru
+========================================
+RSS → SQLite (URL dedup) → embedding tabanlı anlamsal dedup → LLM analizi
+→ Markdown bülten (+ opsiyonel Supabase kalıcılığı).
+
+Sağlayıcılar .env üzerinden seçilir:
+  - Metin üretimi (LLM): deepseek | gemini
+  - Embedding (anlamsal dedup): gemini | openai
+
+Yasal: sadece public RSS, sıfır cold mail.
 """
 
 import os
+import json
 import time
 import logging
 import sqlite3
 import hashlib
 from datetime import datetime
 
+import requests
 import feedparser
 from bs4 import BeautifulSoup
 import schedule
@@ -45,10 +53,38 @@ logging.basicConfig(
 )
 logger = logging.getLogger("SovereignBio")
 
-# ==========================================
-# 2. MEDTECH NİŞ KONFİGÜRASYONU
-# ==========================================
-SOURCES = [
+GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
+
+# Metin üretimi sağlayıcıları (hepsi OpenAI-uyumlu endpoint)
+LLM_PROVIDERS = {
+    "deepseek": {
+        "base_url": "https://api.deepseek.com",
+        "key_env": "DEEPSEEK_API_KEY",
+        # deepseek-v4-pro (frontier) | deepseek-reasoner (R1/düşünme) | deepseek-chat
+        "default_model": "deepseek-reasoner",
+    },
+    "gemini": {
+        "base_url": GEMINI_BASE_URL,
+        "key_env": "GEMINI_API_KEY",
+        "default_model": "gemini-2.5-flash",
+    },
+}
+
+# Embedding sağlayıcıları (anlamsal dedup için)
+EMBED_PROVIDERS = {
+    "gemini": {
+        "base_url": GEMINI_BASE_URL,
+        "key_env": "GEMINI_API_KEY",
+        "default_model": "gemini-embedding-001",
+    },
+    "openai": {
+        "base_url": None,  # OpenAI varsayılan endpoint
+        "key_env": "OPENAI_API_KEY",
+        "default_model": "text-embedding-3-small",
+    },
+}
+
+DEFAULT_SOURCES = [
     {"name": "Nature Digital Medicine", "url": "https://www.nature.com/npjdigitalmed.rss"},
     {"name": "MIT Tech Review (Biotech)", "url": "https://www.technologyreview.com/topic/biotechnology/feed"},
     {"name": "MobiHealthNews", "url": "https://www.mobihealthnews.com/feed"},
@@ -56,15 +92,42 @@ SOURCES = [
     {"name": "TechCrunch Health", "url": "https://techcrunch.com/category/health/feed/"},
 ]
 
-SYSTEM_PROMPT = """Sen, sağlık teknolojileri (MedTech) ve Biyoteknoloji alanında uzmanlaşmış kıdemli bir yatırım analisti ve yapay zeka stratejistisin.
+DEFAULT_SYSTEM_PROMPT = """Sen, sağlık teknolojileri (MedTech) ve Biyoteknoloji alanında uzmanlaşmış kıdemli bir yatırım analisti ve yapay zeka stratejistisin.
 Okuyucuların: Sağlık sektörüne yatırım yapan melek yatırımcılar (VC'ler), hastane CIO'ları ve sağlık odaklı AI geliştiren mühendisler.
 Görev: Verilen haberi oku ve okuyucu kitlesi için NEDEN ÖNEMLİ olduğunu maksimum 3 cümle ile analiz et.
 - Sadece "ne oldu" deme, "bunun ticari veya teknolojik etkisi ne olacak" (Impact) kısmına odaklan.
 - Eğer haberde çoklu ajan sistemleri (multi-agent), otomasyon, giyilebilir teknoloji veya yeni bir algoritmik yaklaşım varsa, mutlaka vurgula.
 - Dil: Resmi, veri odaklı, net ve profesyonel (Türkçe)."""
 
+SYSTEM_PROMPT = os.getenv("SYSTEM_PROMPT") or DEFAULT_SYSTEM_PROMPT
+NEWSLETTER_TITLE = os.getenv("NEWSLETTER_TITLE", "🧬 MedTech & AI Signal")
+
+
+def load_feeds() -> list[dict]:
+    path = os.path.join(BASE_DIR, "feeds.json")
+    if os.path.exists(path):
+        try:
+            with open(path, encoding="utf-8") as f:
+                feeds = json.load(f)
+            if isinstance(feeds, list) and feeds:
+                return feeds
+            logger.warning("feeds.json boş/geçersiz — varsayılan kaynaklar kullanılıyor.")
+        except (OSError, json.JSONDecodeError) as exc:
+            logger.error(f"feeds.json okunamadı ({exc}) — varsayılan kaynaklar kullanılıyor.")
+    return DEFAULT_SOURCES
+
+
+def cosine_similarity(a: list[float], b: list[float]) -> float:
+    dot = sum(x * y for x, y in zip(a, b))
+    norm_a = sum(x * x for x in a) ** 0.5
+    norm_b = sum(y * y for y in b) ** 0.5
+    if norm_a == 0 or norm_b == 0:
+        return 0.0
+    return dot / (norm_a * norm_b)
+
+
 # ==========================================
-# 3. ÇEKİRDEK BİLEŞENLER
+# 2. ÇEKİRDEK BİLEŞENLER
 # ==========================================
 class DatabaseManager:
     def __init__(self, db_path: str) -> None:
@@ -77,10 +140,14 @@ class DatabaseManager:
                     title TEXT,
                     link TEXT,
                     source TEXT,
+                    embedding TEXT,
                     processed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
                 """
             )
+            cols = {row[1] for row in conn.execute("PRAGMA table_info(processed_items)")}
+            if "embedding" not in cols:
+                conn.execute("ALTER TABLE processed_items ADD COLUMN embedding TEXT")
 
     def filter_new_hashes(self, hash_list: list[str]) -> set[str]:
         if not hash_list:
@@ -94,24 +161,48 @@ class DatabaseManager:
             existing = {row[0] for row in cursor.fetchall()}
         return set(hash_list) - existing
 
+    def get_recent_embeddings(self, limit: int = 500) -> list[list[float]]:
+        with sqlite3.connect(self.db_path) as conn:
+            cursor = conn.execute(
+                "SELECT embedding FROM processed_items "
+                "WHERE embedding IS NOT NULL ORDER BY processed_at DESC LIMIT ?",
+                (limit,),
+            )
+            vectors = []
+            for (raw,) in cursor.fetchall():
+                try:
+                    vectors.append(json.loads(raw))
+                except (TypeError, json.JSONDecodeError):
+                    continue
+        return vectors
+
     def save_items_batch(self, items: list[dict]) -> int:
         if not items:
             return 0
-        tuples = [(i["hash"], i["title"], i["link"], i["source"]) for i in items]
+        tuples = [
+            (
+                i["hash"],
+                i["title"],
+                i["link"],
+                i["source"],
+                json.dumps(i["embedding"]) if i.get("embedding") else None,
+            )
+            for i in items
+        ]
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.executemany(
-                "INSERT OR IGNORE INTO processed_items (id_hash, title, link, source) VALUES (?, ?, ?, ?)",
+                "INSERT OR IGNORE INTO processed_items "
+                "(id_hash, title, link, source, embedding) VALUES (?, ?, ?, ?, ?)",
                 tuples,
             )
             return cursor.rowcount
 
 
 class DataFetcher:
-    MAX_ENTRIES = 10
-
     def __init__(self, sources: list[dict], db: DatabaseManager) -> None:
         self.sources = sources
         self.db = db
+        self.max_entries = int(os.getenv("MAX_ENTRIES_PER_FEED", "10"))
         self.logger = logging.getLogger("Fetcher")
 
     def clean_html(self, html: str) -> str:
@@ -129,7 +220,7 @@ class DataFetcher:
                 feed = feedparser.parse(src["url"])
                 if feed.bozo:
                     self.logger.warning(f"{src['name']} feed uyarısı: {feed.bozo_exception}")
-                for entry in feed.entries[: self.MAX_ENTRIES]:
+                for entry in feed.entries[: self.max_entries]:
                     link = entry.get("link")
                     if not link:
                         continue
@@ -166,44 +257,113 @@ class DataFetcher:
         return new_items
 
 
+class SemanticDeduper:
+    """OpenAI-uyumlu embedding API ile anlamsal (yakın-tekrar) dedup. Sağlayıcı .env'den."""
+
+    def __init__(self) -> None:
+        self.logger = logging.getLogger("Deduper")
+        self.provider = os.getenv("EMBEDDING_PROVIDER", "gemini").lower()
+        self.threshold = float(os.getenv("DEDUP_THRESHOLD", "0.86"))
+        cfg = EMBED_PROVIDERS.get(self.provider)
+        self.is_active = False
+        if cfg is None:
+            self.logger.warning(f"Bilinmeyen embedding sağlayıcı '{self.provider}' — dedup atlandı.")
+            return
+        key = os.getenv(cfg["key_env"])
+        self.model = os.getenv("EMBEDDING_MODEL") or cfg["default_model"]
+        if not key:
+            self.logger.warning(
+                f"⚠️ {cfg['key_env']} yok — anlamsal dedup atlandı (sadece URL dedup)."
+            )
+            return
+        self.client = OpenAI(api_key=key, base_url=cfg["base_url"]) if cfg["base_url"] else OpenAI(api_key=key)
+        self.is_active = True
+
+    def _embed(self, texts: list[str]) -> list[list[float] | None]:
+        try:
+            resp = self.client.embeddings.create(model=self.model, input=texts)
+            return [d.embedding for d in resp.data]
+        except Exception as exc:
+            self.logger.warning(f"Toplu embedding başarısız ({exc}); tek tek deneniyor.")
+            out: list[list[float] | None] = []
+            for text in texts:
+                try:
+                    resp = self.client.embeddings.create(model=self.model, input=text)
+                    out.append(resp.data[0].embedding)
+                except Exception as exc2:
+                    self.logger.error(f"Embedding hatası: {exc2}")
+                    out.append(None)
+            return out
+
+    def deduplicate(
+        self, items: list[dict], history_vectors: list[list[float]]
+    ) -> tuple[list[dict], list[dict]]:
+        """(kept, dropped) döner. kept öğelerine 'embedding' eklenir."""
+        if not self.is_active or not items:
+            return items, []
+
+        self.logger.info(f"🧬 {len(items)} makale anlamsal dedup ({self.provider}/{self.model})...")
+        vectors = self._embed([f"{i['title']} {i['summary']}" for i in items])
+
+        kept: list[dict] = []
+        dropped: list[dict] = []
+        reference_vectors = list(history_vectors)
+        for item, vec in zip(items, vectors):
+            if vec is None:
+                kept.append(item)  # embedding alınamadıysa elemeyelim
+                continue
+            if any(cosine_similarity(vec, ref) >= self.threshold for ref in reference_vectors):
+                self.logger.info(f"♻️ Benzer içerik atlandı: {item['title'][:60]}")
+                dropped.append(item)
+                continue
+            item["embedding"] = vec
+            kept.append(item)
+            reference_vectors.append(vec)
+
+        self.logger.info(f"🧬 Dedup sonrası {len(kept)} özgün, {len(dropped)} tekrar.")
+        return kept, dropped
+
+
 class AIProcessor:
-    """Gemini 2.5 Flash (OpenAI uyumlu endpoint üzerinden). Tek code path."""
+    """Çoklu sağlayıcı LLM (OpenAI-uyumlu endpoint). Sağlayıcı/model .env'den."""
 
     def __init__(self) -> None:
         self.logger = logging.getLogger("AI_Engine")
-        api_key = os.getenv("LLM_API_KEY") or os.getenv("GEMINI_API_KEY")
-        self.client = OpenAI(
-            api_key=api_key if api_key else "dummy",
-            base_url="https://generativelanguage.googleapis.com/v1beta/openai/",
-        )
+        self.provider = os.getenv("LLM_PROVIDER", "deepseek").lower()
+        cfg = LLM_PROVIDERS.get(self.provider)
+        if cfg is None:
+            self.logger.warning(f"Bilinmeyen LLM sağlayıcı '{self.provider}' — deepseek'e düşülüyor.")
+            self.provider, cfg = "deepseek", LLM_PROVIDERS["deepseek"]
+        self.model = os.getenv(f"{self.provider.upper()}_MODEL") or cfg["default_model"]
+        api_key = os.getenv(cfg["key_env"])
         self.is_active = bool(api_key)
+        self.client = OpenAI(api_key=api_key or "dummy", base_url=cfg["base_url"])
         if not self.is_active:
-            self.logger.warning("⚠️ LLM_API_KEY yok — mock modunda.")
+            self.logger.warning(f"⚠️ {cfg['key_env']} yok — mock modunda.")
 
     @retry(wait=wait_exponential(multiplier=2, min=2, max=10), stop=stop_after_attempt(3))
-    def _call_gemini_flash(self, prompt: str) -> str:
+    def _call_llm(self, prompt: str) -> str:
         if not self.is_active:
             return "[MOCK] API key yok. Bu bir taslak (mock) analist notudur."
-
         response = self.client.chat.completions.create(
-            model="gemini-2.5-flash",
+            model=self.model,
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": prompt},
             ],
             temperature=0.4,
         )
-        return response.choices[0].message.content.strip()
+        return (response.choices[0].message.content or "").strip()
 
     def process(self, items: list[dict]) -> list[dict]:
         if not items:
             return []
-        mode = "Gemini 2.5 Flash" if self.is_active else "mock"
+        mode = f"{self.provider}/{self.model}" if self.is_active else "mock"
         self.logger.info(f"🧠 {len(items)} makale {mode} ile analiz ediliyor...")
         for item in items:
             prompt = f"Başlık: {item['title']}\nÖzet: {item['summary']}"
             try:
-                item["ai_insight"] = self._call_gemini_flash(prompt)
+                item["ai_insight"] = self._call_llm(prompt)
             except Exception as exc:
                 self.logger.error(f"Analiz hatası ({item['title'][:40]}): {exc}")
                 item["ai_insight"] = "Analiz yapılamadı."
@@ -214,65 +374,145 @@ class Publisher:
     def __init__(self) -> None:
         self.logger = logging.getLogger("Publisher")
 
-    def publish(self, items: list[dict]) -> str | None:
-        if not items:
-            return None
-        timestamp = datetime.now().strftime("%Y-%m-%d_%H%M")
+    def render(self, items: list[dict]) -> str:
         readable = datetime.now().strftime("%d %B %Y")
-        path = os.path.join(OUTPUT_DIR, f"newsletter_{timestamp}.md")
+        lines = [
+            f"# {NEWSLETTER_TITLE}",
+            f"**Tarih:** {readable}",
+            "",
+            "Sektördeki gürültüyü filtreliyor, otonom yapay zeka mimarimizle "
+            "sadece sinyali veriyoruz:",
+            "",
+            "---",
+            "",
+        ]
+        for idx, item in enumerate(items, 1):
+            lines.append(f"### {idx}. [{item['title']}]({item['link']})")
+            lines.append(f"**Kaynak:** {item['source']}")
+            lines.append("")
+            lines.append(f"💡 **Analist Sinyali:**\n> {item['ai_insight']}")
+            lines.append("")
+            lines.append("---")
+            lines.append("")
+        return "\n".join(lines)
 
+    def publish(self, items: list[dict]) -> tuple[str | None, str]:
+        if not items:
+            return None, ""
+        content = self.render(items)
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H%M")
+        path = os.path.join(OUTPUT_DIR, f"newsletter_{timestamp}.md")
         try:
             with open(path, "w", encoding="utf-8") as f:
-                f.write(f"# 🧬 MedTech & AI Signal\n**Tarih:** {readable}\n\n")
-                f.write(
-                    "Sektördeki gürültüyü filtreliyor, otonom yapay zeka "
-                    "mimarimizle sadece sinyali veriyoruz:\n\n---\n\n"
-                )
-                for idx, item in enumerate(items, 1):
-                    f.write(f"### {idx}. [{item['title']}]({item['link']})\n")
-                    f.write(f"**Kaynak:** {item['source']}\n\n")
-                    f.write(f"💡 **Analist Sinyali:**\n> {item['ai_insight']}\n\n---\n\n")
+                f.write(content)
         except OSError as exc:
             self.logger.error(f"Bülten yazılamadı: {exc}")
-            return None
-
+            return None, content
         self.logger.info(f"📝 Draft bülten: {path}")
-        return path
+        return path, content
+
+
+class SupabaseStore:
+    """Supabase REST (PostgREST) ile kalıcılık. SUPABASE_URL + SUPABASE_KEY varsa aktif."""
+
+    def __init__(self) -> None:
+        self.logger = logging.getLogger("Supabase")
+        self.url = os.getenv("SUPABASE_URL", "").rstrip("/")
+        self.key = os.getenv("SUPABASE_KEY", "")
+        self.is_active = bool(self.url and self.key)
+        if not self.is_active:
+            self.logger.info("ℹ️ Supabase yapılandırılmadı — sadece yerel kayıt.")
+
+    def _headers(self, upsert: bool = False) -> dict:
+        headers = {
+            "apikey": self.key,
+            "Authorization": f"Bearer {self.key}",
+            "Content-Type": "application/json",
+        }
+        if upsert:
+            headers["Prefer"] = "resolution=merge-duplicates"
+        return headers
+
+    def save(self, items: list[dict], filename: str | None, content: str) -> None:
+        if not self.is_active or not items:
+            return
+        article_rows = [
+            {
+                "id_hash": i["hash"],
+                "title": i["title"],
+                "link": i["link"],
+                "source": i["source"],
+                "summary": i.get("summary"),
+                "ai_insight": i.get("ai_insight"),
+                "embedding": i.get("embedding"),
+            }
+            for i in items
+        ]
+        try:
+            resp = requests.post(
+                f"{self.url}/rest/v1/articles?on_conflict=id_hash",
+                headers=self._headers(upsert=True),
+                json=article_rows,
+                timeout=30,
+            )
+            if resp.status_code >= 300:
+                self.logger.error(f"Supabase articles hatası {resp.status_code}: {resp.text[:200]}")
+            else:
+                self.logger.info(f"☁️ Supabase: {len(article_rows)} makale yazıldı.")
+
+            resp2 = requests.post(
+                f"{self.url}/rest/v1/newsletters",
+                headers=self._headers(),
+                json={"filename": filename, "content": content, "article_count": len(items)},
+                timeout=30,
+            )
+            if resp2.status_code >= 300:
+                self.logger.error(f"Supabase newsletters hatası {resp2.status_code}: {resp2.text[:200]}")
+        except requests.RequestException as exc:
+            self.logger.error(f"Supabase bağlantı hatası: {exc}")
 
 
 # ==========================================
-# 4. ORKESTRATÖR
+# 3. ORKESTRATÖR
 # ==========================================
 def run_pipeline() -> None:
     logger.info("=" * 60)
-    logger.info("🚀 SOVEREIGN BIOTECH DÖNGÜSÜ BAŞLADI")
+    logger.info("🚀 SOVEREIGN BÜLTEN DÖNGÜSÜ BAŞLADI")
     logger.info("=" * 60)
 
     db = DatabaseManager(os.path.join(DB_DIR, "data_warehouse.sqlite"))
-    fetcher = DataFetcher(SOURCES, db)
+    fetcher = DataFetcher(load_feeds(), db)
+    deduper = SemanticDeduper()
     processor = AIProcessor()
     publisher = Publisher()
+    store = SupabaseStore()
 
     new_data = fetcher.fetch()
     if not new_data:
         logger.info("ℹ️ Yeni sinyal bulunamadı.")
         return
 
-    analyzed = processor.process(new_data)
-    publisher.publish(analyzed)
-    saved = db.save_items_batch(analyzed)
-    logger.info(f"✅ Döngü tamamlandı. {saved} yeni içerik DB'ye yazıldı.")
+    kept, dropped = deduper.deduplicate(new_data, db.get_recent_embeddings())
+    if not kept:
+        logger.info("ℹ️ Tüm yeni içerikler mevcutlara benzer — bülten üretilmedi.")
+        db.save_items_batch(dropped)  # tekrar taranmasınlar
+        return
+
+    analyzed = processor.process(kept)
+    path, content = publisher.publish(analyzed)
+    store.save(analyzed, os.path.basename(path) if path else None, content)
+    saved = db.save_items_batch(analyzed + dropped)
+    logger.info(f"✅ Döngü tamamlandı. {saved} kayıt DB'ye yazıldı ({len(dropped)} tekrar eleme).")
 
 
 def main() -> None:
     # İlk batch hemen — sistemin çalıştığını anında doğrula
     run_pipeline()
 
-    # Günde 2 kez (SCHEDULER AKTİF — Gemini comment'lemiş, geri açtım)
     schedule.every().day.at("08:00").do(run_pipeline)
     schedule.every().day.at("18:00").do(run_pipeline)
 
-    logger.info("⏳ Sovereign BioTech aktif. Görev bekleniyor... (Çıkış: Ctrl+C)")
+    logger.info("⏳ Sovereign aktif. Görev bekleniyor... (Çıkış: Ctrl+C)")
     try:
         while True:
             schedule.run_pending()
