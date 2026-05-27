@@ -21,9 +21,9 @@ services:
       - key: GEMINI_MODEL
         value: gemini-2.5-flash
       - key: EMBEDDING_PROVIDER
-        value: gemini
+        value: openai
       - key: EMBEDDING_MODEL
-        value: gemini-embedding-001
+        value: text-embedding-3-small
       - key: DEDUP_THRESHOLD
         value: "0.86"
       - key: MAX_ENTRIES_PER_FEED

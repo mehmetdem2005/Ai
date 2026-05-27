@@ -19,6 +19,7 @@ import logging
 import sqlite3
 import hashlib
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import requests
 import feedparser
@@ -89,8 +90,8 @@ DEFAULT_SOURCES = [
     {"name": "Nature Digital Medicine", "url": "https://www.nature.com/npjdigitalmed.rss"},
     {"name": "MIT Tech Review (Biotech)", "url": "https://www.technologyreview.com/topic/biotechnology/feed"},
     {"name": "MobiHealthNews", "url": "https://www.mobihealthnews.com/feed"},
-    {"name": "Fierce Healthcare", "url": "https://www.fiercehealthcare.com/rss/medtech"},
-    {"name": "TechCrunch Health", "url": "https://techcrunch.com/category/health/feed/"},
+    {"name": "Fierce Healthcare", "url": "https://www.fiercehealthcare.com/rss/xml"},
+    {"name": "TechCrunch Health", "url": "https://techcrunch.com/tag/health/feed/"},
 ]
 
 DEFAULT_SYSTEM_PROMPT = """Sen, sağlık teknolojileri (MedTech) ve Biyoteknoloji alanında uzmanlaşmış kıdemli bir yatırım analisti ve yapay zeka stratejistisin.
@@ -102,6 +103,17 @@ Görev: Verilen haberi oku ve okuyucu kitlesi için NEDEN ÖNEMLİ olduğunu mak
 
 SYSTEM_PROMPT = os.getenv("SYSTEM_PROMPT") or DEFAULT_SYSTEM_PROMPT
 NEWSLETTER_TITLE = os.getenv("NEWSLETTER_TITLE", "🧬 MedTech & AI Signal")
+
+# Runner'lar UTC; bülten İstanbul saatine göre tarihlensin.
+ISTANBUL_TZ = ZoneInfo("Europe/Istanbul")
+TR_MONTHS = {
+    1: "Ocak", 2: "Şubat", 3: "Mart", 4: "Nisan", 5: "Mayıs", 6: "Haziran",
+    7: "Temmuz", 8: "Ağustos", 9: "Eylül", 10: "Ekim", 11: "Kasım", 12: "Aralık",
+}
+
+
+def now_ist() -> datetime:
+    return datetime.now(ISTANBUL_TZ)
 
 
 def load_feeds() -> list[dict]:
@@ -119,6 +131,9 @@ def load_feeds() -> list[dict]:
 
 
 def cosine_similarity(a: list[float], b: list[float]) -> float:
+    # Farklı boyut = farklı embedding modeli; kıyaslama anlamsız, benzer sayma.
+    if len(a) != len(b):
+        return 0.0
     dot = sum(x * y for x, y in zip(a, b))
     norm_a = sum(x * x for x in a) ** 0.5
     norm_b = sum(y * y for y in b) ** 0.5
@@ -217,7 +232,17 @@ class DataFetcher:
         for src in self.sources:
             self.logger.info(f"📡 Tarama: {src['name']}")
             try:
-                feed = feedparser.parse(src["url"])
+                # feedparser'ın kendi fetch'i timeout'suz; requests ile sınırla + gerçek UA
+                # (bazı feed'ler python-urllib UA'sını 403'ler).
+                resp = requests.get(
+                    src["url"],
+                    timeout=20,
+                    headers={"User-Agent": "Mozilla/5.0 (compatible; SovereignBio/1.0; +RSS)"},
+                )
+                if resp.status_code >= 400:
+                    self.logger.error(f"RSS HTTP {resp.status_code} ({src['name']}) — atlandı.")
+                    continue
+                feed = feedparser.parse(resp.content)
                 if feed.bozo:
                     self.logger.warning(f"{src['name']} feed uyarısı: {feed.bozo_exception}")
                 for entry in feed.entries[: self.max_entries]:
@@ -367,7 +392,8 @@ class Publisher:
         self.logger = logging.getLogger("Publisher")
 
     def render(self, items: list[dict]) -> str:
-        readable = datetime.now().strftime("%d %B %Y")
+        dt = now_ist()
+        readable = f"{dt.day} {TR_MONTHS[dt.month]} {dt.year}"
         lines = [
             f"# {NEWSLETTER_TITLE}",
             f"**Tarih:** {readable}",
@@ -392,7 +418,7 @@ class Publisher:
         if not items:
             return None, ""
         content = self.render(items)
-        timestamp = datetime.now().strftime("%Y-%m-%d_%H%M")
+        timestamp = now_ist().strftime("%Y-%m-%d_%H%M")
         path = os.path.join(OUTPUT_DIR, f"newsletter_{timestamp}.md")
         try:
             with open(path, "w", encoding="utf-8") as f:
