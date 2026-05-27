@@ -1,0 +1,42 @@
+name: Sovereign Bülten Cron
+
+on:
+  schedule:
+    # 05:00 ve 15:00 UTC = 08:00 ve 18:00 (İstanbul, UTC+3)
+    - cron: "0 5,15 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      RUN_MODE: once
+      LLM_PROVIDER: deepseek
+      DEEPSEEK_MODEL: deepseek-reasoner
+      GEMINI_MODEL: gemini-2.5-flash
+      EMBEDDING_PROVIDER: gemini
+      EMBEDDING_MODEL: gemini-embedding-001
+      DEDUP_THRESHOLD: "0.86"
+      MAX_ENTRIES_PER_FEED: "10"
+      DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Bağımlılıkları kur
+        run: pip install -r requirements.txt
+      - name: Bülteni üret
+        run: python main.py once
+      - name: Bülteni artifact olarak yükle
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: newsletter
+          path: outputs/*.md
+          if-no-files-found: ignore
