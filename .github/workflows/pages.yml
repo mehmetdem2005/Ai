@@ -1,0 +1,45 @@
+name: Web Arayüzü (GitHub Pages)
+
+# Supabase'den bültenleri çekip statik siteyi yayınlar. Hiçbir anahtar tarayıcıya
+# sızmaz; veri build sırasında gömülür (data.json, same-origin).
+on:
+  push:
+    branches: ["claude/project-setup-api-keys-4knYr"]
+    paths: ["web/**", ".github/workflows/pages.yml"]
+  schedule:
+    - cron: "30 5,15 * * *"   # bülten cron'undan ~30 dk sonra siteyi tazele
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install requests
+      - name: Siteyi derle (Supabase'den veri çek)
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: python web/build.py
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/dist
+      - id: deploy
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MedTech & AI Signal — Otonom Bülten</title>
+<meta name="description" content="Sağlık teknolojileri ve yapay zeka alanındaki sinyalleri filtreleyen otonom bülten." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Lora:ital@0;1&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0b0f14;
+    --bg-soft: #121822;
+    --panel: #151c27;
+    --panel-2: #1a2230;
+    --border: #243044;
+    --text: #e6edf6;
+    --muted: #8b9bb0;
+    --accent: #2dd4a7;
+    --accent-2: #36c6f0;
+    --radius: 14px;
+    --shadow: 0 8px 30px rgba(0,0,0,.35);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: radial-gradient(1200px 600px at 80% -10%, #14202e 0%, var(--bg) 55%) fixed;
+    color: var(--text);
+    font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.6;
+  }
+  a { color: var(--accent-2); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  header.top {
+    position: sticky; top: 0; z-index: 10;
+    backdrop-filter: blur(10px);
+    background: rgba(11,15,20,.7);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .brand { font-size: 26px; }
+  .titles h1 { font-size: 18px; margin: 0; font-weight: 800; letter-spacing: .2px; }
+  .titles p { margin: 2px 0 0; font-size: 12.5px; color: var(--muted); }
+  .spacer { flex: 1; }
+  .meta-pill {
+    font-size: 12px; color: var(--muted); border: 1px solid var(--border);
+    padding: 6px 12px; border-radius: 999px; background: var(--panel);
+  }
+  .gh { font-size: 13px; color: var(--muted); }
+
+  .layout {
+    display: grid; grid-template-columns: 320px 1fr; gap: 0;
+    max-width: 1180px; margin: 0 auto; min-height: calc(100vh - 65px);
+  }
+  aside {
+    border-right: 1px solid var(--border); padding: 20px 14px;
+  }
+  .aside-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); padding: 0 8px 10px; }
+  .nl-item {
+    display: block; width: 100%; text-align: left; cursor: pointer;
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 12px; padding: 13px 14px; margin-bottom: 10px;
+    color: var(--text); transition: .15s; font-family: inherit;
+  }
+  .nl-item:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .nl-item.active { border-color: var(--accent); background: var(--panel-2); box-shadow: var(--shadow); }
+  .nl-date { font-size: 14px; font-weight: 600; }
+  .nl-sub { font-size: 12px; color: var(--muted); margin-top: 3px; display: flex; gap: 8px; align-items: center; }
+  .badge { background: rgba(45,212,167,.12); color: var(--accent); border: 1px solid rgba(45,212,167,.3);
+           border-radius: 999px; padding: 1px 8px; font-size: 11px; font-weight: 600; }
+
+  main { padding: 28px 34px 60px; min-width: 0; }
+  .reader {
+    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 34px 38px; box-shadow: var(--shadow);
+  }
+  /* Markdown styling */
+  .reader h1 { font-size: 28px; line-height: 1.25; margin: 0 0 4px; font-weight: 800; }
+  .reader h2 { font-size: 20px; margin-top: 30px; }
+  .reader h3 { font-size: 17px; margin: 28px 0 6px; font-weight: 700; }
+  .reader p { color: #d4dde8; }
+  .reader strong { color: #fff; }
+  .reader hr { border: none; border-top: 1px solid var(--border); margin: 22px 0; }
+  .reader a { font-weight: 500; }
+  .reader blockquote {
+    margin: 10px 0 0; padding: 12px 18px;
+    border-left: 3px solid var(--accent);
+    background: linear-gradient(90deg, rgba(45,212,167,.08), transparent);
+    border-radius: 0 10px 10px 0; color: #cdd8e4;
+    font-family: "Lora", Georgia, serif; font-size: 15.5px;
+  }
+  .empty { text-align: center; color: var(--muted); padding: 80px 20px; }
+  .empty .big { font-size: 40px; margin-bottom: 10px; }
+
+  footer { text-align: center; color: var(--muted); font-size: 12.5px; padding: 24px; border-top: 1px solid var(--border); }
+
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; }
+    aside { border-right: none; border-bottom: 1px solid var(--border); }
+    main { padding: 18px; }
+    .reader { padding: 22px 18px; }
+  }
+</style>
+</head>
+<body>
+  <header class="top">
+    <div class="brand">🧬</div>
+    <div class="titles">
+      <h1>MedTech &amp; AI Signal</h1>
+      <p>Otonom yapay zeka mimarisiyle filtrelenmiş sinyaller</p>
+    </div>
+    <div class="spacer"></div>
+    <span class="meta-pill" id="updated">yükleniyor…</span>
+  </header>
+
+  <div class="layout">
+    <aside>
+      <div class="aside-label">Bültenler</div>
+      <div id="list"></div>
+    </aside>
+    <main>
+      <article class="reader" id="reader">
+        <div class="empty"><div class="big">📡</div>Bülten yükleniyor…</div>
+      </article>
+      <footer>
+        Otonom RSS → embedding dedup → LLM analizi · veri kaynağı Supabase ·
+        <a href="https://github.com/mehmetdem2005/Ai" target="_blank" rel="noopener">GitHub</a>
+      </footer>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
+  <script>
+    const TR_MONTHS = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+    const fmtDate = (iso) => {
+      const d = new Date(iso);
+      return `${d.getDate()} ${TR_MONTHS[d.getMonth()]} ${d.getFullYear()}, ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+    };
+    const render = (md) => DOMPurify.sanitize(marked.parse(md || ""));
+
+    async function load() {
+      let data = [];
+      try {
+        const res = await fetch("./data.json", { cache: "no-store" });
+        data = await res.json();
+      } catch (e) {
+        document.getElementById("reader").innerHTML =
+          '<div class="empty"><div class="big">⚠️</div>Veri yüklenemedi.</div>';
+        return;
+      }
+
+      const list = document.getElementById("list");
+      const reader = document.getElementById("reader");
+      const updated = document.getElementById("updated");
+
+      if (!data.length) {
+        updated.textContent = "henüz bülten yok";
+        list.innerHTML = '<div class="aside-label">Kayıt yok</div>';
+        reader.innerHTML = '<div class="empty"><div class="big">🗓️</div>Henüz bülten üretilmedi.<br>İlk cron çalışmasından sonra burada görünecek.</div>';
+        return;
+      }
+
+      updated.textContent = "Son güncelleme: " + fmtDate(data[0].created_at);
+
+      const select = (i) => {
+        reader.innerHTML = render(data[i].content);
+        [...list.children].forEach((c, idx) => c.classList.toggle("active", idx === i));
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      };
+
+      data.forEach((nl, i) => {
+        const btn = document.createElement("button");
+        btn.className = "nl-item";
+        btn.innerHTML =
+          `<div class="nl-date">${fmtDate(nl.created_at)}</div>` +
+          `<div class="nl-sub"><span class="badge">${nl.article_count ?? "?"} sinyal</span></div>`;
+        btn.onclick = () => select(i);
+        list.appendChild(btn);
+      });
+
+      select(0);
+    }
+    load();
+  </script>
+</body>
+</html>
