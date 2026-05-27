@@ -1,0 +1,10 @@
+# Presubmit lint config (Tricorder benzeri statik analiz).
+target-version = "py311"
+line-length = 120
+
+[lint]
+select = ["E", "F", "W", "B", "A", "C4", "SIM", "UP", "RET", "PIE"]
+# RUF001-003: Türkçe metinlerdeki "ı/ş/ğ" gibi karakterleri "belirsiz" sayar — bu
+#   Türkçe bir proje, false positive. TRY400/PERF203: handled-error/loop opinionated.
+# E501: uzun satırlar yalnızca Türkçe SYSTEM_PROMPT metin literalinde (içerik bozulmasın).
+ignore = ["RUF001", "RUF002", "RUF003", "TRY400", "PERF203", "E501"]

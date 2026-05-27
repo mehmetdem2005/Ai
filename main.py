@@ -113,6 +113,9 @@ Görev: Verilen haberi oku ve okuyucu kitlesi için NEDEN ÖNEMLİ olduğunu mak
 SYSTEM_PROMPT = os.getenv("SYSTEM_PROMPT") or DEFAULT_SYSTEM_PROMPT
 NEWSLETTER_TITLE = os.getenv("NEWSLETTER_TITLE", "🧬 MedTech & AI Signal")
 
+# Analizi başarısız olan maddeler kalıcılaştırılmaz; sonraki turda yeniden denenir.
+ANALYSIS_FAILED = "__ANALYSIS_FAILED__"
+
 # Runner'lar UTC; bülten İstanbul saatine göre tarihlensin.
 ISTANBUL_TZ = ZoneInfo("Europe/Istanbul")
 TR_MONTHS = {
@@ -143,7 +146,7 @@ def cosine_similarity(a: list[float], b: list[float]) -> float:
     # Farklı boyut = farklı embedding modeli; kıyaslama anlamsız, benzer sayma.
     if len(a) != len(b):
         return 0.0
-    dot = sum(x * y for x, y in zip(a, b))
+    dot = sum(x * y for x, y in zip(a, b, strict=True))
     norm_a = sum(x * x for x in a) ** 0.5
     norm_b = sum(y * y for y in b) ** 0.5
     if norm_a == 0 or norm_b == 0:
@@ -177,10 +180,11 @@ class DatabaseManager:
     def filter_new_hashes(self, hash_list: list[str]) -> set[str]:
         if not hash_list:
             return set()
+        # placeholders yalnızca "?,?,..."; değerler parametreyle geçer (enjeksiyon yok).
         placeholders = ",".join("?" for _ in hash_list)
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.execute(
-                f"SELECT id_hash FROM processed_items WHERE id_hash IN ({placeholders})",
+                f"SELECT id_hash FROM processed_items WHERE id_hash IN ({placeholders})",  # noqa: S608  # nosec B608
                 tuple(hash_list),
             )
             existing = {row[0] for row in cursor.fetchall()}
@@ -334,7 +338,7 @@ class SemanticDeduper:
         kept: list[dict] = []
         dropped: list[dict] = []
         reference_vectors = list(history_vectors)
-        for item, vec in zip(items, vectors):
+        for item, vec in zip(items, vectors, strict=True):
             if vec is None:
                 kept.append(item)  # embedding alınamadıysa elemeyelim
                 continue
@@ -396,7 +400,7 @@ class AIProcessor:
                 item["ai_insight"] = self._call_llm(prompt)
             except Exception as exc:
                 self.logger.error(f"Analiz hatası ({item['title'][:40]}): {exc}")
-                item["ai_insight"] = "Analiz yapılamadı."
+                item["ai_insight"] = ANALYSIS_FAILED
         return items
 
 
@@ -504,9 +508,12 @@ class SupabaseStore:
             self.logger.error(f"Supabase recent_embeddings bağlantı hatası: {exc}")
         return []
 
-    def save_articles(self, items: list[dict]) -> None:
-        if not self.is_active or not items:
-            return
+    def save_articles(self, items: list[dict]) -> bool:
+        """Başarılıysa True döner; bülten kaydı bu sonuca göre koşullanır."""
+        if not self.is_active:
+            return False
+        if not items:
+            return True
         rows = [
             {
                 "id_hash": i["hash"],
@@ -528,10 +535,12 @@ class SupabaseStore:
             )
             if resp.status_code >= 300:
                 self.logger.error(f"Supabase articles hatası {resp.status_code}: {resp.text[:200]}")
-            else:
-                self.logger.info(f"☁️ Supabase: {len(rows)} makale yazıldı.")
+                return False
+            self.logger.info(f"☁️ Supabase: {len(rows)} makale yazıldı.")
+            return True
         except requests.RequestException as exc:
             self.logger.error(f"Supabase articles bağlantı hatası: {exc}")
+            return False
 
     def save_newsletter(self, filename: str | None, content: str, article_count: int) -> None:
         if not self.is_active:
@@ -592,11 +601,29 @@ def run_pipeline() -> None:
         return
 
     analyzed = processor.process(kept)
-    path, content = publisher.publish(analyzed)
-    store.save_articles(analyzed + dropped)
-    store.save_newsletter(os.path.basename(path) if path else None, content, len(analyzed))
-    saved = db.save_items_batch(analyzed + dropped)
-    logger.info(f"✅ Döngü tamamlandı. {saved} kayıt yerel DB'ye, {len(analyzed + dropped)} makale Supabase'e ({len(dropped)} tekrar eleme).")
+    # Analizi başarısız olanları yayınlama/kalıcılaştırma — sonraki turda yeniden denensin.
+    ok = [i for i in analyzed if i.get("ai_insight") != ANALYSIS_FAILED]
+    failed = len(analyzed) - len(ok)
+    if failed:
+        logger.warning(f"⚠️ {failed} makale analiz edilemedi — kalıcılaştırılmadı, sonraki turda denenecek.")
+
+    if not ok:
+        logger.error("Hiçbir analiz başarılı olmadı — bülten üretilmedi.")
+        db.save_items_batch(dropped)
+        store.save_articles(dropped)
+        return
+
+    path, content = publisher.publish(ok)
+
+    # Bütünlük: bülten kaydını yalnızca makaleler kalıcılaştıysa yaz (yetim bülten olmasın).
+    persisted = ok + dropped
+    if store.save_articles(persisted) or not store.is_active:
+        store.save_newsletter(os.path.basename(path) if path else None, content, len(ok))
+    saved = db.save_items_batch(persisted)
+    logger.info(
+        f"✅ Döngü tamamlandı. {saved} kayıt yerel DB'ye, {len(persisted)} makale Supabase'e "
+        f"({len(dropped)} tekrar eleme, {failed} analiz hatası)."
+    )
 
 
 def main() -> None:

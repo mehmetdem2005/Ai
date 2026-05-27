@@ -1,0 +1,28 @@
+name: CI (presubmit)
+
+# Google tarzı presubmit: review/merge öncesi otomatik lint + güvenlik + test.
+on:
+  push:
+    branches: ["**"]
+  pull_request: {}
+  workflow_dispatch: {}
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Bağımlılıklar
+        run: |
+          pip install -r requirements.txt
+          pip install ruff==0.8.4 bandit==1.8.0 pytest==8.3.4
+      - name: Lint (ruff)
+        run: ruff check .
+      - name: Güvenlik (bandit)
+        run: bandit -q -r main.py
+      - name: Testler (pytest)
+        run: pytest -q
