@@ -26,8 +26,14 @@ import feedparser
 from bs4 import BeautifulSoup
 import schedule
 from dotenv import load_dotenv
-from openai import OpenAI
-from tenacity import retry, wait_exponential, stop_after_attempt
+from openai import (
+    OpenAI,
+    APIConnectionError,
+    APITimeoutError,
+    InternalServerError,
+    RateLimitError,
+)
+from tenacity import retry, wait_exponential, stop_after_attempt, retry_if_exception_type
 
 # ==========================================
 # 1. ORTAM VE LOGLAMA
@@ -56,6 +62,9 @@ logging.basicConfig(
 logger = logging.getLogger("SovereignBio")
 
 GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
+
+# Sadece geçici hatalarda yeniden dene; 401/400/404 gibi kalıcı hatalarda anında bırak.
+TRANSIENT_LLM_ERRORS = (RateLimitError, APITimeoutError, APIConnectionError, InternalServerError)
 
 # Metin üretimi sağlayıcıları (hepsi OpenAI-uyumlu endpoint)
 LLM_PROVIDERS = {
@@ -358,7 +367,11 @@ class AIProcessor:
         if not self.is_active:
             self.logger.warning(f"⚠️ {cfg['key_env']} yok — mock modunda.")
 
-    @retry(wait=wait_exponential(multiplier=2, min=2, max=10), stop=stop_after_attempt(3))
+    @retry(
+        retry=retry_if_exception_type(TRANSIENT_LLM_ERRORS),
+        wait=wait_exponential(multiplier=2, min=2, max=10),
+        stop=stop_after_attempt(3),
+    )
     def _call_llm(self, prompt: str) -> str:
         if not self.is_active:
             return "[MOCK] API key yok. Bu bir taslak (mock) analist notudur."
