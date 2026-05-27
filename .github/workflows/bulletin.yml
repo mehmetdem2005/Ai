@@ -15,8 +15,8 @@ jobs:
       LLM_PROVIDER: deepseek
       DEEPSEEK_MODEL: deepseek-reasoner
       GEMINI_MODEL: gemini-2.5-flash
-      EMBEDDING_PROVIDER: gemini
-      EMBEDDING_MODEL: gemini-embedding-001
+      EMBEDDING_PROVIDER: openai
+      EMBEDDING_MODEL: text-embedding-3-small
       DEDUP_THRESHOLD: "0.86"
       MAX_ENTRIES_PER_FEED: "10"
       DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
