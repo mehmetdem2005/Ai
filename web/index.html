@@ -2,136 +2,155 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>MedTech & AI Signal — Otonom Bülten</title>
-<meta name="description" content="Sağlık teknolojileri ve yapay zeka alanındaki sinyalleri filtreleyen otonom bülten." />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0e9f6e" />
+<title>Sağlık Teknolojisi & Yapay Zeka Sinyali</title>
+<meta name="description" content="Sağlık teknolojisi ve yapay zeka alanındaki sinyalleri filtreleyen otonom Türkçe bülten." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Lora:ital@0;1&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
 <style>
   :root {
-    --bg: #0b0f14;
-    --bg-soft: #121822;
-    --panel: #151c27;
-    --panel-2: #1a2230;
-    --border: #243044;
-    --text: #e6edf6;
-    --muted: #8b9bb0;
-    --accent: #2dd4a7;
-    --accent-2: #36c6f0;
+    --bg: #f4f5f7;
+    --surface: #ffffff;
+    --text: #1a1f29;
+    --muted: #667085;
+    --border: #e7e9ee;
+    --accent: #0e9f6e;
+    --accent-soft: #e8f7f0;
+    --shadow: 0 1px 3px rgba(16,24,40,.06), 0 6px 20px rgba(16,24,40,.06);
     --radius: 14px;
-    --shadow: 0 8px 30px rgba(0,0,0,.35);
   }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; height: 100%; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; }
   body {
-    background: radial-gradient(1200px 600px at 80% -10%, #14202e 0%, var(--bg) 55%) fixed;
-    color: var(--text);
-    font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    line-height: 1.6;
+    background: var(--bg); color: var(--text);
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased; line-height: 1.62;
   }
-  a { color: var(--accent-2); text-decoration: none; }
+  a { color: var(--accent); text-decoration: none; }
   a:hover { text-decoration: underline; }
 
-  header.top {
-    position: sticky; top: 0; z-index: 10;
-    backdrop-filter: blur(10px);
-    background: rgba(11,15,20,.7);
-    border-bottom: 1px solid var(--border);
-    padding: 16px 24px;
-    display: flex; align-items: center; gap: 14px;
+  /* ---------- App bar ---------- */
+  .appbar {
+    position: sticky; top: 0; z-index: 20;
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 16px; padding-top: calc(12px + env(safe-area-inset-top));
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    box-shadow: 0 1px 0 rgba(16,24,40,.02);
   }
-  .brand { font-size: 26px; }
-  .titles h1 { font-size: 18px; margin: 0; font-weight: 800; letter-spacing: .2px; }
-  .titles p { margin: 2px 0 0; font-size: 12.5px; color: var(--muted); }
-  .spacer { flex: 1; }
-  .meta-pill {
-    font-size: 12px; color: var(--muted); border: 1px solid var(--border);
-    padding: 6px 12px; border-radius: 999px; background: var(--panel);
+  .brand { font-size: 22px; line-height: 1; }
+  .appbar .title { font-size: 15.5px; font-weight: 800; letter-spacing: .1px; min-width: 0;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .appbar .spacer { flex: 1; }
+  .iconbtn {
+    appearance: none; border: 1px solid var(--border); background: var(--surface);
+    color: var(--text); border-radius: 10px; padding: 8px 12px; font-size: 13.5px;
+    font-weight: 600; cursor: pointer; font-family: inherit; display: inline-flex;
+    align-items: center; gap: 6px; white-space: nowrap;
   }
-  .gh { font-size: 13px; color: var(--muted); }
+  .iconbtn:active { transform: scale(.97); }
+  .iconbtn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  #backBtn { display: none; }
+  .reader-actions { display: none; gap: 8px; }
 
-  .layout {
-    display: grid; grid-template-columns: 320px 1fr; gap: 0;
-    max-width: 1180px; margin: 0 auto; min-height: calc(100vh - 65px);
-  }
-  aside {
-    border-right: 1px solid var(--border); padding: 20px 14px;
-  }
-  .aside-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--muted); padding: 0 8px 10px; }
-  .nl-item {
-    display: block; width: 100%; text-align: left; cursor: pointer;
-    background: var(--panel); border: 1px solid var(--border);
-    border-radius: 12px; padding: 13px 14px; margin-bottom: 10px;
-    color: var(--text); transition: .15s; font-family: inherit;
-  }
-  .nl-item:hover { border-color: var(--accent); transform: translateY(-1px); }
-  .nl-item.active { border-color: var(--accent); background: var(--panel-2); box-shadow: var(--shadow); }
-  .nl-date { font-size: 14px; font-weight: 600; }
-  .nl-sub { font-size: 12px; color: var(--muted); margin-top: 3px; display: flex; gap: 8px; align-items: center; }
-  .badge { background: rgba(45,212,167,.12); color: var(--accent); border: 1px solid rgba(45,212,167,.3);
-           border-radius: 999px; padding: 1px 8px; font-size: 11px; font-weight: 600; }
+  /* ---------- Layout ---------- */
+  .wrap { max-width: 1100px; margin: 0 auto; }
+  .updated { padding: 10px 16px 0; color: var(--muted); font-size: 12.5px; }
 
-  main { padding: 28px 34px 60px; min-width: 0; }
+  aside { padding: 12px 12px 28px; }
+  .list-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.4px;
+    color: var(--muted); padding: 8px 6px; }
+  .card {
+    display: block; width: 100%; text-align: left; cursor: pointer; font-family: inherit;
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px; margin-bottom: 12px; color: var(--text); box-shadow: var(--shadow);
+    transition: transform .12s, border-color .12s;
+  }
+  .card:active { transform: scale(.99); }
+  .card.active { border-color: var(--accent); }
+  .card .date { font-size: 15.5px; font-weight: 700; }
+  .card .meta { margin-top: 6px; display: flex; align-items: center; gap: 8px; }
+  .badge { background: var(--accent-soft); color: var(--accent); border-radius: 999px;
+    padding: 2px 10px; font-size: 12px; font-weight: 700; }
+  .chev { color: var(--muted); margin-left: auto; font-size: 18px; }
+
+  main { padding: 0 12px 40px; min-width: 0; }
   .reader {
-    background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 34px 38px; box-shadow: var(--shadow);
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 22px 20px 30px; box-shadow: var(--shadow);
   }
-  /* Markdown styling */
-  .reader h1 { font-size: 28px; line-height: 1.25; margin: 0 0 4px; font-weight: 800; }
-  .reader h2 { font-size: 20px; margin-top: 30px; }
-  .reader h3 { font-size: 17px; margin: 28px 0 6px; font-weight: 700; }
-  .reader p { color: #d4dde8; }
-  .reader strong { color: #fff; }
-  .reader hr { border: none; border-top: 1px solid var(--border); margin: 22px 0; }
-  .reader a { font-weight: 500; }
+  /* Markdown */
+  .reader h1 { font-size: 22px; line-height: 1.3; margin: 4px 0 6px; font-weight: 800; }
+  .reader h3 { font-size: 17px; margin: 26px 0 6px; font-weight: 700; line-height: 1.35; }
+  .reader p { color: #2b3240; font-size: 16px; }
+  .reader strong { color: #111; }
+  .reader hr { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
   .reader blockquote {
-    margin: 10px 0 0; padding: 12px 18px;
-    border-left: 3px solid var(--accent);
-    background: linear-gradient(90deg, rgba(45,212,167,.08), transparent);
-    border-radius: 0 10px 10px 0; color: #cdd8e4;
-    font-family: "Lora", Georgia, serif; font-size: 15.5px;
+    margin: 8px 0 0; padding: 12px 16px; border-left: 4px solid var(--accent);
+    background: var(--accent-soft); border-radius: 0 10px 10px 0; color: #234; font-size: 15.5px;
   }
-  .empty { text-align: center; color: var(--muted); padding: 80px 20px; }
-  .empty .big { font-size: 40px; margin-bottom: 10px; }
+  .empty { text-align: center; color: var(--muted); padding: 64px 18px; }
+  .empty .big { font-size: 38px; margin-bottom: 8px; }
+  footer { text-align: center; color: var(--muted); font-size: 12px; padding: 22px 16px 30px; }
 
-  footer { text-align: center; color: var(--muted); font-size: 12.5px; padding: 24px; border-top: 1px solid var(--border); }
+  /* ---------- Mobile (default): tek sütun, liste↔okuma geçişi ---------- */
+  main { display: none; }
+  body.reading aside { display: none; }
+  body.reading main { display: block; }
+  body.reading #backBtn { display: inline-flex; }
+  body.reading .reader-actions { display: flex; }
+  body.reading .appbar .title { display: none; }
 
-  @media (max-width: 860px) {
-    .layout { grid-template-columns: 1fr; }
-    aside { border-right: none; border-bottom: 1px solid var(--border); }
-    main { padding: 18px; }
-    .reader { padding: 22px 18px; }
+  /* ---------- Masaüstü: iki sütun, her zaman görünür ---------- */
+  @media (min-width: 900px) {
+    .wrap.cols { display: grid; grid-template-columns: 340px 1fr; gap: 0; align-items: start; }
+    aside { border-right: 1px solid var(--border); min-height: calc(100vh - 110px); }
+    main { display: block !important; padding: 16px 22px 40px; }
+    #backBtn { display: none !important; }
+    .reader-actions { display: flex !important; }
+    .appbar .title { display: block !important; }
+    body.reading aside { display: block; }
+  }
+
+  @media print {
+    .appbar, aside, footer, .updated { display: none !important; }
+    main { display: block !important; padding: 0; }
+    .reader { border: none; box-shadow: none; padding: 0; }
+    body { background: #fff; }
   }
 </style>
 </head>
 <body>
-  <header class="top">
-    <div class="brand">🧬</div>
-    <div class="titles">
-      <h1>MedTech &amp; AI Signal</h1>
-      <p>Otonom yapay zeka mimarisiyle filtrelenmiş sinyaller</p>
-    </div>
-    <div class="spacer"></div>
-    <span class="meta-pill" id="updated">yükleniyor…</span>
-  </header>
+  <div class="appbar">
+    <button class="iconbtn" id="backBtn" aria-label="Geri">← Geri</button>
+    <span class="brand">🧬</span>
+    <span class="title">Sağlık Teknolojisi &amp; YZ Sinyali</span>
+    <span class="spacer"></span>
+    <span class="reader-actions">
+      <button class="iconbtn" id="printBtn">🖨️ PDF</button>
+      <button class="iconbtn primary" id="dlBtn">⬇️ İndir</button>
+    </span>
+  </div>
 
-  <div class="layout">
+  <div class="updated" id="updated">yükleniyor…</div>
+
+  <div class="wrap" id="wrap">
     <aside>
-      <div class="aside-label">Bültenler</div>
+      <div class="list-label">Bültenler</div>
       <div id="list"></div>
     </aside>
     <main>
       <article class="reader" id="reader">
         <div class="empty"><div class="big">📡</div>Bülten yükleniyor…</div>
       </article>
-      <footer>
-        Otonom RSS → embedding dedup → LLM analizi · veri kaynağı Supabase ·
-        <a href="https://github.com/mehmetdem2005/Ai" target="_blank" rel="noopener">GitHub</a>
-      </footer>
     </main>
   </div>
+
+  <footer>
+    Otonom RSS → benzerlik tekilleştirme → yapay zeka analizi ·
+    <a href="https://github.com/mehmetdem2005/Ai" target="_blank" rel="noopener">GitHub</a>
+  </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
@@ -142,48 +161,61 @@
       return `${d.getDate()} ${TR_MONTHS[d.getMonth()]} ${d.getFullYear()}, ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
     };
     const render = (md) => DOMPurify.sanitize(marked.parse(md || ""));
+    let data = [], current = 0;
+
+    function show(i) {
+      current = i;
+      document.getElementById("reader").innerHTML = render(data[i].content);
+      [...document.querySelectorAll(".card")].forEach((c, idx) => c.classList.toggle("active", idx === i));
+      document.body.classList.add("reading");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    function back() { document.body.classList.remove("reading"); window.scrollTo({ top: 0 }); }
+    function download() {
+      const nl = data[current];
+      const blob = new Blob([nl.content], { type: "text/markdown;charset=utf-8" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `bulten_${nl.created_at.slice(0,10)}.md`;
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(a.href);
+    }
+
+    document.getElementById("backBtn").onclick = back;
+    document.getElementById("dlBtn").onclick = download;
+    document.getElementById("printBtn").onclick = () => window.print();
 
     async function load() {
-      let data = [];
       try {
         const res = await fetch("./data.json", { cache: "no-store" });
         data = await res.json();
       } catch (e) {
-        document.getElementById("reader").innerHTML =
-          '<div class="empty"><div class="big">⚠️</div>Veri yüklenemedi.</div>';
+        document.getElementById("reader").innerHTML = '<div class="empty"><div class="big">⚠️</div>Veri yüklenemedi.</div>';
         return;
       }
-
       const list = document.getElementById("list");
-      const reader = document.getElementById("reader");
       const updated = document.getElementById("updated");
 
       if (!data.length) {
         updated.textContent = "henüz bülten yok";
-        list.innerHTML = '<div class="aside-label">Kayıt yok</div>';
-        reader.innerHTML = '<div class="empty"><div class="big">🗓️</div>Henüz bülten üretilmedi.<br>İlk cron çalışmasından sonra burada görünecek.</div>';
+        document.getElementById("reader").innerHTML = '<div class="empty"><div class="big">🗓️</div>Henüz bülten üretilmedi.</div>';
         return;
       }
-
       updated.textContent = "Son güncelleme: " + fmtDate(data[0].created_at);
-
-      const select = (i) => {
-        reader.innerHTML = render(data[i].content);
-        [...list.children].forEach((c, idx) => c.classList.toggle("active", idx === i));
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      };
+      document.getElementById("wrap").classList.add("cols");
 
       data.forEach((nl, i) => {
         const btn = document.createElement("button");
-        btn.className = "nl-item";
+        btn.className = "card";
         btn.innerHTML =
-          `<div class="nl-date">${fmtDate(nl.created_at)}</div>` +
-          `<div class="nl-sub"><span class="badge">${nl.article_count ?? "?"} sinyal</span></div>`;
-        btn.onclick = () => select(i);
+          `<div class="date">${fmtDate(nl.created_at)}</div>` +
+          `<div class="meta"><span class="badge">${nl.article_count ?? "?"} sinyal</span><span class="chev">›</span></div>`;
+        btn.onclick = () => show(i);
         list.appendChild(btn);
       });
 
-      select(0);
+      // Masaüstünde ilk bülteni otomatik aç (mobilde liste önce görünsün)
+      if (window.matchMedia("(min-width: 900px)").matches) show(0);
     }
     load();
   </script>

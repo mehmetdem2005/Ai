@@ -12,6 +12,7 @@ Yasal: sadece public RSS, sıfır cold mail.
 """
 
 import os
+import re
 import sys
 import json
 import time
@@ -111,7 +112,7 @@ Görev: Verilen haberi oku ve okuyucu kitlesi için NEDEN ÖNEMLİ olduğunu mak
 - Dil: Resmi, veri odaklı, net ve profesyonel (Türkçe)."""
 
 SYSTEM_PROMPT = os.getenv("SYSTEM_PROMPT") or DEFAULT_SYSTEM_PROMPT
-NEWSLETTER_TITLE = os.getenv("NEWSLETTER_TITLE", "🧬 MedTech & AI Signal")
+NEWSLETTER_TITLE = os.getenv("NEWSLETTER_TITLE", "🧬 Sağlık Teknolojisi & Yapay Zeka Sinyali")
 
 # Analizi başarısız olan maddeler kalıcılaştırılmaz; sonraki turda yeniden denenir.
 ANALYSIS_FAILED = "__ANALYSIS_FAILED__"
@@ -389,15 +390,31 @@ class AIProcessor:
         )
         return (response.choices[0].message.content or "").strip()
 
+    @staticmethod
+    def _parse(raw: str, fallback_title: str) -> tuple[str, str]:
+        """LLM çıktısından (BAŞLIK:/ANALİZ:) Türkçe başlık ve analizi ayıkla."""
+        title_match = re.search(r"ba[şs]l[ıi]k\s*:\s*(.+)", raw, re.IGNORECASE)
+        analiz_match = re.search(r"anal[iıİ]z\s*:\s*(.+)", raw, re.IGNORECASE | re.DOTALL)
+        title_tr = title_match.group(1).splitlines()[0].strip() if title_match else fallback_title
+        analiz = analiz_match.group(1).strip() if analiz_match else raw.strip()
+        return title_tr or fallback_title, analiz
+
     def process(self, items: list[dict]) -> list[dict]:
         if not items:
             return []
         mode = f"{self.provider}/{self.model}" if self.is_active else "mock"
         self.logger.info(f"🧠 {len(items)} makale {mode} ile analiz ediliyor...")
         for item in items:
-            prompt = f"Başlık: {item['title']}\nÖzet: {item['summary']}"
+            prompt = (
+                f"Haber başlığı: {item['title']}\n"
+                f"Özet: {item['summary']}\n\n"
+                "Yanıtını TAM olarak şu iki satır formatında ver, başka açıklama ekleme:\n"
+                "BAŞLIK: <haber başlığının akıcı, doğal Türkçe çevirisi>\n"
+                "ANALİZ: <okuyucu için neden önemli, en fazla 3 cümle>"
+            )
             try:
-                item["ai_insight"] = self._call_llm(prompt)
+                raw = self._call_llm(prompt)
+                item["title_tr"], item["ai_insight"] = self._parse(raw, item["title"])
             except Exception as exc:
                 self.logger.error(f"Analiz hatası ({item['title'][:40]}): {exc}")
                 item["ai_insight"] = ANALYSIS_FAILED
@@ -422,7 +439,8 @@ class Publisher:
             "",
         ]
         for idx, item in enumerate(items, 1):
-            lines.append(f"### {idx}. [{item['title']}]({item['link']})")
+            heading = item.get("title_tr") or item["title"]
+            lines.append(f"### {idx}. [{heading}]({item['link']})")
             lines.append(f"**Kaynak:** {item['source']}")
             lines.append("")
             lines.append(f"💡 **Analist Sinyali:**\n> {item['ai_insight']}")
