@@ -12,6 +12,7 @@ Yasal: sadece public RSS, sıfır cold mail.
 """
 
 import os
+import sys
 import json
 import time
 import logging
@@ -199,9 +200,8 @@ class DatabaseManager:
 
 
 class DataFetcher:
-    def __init__(self, sources: list[dict], db: DatabaseManager) -> None:
+    def __init__(self, sources: list[dict]) -> None:
         self.sources = sources
-        self.db = db
         self.max_entries = int(os.getenv("MAX_ENTRIES_PER_FEED", "10"))
         self.logger = logging.getLogger("Fetcher")
 
@@ -245,16 +245,8 @@ class DataFetcher:
             except Exception as exc:
                 self.logger.error(f"RSS hatası ({src['name']}): {exc}")
 
-        if not all_entries:
-            return []
-
-        # Tek sorguluk DB dedup (N+1 problemi yok)
-        new_hashes = self.db.filter_new_hashes([item["hash"] for item in all_entries])
-        new_items = [item for item in all_entries if item["hash"] in new_hashes]
-        self.logger.info(
-            f"📊 {len(all_entries)} makale tarandı, {len(new_items)} yeni makale."
-        )
-        return new_items
+        self.logger.info(f"📊 {len(all_entries)} aday makale tarandı (batch dedup sonrası).")
+        return all_entries
 
 
 class SemanticDeduper:
@@ -433,10 +425,50 @@ class SupabaseStore:
             headers["Prefer"] = "resolution=merge-duplicates"
         return headers
 
-    def save(self, items: list[dict], filename: str | None, content: str) -> None:
+    def existing_hashes(self, hashes: list[str]) -> set[str]:
+        """Verilen hash'lerden Supabase'de zaten kayıtlı olanları döner (kalıcı dedup)."""
+        if not self.is_active or not hashes:
+            return set()
+        found: set[str] = set()
+        # URL uzunluk sınırı için 100'lük gruplar
+        for i in range(0, len(hashes), 100):
+            chunk = hashes[i : i + 100]
+            in_list = ",".join(chunk)
+            try:
+                resp = requests.get(
+                    f"{self.url}/rest/v1/articles?select=id_hash&id_hash=in.({in_list})",
+                    headers=self._headers(),
+                    timeout=30,
+                )
+                if resp.status_code < 300:
+                    found.update(row["id_hash"] for row in resp.json())
+                else:
+                    self.logger.error(f"Supabase existing_hashes hatası {resp.status_code}: {resp.text[:200]}")
+            except requests.RequestException as exc:
+                self.logger.error(f"Supabase existing_hashes bağlantı hatası: {exc}")
+        return found
+
+    def recent_embeddings(self, limit: int = 500) -> list[list[float]]:
+        if not self.is_active:
+            return []
+        try:
+            resp = requests.get(
+                f"{self.url}/rest/v1/articles"
+                f"?select=embedding&embedding=not.is.null&order=processed_at.desc&limit={limit}",
+                headers=self._headers(),
+                timeout=30,
+            )
+            if resp.status_code < 300:
+                return [row["embedding"] for row in resp.json() if row.get("embedding")]
+            self.logger.error(f"Supabase recent_embeddings hatası {resp.status_code}: {resp.text[:200]}")
+        except requests.RequestException as exc:
+            self.logger.error(f"Supabase recent_embeddings bağlantı hatası: {exc}")
+        return []
+
+    def save_articles(self, items: list[dict]) -> None:
         if not self.is_active or not items:
             return
-        article_rows = [
+        rows = [
             {
                 "id_hash": i["hash"],
                 "title": i["title"],
@@ -452,24 +484,30 @@ class SupabaseStore:
             resp = requests.post(
                 f"{self.url}/rest/v1/articles?on_conflict=id_hash",
                 headers=self._headers(upsert=True),
-                json=article_rows,
+                json=rows,
                 timeout=30,
             )
             if resp.status_code >= 300:
                 self.logger.error(f"Supabase articles hatası {resp.status_code}: {resp.text[:200]}")
             else:
-                self.logger.info(f"☁️ Supabase: {len(article_rows)} makale yazıldı.")
+                self.logger.info(f"☁️ Supabase: {len(rows)} makale yazıldı.")
+        except requests.RequestException as exc:
+            self.logger.error(f"Supabase articles bağlantı hatası: {exc}")
 
-            resp2 = requests.post(
+    def save_newsletter(self, filename: str | None, content: str, article_count: int) -> None:
+        if not self.is_active:
+            return
+        try:
+            resp = requests.post(
                 f"{self.url}/rest/v1/newsletters",
                 headers=self._headers(),
-                json={"filename": filename, "content": content, "article_count": len(items)},
+                json={"filename": filename, "content": content, "article_count": article_count},
                 timeout=30,
             )
-            if resp2.status_code >= 300:
-                self.logger.error(f"Supabase newsletters hatası {resp2.status_code}: {resp2.text[:200]}")
+            if resp.status_code >= 300:
+                self.logger.error(f"Supabase newsletters hatası {resp.status_code}: {resp.text[:200]}")
         except requests.RequestException as exc:
-            self.logger.error(f"Supabase bağlantı hatası: {exc}")
+            self.logger.error(f"Supabase newsletters bağlantı hatası: {exc}")
 
 
 # ==========================================
@@ -481,31 +519,53 @@ def run_pipeline() -> None:
     logger.info("=" * 60)
 
     db = DatabaseManager(os.path.join(DB_DIR, "data_warehouse.sqlite"))
-    fetcher = DataFetcher(load_feeds(), db)
+    fetcher = DataFetcher(load_feeds())
     deduper = SemanticDeduper()
     processor = AIProcessor()
     publisher = Publisher()
     store = SupabaseStore()
 
-    new_data = fetcher.fetch()
+    candidates = fetcher.fetch()
+    if not candidates:
+        logger.info("ℹ️ Hiç içerik bulunamadı.")
+        return
+
+    # Kalıcı dedup kaynağı: Supabase aktifse o (cron container'ları geçici), yoksa SQLite.
+    hashes = [c["hash"] for c in candidates]
+    if store.is_active:
+        existing = store.existing_hashes(hashes)
+        history = store.recent_embeddings()
+    else:
+        existing = set(hashes) - db.filter_new_hashes(hashes)
+        history = db.get_recent_embeddings()
+
+    new_data = [c for c in candidates if c["hash"] not in existing]
+    logger.info(f"🔎 {len(new_data)} yeni makale ({len(existing)} zaten kayıtlı).")
     if not new_data:
         logger.info("ℹ️ Yeni sinyal bulunamadı.")
         return
 
-    kept, dropped = deduper.deduplicate(new_data, db.get_recent_embeddings())
+    kept, dropped = deduper.deduplicate(new_data, history)
     if not kept:
         logger.info("ℹ️ Tüm yeni içerikler mevcutlara benzer — bülten üretilmedi.")
         db.save_items_batch(dropped)  # tekrar taranmasınlar
+        store.save_articles(dropped)
         return
 
     analyzed = processor.process(kept)
     path, content = publisher.publish(analyzed)
-    store.save(analyzed, os.path.basename(path) if path else None, content)
+    store.save_articles(analyzed + dropped)
+    store.save_newsletter(os.path.basename(path) if path else None, content, len(analyzed))
     saved = db.save_items_batch(analyzed + dropped)
-    logger.info(f"✅ Döngü tamamlandı. {saved} kayıt DB'ye yazıldı ({len(dropped)} tekrar eleme).")
+    logger.info(f"✅ Döngü tamamlandı. {saved} kayıt yerel DB'ye, {len(analyzed + dropped)} makale Supabase'e ({len(dropped)} tekrar eleme).")
 
 
 def main() -> None:
+    # Tek-sefer modu (Render Cron Job / manuel batch): bir döngü çalıştır ve çık.
+    if os.getenv("RUN_MODE", "").lower() == "once" or "once" in sys.argv[1:]:
+        run_pipeline()
+        return
+
     # İlk batch hemen — sistemin çalıştığını anında doğrula
     run_pipeline()
 

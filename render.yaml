@@ -1,0 +1,40 @@
+# Render Blueprint — Sovereign Bülten Motoru (Cron Job)
+# Günde 2 kez çalışır: 05:00 ve 15:00 UTC = 08:00 ve 18:00 (İstanbul, UTC+3).
+# Secret'lar (sync: false) Render Dashboard'da elle girilir; bu dosyaya yazılmaz.
+services:
+  - type: cron
+    name: sovereign-bulletin
+    runtime: python
+    region: frankfurt
+    schedule: "0 5,15 * * *"
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py once
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.15"
+      - key: RUN_MODE
+        value: once
+      - key: LLM_PROVIDER
+        value: deepseek
+      - key: DEEPSEEK_MODEL
+        value: deepseek-reasoner
+      - key: GEMINI_MODEL
+        value: gemini-2.5-flash
+      - key: EMBEDDING_PROVIDER
+        value: gemini
+      - key: EMBEDDING_MODEL
+        value: gemini-embedding-001
+      - key: DEDUP_THRESHOLD
+        value: "0.86"
+      - key: MAX_ENTRIES_PER_FEED
+        value: "10"
+      - key: DEEPSEEK_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
