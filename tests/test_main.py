@@ -19,7 +19,9 @@ def test_cosine_zero_vector():
     assert main.cosine_similarity([0.0, 0.0], [1.0, 1.0]) == 0.0
 
 
-def test_load_feeds_returns_nonempty_list():
+def test_load_feeds_returns_nonempty_list(monkeypatch):
+    # Supabase'i devre dışı bırak → feeds.json/varsayılan yolunu hermetik test et.
+    monkeypatch.setattr(main, "_feeds_from_supabase", lambda: None)
     feeds = main.load_feeds()
     assert isinstance(feeds, list) and feeds
     assert all("name" in f and "url" in f for f in feeds)

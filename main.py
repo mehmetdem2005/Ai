@@ -129,7 +129,32 @@ def now_ist() -> datetime:
     return datetime.now(ISTANBUL_TZ)
 
 
+def _feeds_from_supabase() -> list[dict] | None:
+    """Yönetim arayüzünden eklenen kaynaklar Supabase 'feeds' tablosunda tutulur."""
+    url = os.getenv("SUPABASE_URL", "").rstrip("/")
+    key = os.getenv("SUPABASE_KEY", "")
+    if not (url and key):
+        return None
+    try:
+        resp = requests.get(
+            f"{url}/rest/v1/feeds?select=name,url&active=eq.true&order=created_at",
+            headers={"apikey": key, "Authorization": f"Bearer {key}"},
+            timeout=20,
+        )
+        if resp.status_code < 300:
+            rows = [{"name": r["name"], "url": r["url"]} for r in resp.json() if r.get("url")]
+            return rows or None
+        logger.warning(f"Supabase feeds okunamadı ({resp.status_code}) — feeds.json'a düşülüyor.")
+    except requests.RequestException as exc:
+        logger.warning(f"Supabase feeds bağlantı hatası ({exc}) — feeds.json'a düşülüyor.")
+    return None
+
+
 def load_feeds() -> list[dict]:
+    # Öncelik: Supabase (arayüzden yönetilir) → feeds.json → yerleşik varsayılanlar.
+    supabase_feeds = _feeds_from_supabase()
+    if supabase_feeds:
+        return supabase_feeds
     path = os.path.join(BASE_DIR, "feeds.json")
     if os.path.exists(path):
         try:

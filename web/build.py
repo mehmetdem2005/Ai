@@ -25,5 +25,6 @@ resp.raise_for_status()
 rows = resp.json()
 
 (DIST / "data.json").write_text(json.dumps(rows, ensure_ascii=False), encoding="utf-8")
-(DIST / "index.html").write_text((HERE / "index.html").read_text(encoding="utf-8"), encoding="utf-8")
-print(f"{len(rows)} bülten dist/ içine yazıldı.")
+for static_file in ("index.html", "yonetim.html", "admin.js"):
+    (DIST / static_file).write_text((HERE / static_file).read_text(encoding="utf-8"), encoding="utf-8")
+print(f"{len(rows)} bülten + statik dosyalar dist/ içine yazıldı.")

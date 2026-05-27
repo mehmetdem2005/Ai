@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0e9f6e" />
+<meta name="robots" content="noindex" />
+<title>Kaynak Yönetimi — Sağlık Teknolojisi & YZ Sinyali</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root { --bg:#f4f5f7; --surface:#fff; --text:#1a1f29; --muted:#667085; --border:#e7e9ee;
+          --accent:#0e9f6e; --accent-soft:#e8f7f0; --danger:#d92d20; --radius:14px;
+          --shadow:0 1px 3px rgba(16,24,40,.06),0 6px 20px rgba(16,24,40,.06); }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:"Inter",system-ui,-apple-system,sans-serif;line-height:1.6;}
+  a{color:var(--accent);text-decoration:none;}
+  .appbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px;
+    padding:12px 16px;padding-top:calc(12px + env(safe-area-inset-top));
+    background:var(--surface);border-bottom:1px solid var(--border);}
+  .appbar .brand{font-size:22px;} .appbar .title{font-weight:800;font-size:15.5px;}
+  .appbar .spacer{flex:1;}
+  .wrap{max-width:720px;margin:0 auto;padding:18px 14px 60px;}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:18px;margin-bottom:16px;}
+  h2{font-size:16px;margin:0 0 12px;}
+  label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin:10px 0 4px;}
+  input{width:100%;padding:12px 14px;border:1px solid var(--border);border-radius:10px;
+    font-size:16px;font-family:inherit;background:#fff;color:var(--text);}
+  input:focus{outline:2px solid var(--accent-soft);border-color:var(--accent);}
+  button{appearance:none;border:1px solid var(--border);background:var(--surface);color:var(--text);
+    border-radius:10px;padding:11px 16px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;}
+  button:active{transform:scale(.98);}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff;width:100%;margin-top:14px;padding:13px;}
+  .row{display:flex;gap:10px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--border);}
+  .row:last-child{border-bottom:none;}
+  .row-main{flex:1;min-width:0;} .row-name{font-weight:600;} .row-url{font-size:12.5px;color:var(--muted);word-break:break-all;}
+  .row-actions{display:flex;gap:6px;flex-shrink:0;}
+  .row-actions button{padding:7px 10px;font-size:12.5px;}
+  .row-actions .del{color:var(--danger);border-color:#f3c4c0;}
+  .off{color:var(--danger);font-size:12px;font-weight:600;}
+  .muted{color:var(--muted);font-size:13.5px;}
+  .status{margin-top:12px;font-size:13.5px;padding:10px 12px;border-radius:10px;display:none;}
+  .status.ok{display:block;background:var(--accent-soft);color:#0a7a55;}
+  .status.err{display:block;background:#fde7e6;color:var(--danger);}
+  .status.info{display:block;background:#eef1f5;color:var(--muted);}
+  .keyrow{display:flex;gap:8px;} .keyrow input{flex:1;}
+  .warn{font-size:12.5px;color:var(--muted);background:#fff8e6;border:1px solid #f5e3b3;
+    border-radius:10px;padding:10px 12px;margin-top:10px;}
+</style>
+</head>
+<body>
+  <div class="appbar">
+    <span class="brand">🧬</span>
+    <span class="title">Kaynak Yönetimi</span>
+    <span class="spacer"></span>
+    <a href="./index.html">← Bültenler</a>
+  </div>
+
+  <div class="wrap">
+    <div class="card">
+      <h2>➕ Yeni kaynak ekle</h2>
+      <label for="name">Kaynak adı</label>
+      <input id="name" placeholder="ör. STAT News" autocomplete="off" />
+      <label for="url">RSS URL</label>
+      <input id="url" placeholder="https://www.statnews.com/feed/" autocomplete="off" inputmode="url" />
+      <button class="primary" id="addBtn">Ekle</button>
+      <div class="status" id="status"></div>
+    </div>
+
+    <div class="card">
+      <h2>📡 Mevcut kaynaklar <button id="refreshBtn" style="float:right;padding:6px 10px;font-size:12.5px;">Yenile</button></h2>
+      <div id="feeds"><p class="muted">yükleniyor…</p></div>
+    </div>
+
+    <div class="card">
+      <h2>🔑 Yönetim anahtarı</h2>
+      <div class="keyrow">
+        <input id="keyInput" type="password" placeholder="Supabase service_role anahtarı" autocomplete="off" />
+        <button id="saveKeyBtn">Kaydet</button>
+        <button id="clearKeyBtn">Sil</button>
+      </div>
+      <div class="warn">
+        Anahtar yalnızca <b>bu cihazın tarayıcısında</b> (localStorage) saklanır; siteye/repoya gönderilmez.
+        Ortak bilgisayarda kullanma; işin bitince “Sil”e bas. Bu sayfa arama motorlarına kapalıdır.
+      </div>
+    </div>
+  </div>
+
+  <script src="./admin.js"></script>
+</body>
+</html>
