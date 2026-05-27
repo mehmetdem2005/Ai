@@ -6,7 +6,7 @@ version: 1.0.0
 author: mehmetdem2005
 license: MIT
 dependencies: [requests, feedparser, beautifulsoup4]
-platforms: [linux, macos]
+platforms: [linux, macos, windows]
 metadata:
   hermes:
     tags: [Newsletter, MedTech, Biotech, RSS, Supabase, Türkçe, Curation]
@@ -29,6 +29,15 @@ Supabase'e yazmasını sağlar. Mekanik işler (RSS çekme, Supabase I/O) için
 - `SUPABASE_URL` — örn. `https://wsiossnmvuoemirsjwaw.supabase.co`
 - `SUPABASE_KEY` — Supabase **service_role** anahtarı (RLS'i baypas eder, sunucu tarafı).
 - Aktif bir LLM modeli yapılandırılmış olmalı (`hermes model`).
+
+## Windows / kabuk notu
+- Windows'ta `terminal` aracı **Git Bash** üzerinden çalışır; aşağıdaki `bash` blokları
+  ve `curl` doğrudan kullanılabilir (curl Windows'ta yerleşiktir).
+- Python çağrısı: önce `python3`, başarısızsa `python` dene (Hermes venv'i PATH'tedir).
+- `feedparser`/`beautifulsoup4` kurulu değilse şu komutla kur:
+  `python -m pip install feedparser beautifulsoup4` (gerekirse `uv pip install ...`).
+  Kurulamazsa, RSS XML'ini sadece `requests` ile çekip içeriği **kendi muhakemenle**
+  ayrıştır (feedparser şart değil; `<item>/<entry>` başlık-link-özet alanlarını sen oku).
 
 ## Persona (analiz tonu)
 Sen sağlık teknolojileri ve biyoteknolojide kıdemli bir yatırım analisti ve YZ
