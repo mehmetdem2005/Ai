@@ -11,6 +11,7 @@ Sağlayıcılar .env üzerinden seçilir:
 Yasal: sadece public RSS, sıfır cold mail.
 """
 
+import contextlib
 import os
 import re
 import sys
@@ -121,10 +122,11 @@ KATI KURALLAR:
 SYSTEM_PROMPT = os.getenv("SYSTEM_PROMPT") or DEFAULT_SYSTEM_PROMPT
 NEWSLETTER_TITLE = os.getenv("NEWSLETTER_TITLE", "🧬 Sağlık Teknolojisi & Yapay Zeka Sinyali")
 
-# V2 "Filtreleme ve Skorlama Ağ Geçidi" ayarları
-MAX_NEW_PER_SOURCE = int(os.getenv("MAX_NEW_PER_SOURCE", "2"))  # kaynak başına taze haber kotası
+# V2/V3 ayarları — "hardcode prangası yok" prensibi:
+#   0 = sınırsız (LLM/skor karar verir); pozitif değer = sert üst sınır.
+MAX_NEW_PER_SOURCE = int(os.getenv("MAX_NEW_PER_SOURCE", "0"))  # kaynak başına taze haber kotası
 MIN_IMPACT_SCORE = int(os.getenv("MIN_IMPACT_SCORE", "7"))      # bu puanın altı bültene girmez
-MAX_PUBLISHED = int(os.getenv("MAX_PUBLISHED", "5"))            # bültene giren maksimum haber
+MAX_PUBLISHED = int(os.getenv("MAX_PUBLISHED", "0"))            # bültene giren maksimum (0=sınırsız)
 
 # Analizi başarısız olan maddeler kalıcılaştırılmaz; sonraki turda yeniden denenir.
 ANALYSIS_FAILED = "__ANALYSIS_FAILED__"
@@ -212,12 +214,17 @@ def apply_source_quota(items: list[dict], limit: int) -> list[dict]:
 
 
 def select_for_publication(items: list[dict], min_score: int, limit: int) -> list[dict]:
-    """Skoru >= min_score olanları büyükten küçüğe sırala; en yüksek `limit` öğeyi döndür."""
+    """Skoru >= min_score olanları büyükten küçüğe sırala; en yüksek `limit` öğeyi döndür.
+
+    limit <= 0 → sınırsız (skor barajını geçen herkes). Hardcode prangası kaldırma kuralı.
+    """
     qualified = [
         i for i in items
         if isinstance(i.get("impact_score"), (int, float)) and i["impact_score"] >= min_score
     ]
     qualified.sort(key=lambda i: i["impact_score"], reverse=True)
+    if limit <= 0:
+        return qualified
     return qualified[:limit]
 
 
@@ -632,11 +639,14 @@ class SupabaseStore:
             {
                 "id_hash": i["hash"],
                 "title": i["title"],
+                "title_tr": i.get("title_tr"),
                 "link": i["link"],
                 "source": i["source"],
                 "summary": i.get("summary"),
                 "ai_insight": i.get("ai_insight"),
                 "impact_score": i.get("impact_score"),
+                "category": i.get("category"),
+                "status": i.get("status", "pending"),
                 "embedding": i.get("embedding"),
             }
             for i in items
@@ -644,21 +654,23 @@ class SupabaseStore:
         result = self._upsert_articles(rows)
         if result is True:
             return True
-        # impact_score sütunu henüz eklenmemişse (migration çalıştırılmadı): skoru atıp tekrar dene.
-        # Rozet zaten newsletters.content'ten geldiği için pipeline durmamalı; sütun eklenince otomatik dolar.
-        if result == "missing_impact_score":
+        # V3 sütunları (impact_score/status/category/title_tr) eksikse — sütunları atıp tekrar dene.
+        # Migration çalıştırılmadan da pipeline durmasın; site/bülten newsletters.content'ten gösterir.
+        if result == "missing_v3_column":
             self.logger.warning(
-                "Supabase 'articles.impact_score' sütunu yok — skor DB'ye yazılmadan kaydediliyor. "
-                "Skoru kalıcılaştırmak için migration'ı çalıştır: "
-                "alter table public.articles add column if not exists impact_score numeric;"
+                "Supabase 'articles' tablosunda V3 sütunları eksik — V3 alanları atılarak "
+                "kaydediliyor. Tam HITL/kategori işlevi için supabase_schema.sql migration'ını çalıştır."
             )
             for row in rows:
-                row.pop("impact_score", None)
+                for k in ("impact_score", "status", "category", "title_tr"):
+                    row.pop(k, None)
             return self._upsert_articles(rows) is True
         return False
 
+    _V3_COLUMNS = ("impact_score", "title_tr", "category", "status")
+
     def _upsert_articles(self, rows: list[dict]):
-        """True=başarılı; 'missing_impact_score'=skor sütunu yok; False=diğer hata."""
+        """True=başarılı; 'missing_v3_column'=V3 sütunlarından biri yok; False=diğer hata."""
         try:
             resp = requests.post(
                 f"{self.url}/rest/v1/articles?on_conflict=id_hash",
@@ -670,28 +682,128 @@ class SupabaseStore:
                 self.logger.info(f"☁️ Supabase: {len(rows)} makale yazıldı.")
                 return True
             body = resp.text[:300]
-            if "impact_score" in body:
-                return "missing_impact_score"
+            if any(col in body for col in self._V3_COLUMNS):
+                return "missing_v3_column"
             self.logger.error(f"Supabase articles hatası {resp.status_code}: {body}")
             return False
         except requests.RequestException as exc:
             self.logger.error(f"Supabase articles bağlantı hatası: {exc}")
             return False
 
-    def save_newsletter(self, filename: str | None, content: str, article_count: int) -> None:
+    def save_newsletter(
+        self,
+        filename: str | None,
+        content: str,
+        article_count: int,
+        *,
+        social_posts: dict | None = None,
+    ) -> None:
         if not self.is_active:
             return
+        body: dict = {
+            "filename": filename,
+            "content": content,
+            "article_count": article_count,
+        }
+        if social_posts is not None:
+            body["social_posts"] = social_posts
         try:
             resp = requests.post(
                 f"{self.url}/rest/v1/newsletters",
                 headers=self._headers(),
-                json={"filename": filename, "content": content, "article_count": article_count},
+                json=body,
                 timeout=30,
             )
             if resp.status_code >= 300:
-                self.logger.error(f"Supabase newsletters hatası {resp.status_code}: {resp.text[:200]}")
+                # social_posts sütunu eksikse atıp tekrar dene (migration yapılmadıysa)
+                if social_posts is not None and "social_posts" in resp.text:
+                    self.logger.warning(
+                        "newsletters.social_posts sütunu yok — social atılarak kaydediliyor."
+                    )
+                    body.pop("social_posts", None)
+                    resp2 = requests.post(
+                        f"{self.url}/rest/v1/newsletters",
+                        headers=self._headers(),
+                        json=body,
+                        timeout=30,
+                    )
+                    if resp2.status_code >= 300:
+                        self.logger.error(
+                            f"Supabase newsletters retry hatası {resp2.status_code}: {resp2.text[:200]}"
+                        )
+                    return
+                self.logger.error(
+                    f"Supabase newsletters hatası {resp.status_code}: {resp.text[:200]}"
+                )
         except requests.RequestException as exc:
             self.logger.error(f"Supabase newsletters bağlantı hatası: {exc}")
+
+    # === V3 HITL/Auto-publish destekleri ===
+
+    def get_pending_items(self) -> list[dict]:
+        """Streamlit kokpiti: status='pending' makaleler (yüksek skor önde)."""
+        if not self.is_active:
+            return []
+        try:
+            resp = requests.get(
+                f"{self.url}/rest/v1/articles"
+                "?status=eq.pending"
+                "&select=id_hash,title,title_tr,link,source,summary,ai_insight,"
+                "impact_score,category,processed_at"
+                "&order=impact_score.desc.nullslast,processed_at.desc",
+                headers=self._headers(),
+                timeout=30,
+            )
+            if resp.status_code < 300:
+                return resp.json()
+            self.logger.error(f"get_pending_items {resp.status_code}: {resp.text[:200]}")
+        except requests.RequestException as exc:
+            self.logger.error(f"get_pending_items bağlantı hatası: {exc}")
+        return []
+
+    def update_articles_status(self, hashes: list[str], status: str) -> bool:
+        """Verilen hash'lerin status'unu toplu günceller (pending → published/rejected)."""
+        if not self.is_active or not hashes:
+            return True
+        in_list = ",".join(hashes)
+        try:
+            resp = requests.patch(
+                f"{self.url}/rest/v1/articles?id_hash=in.({in_list})",
+                headers=self._headers(),
+                json={"status": status},
+                timeout=30,
+            )
+            if resp.status_code < 300:
+                self.logger.info(f"Status -> '{status}': {len(hashes)} makale güncellendi.")
+                return True
+            self.logger.error(f"update_articles_status {resp.status_code}: {resp.text[:200]}")
+        except requests.RequestException as exc:
+            self.logger.error(f"update_articles_status bağlantı hatası: {exc}")
+        return False
+
+    def oldest_pending_age_hours(self) -> float | None:
+        """En eski pending makalenin yaşı (saat). Pending yoksa None."""
+        if not self.is_active:
+            return None
+        try:
+            resp = requests.get(
+                f"{self.url}/rest/v1/articles"
+                "?status=eq.pending&select=processed_at&order=processed_at.asc&limit=1",
+                headers=self._headers(),
+                timeout=20,
+            )
+            if resp.status_code < 300:
+                rows = resp.json()
+                if not rows:
+                    return None
+                from datetime import UTC, datetime as _dt
+                ts = rows[0]["processed_at"].replace("Z", "+00:00")
+                oldest = _dt.fromisoformat(ts)
+                return (_dt.now(UTC) - oldest).total_seconds() / 3600
+            self.logger.error(f"oldest_pending_age {resp.status_code}: {resp.text[:200]}")
+        except (requests.RequestException, ValueError, KeyError) as exc:
+            self.logger.error(f"oldest_pending_age hatası: {exc}")
+        return None
 
 
 # ==========================================
@@ -734,8 +846,10 @@ def run_pipeline() -> None:
     logger.info(f"⚖️ Kaynak kotası: {len(new_data)} aday kaldı (kaynak başına ≤{MAX_NEW_PER_SOURCE}).")
 
     kept, dropped = deduper.deduplicate(new_data, history)
+    for item in dropped:
+        item["status"] = "duplicate"
     if not kept:
-        logger.info("ℹ️ Tüm yeni içerikler mevcutlara benzer — bülten üretilmedi.")
+        logger.info("ℹ️ Tüm yeni içerikler mevcutlara benzer — pending'e bir şey eklenmedi.")
         db.save_items_batch(dropped)  # tekrar taranmasınlar
         store.save_articles(dropped)
         return
@@ -748,36 +862,82 @@ def run_pipeline() -> None:
         logger.warning(f"⚠️ {failed} makale analiz edilemedi — kalıcılaştırılmadı, sonraki turda denenecek.")
 
     if not ok:
-        logger.error("Hiçbir analiz başarılı olmadı — bülten üretilmedi.")
+        logger.error("Hiçbir analiz başarılı olmadı — pending'e bir şey eklenmedi.")
         db.save_items_batch(dropped)
         store.save_articles(dropped)
         return
 
-    # V2 — Skorla sırala, eşiği geçenleri al, en yüksek MAX_PUBLISHED'i yayınla.
+    # V3 — Skorla sırala, eşik üstünü pending'e ekleyecek aday set olarak al.
+    cap_part = f", cap={MAX_PUBLISHED}" if MAX_PUBLISHED > 0 else ""
     published = select_for_publication(ok, MIN_IMPACT_SCORE, MAX_PUBLISHED)
     logger.info(
-        f"🎯 {len(ok)} skorlanan makaleden {len(published)} tanesi seçildi "
-        f"(eşik ≥{MIN_IMPACT_SCORE}, en fazla {MAX_PUBLISHED})."
+        f"🎯 {len(ok)} skorlanan makaleden {len(published)} tanesi pending'e ekleniyor "
+        f"(eşik ≥{MIN_IMPACT_SCORE}{cap_part})."
     )
 
-    # Skorları kalıcılaştır (eşik altı dahil) — çeyreklik "en yüksek puanlı haberler" raporu için.
-    persisted = ok + dropped
+    # V3 — Semantik kümeleme (sınırsız kategori; LLM verinin doğasına göre karar verir).
+    if published:
+        from clustering import cluster_topics
+        hash_to_cat = cluster_topics(published)
+        for item in published:
+            item["category"] = hash_to_cat.get(item["hash"], "Genel")
 
-    if not published:
-        logger.info(f"ℹ️ Hiçbir makale {MIN_IMPACT_SCORE} eşiğini geçemedi — bülten üretilmedi.")
+    # Status etiketleri: eşik üstü → pending (HITL bekler); eşik altı ok'lar da → pending
+    # (Streamlit'te görsün), istersen reddedersin. Sadece dropped (semantik tekrar) duplicate.
+    for item in published:
+        item["status"] = "pending"
+
+    # Eşik altı ok'ları da DB'ye 'rejected' olarak yaz (skor saklansın, pending'te görünmesin).
+    below_threshold = [i for i in ok if i not in published]
+    for item in below_threshold:
+        item["status"] = "rejected"
+
+    persisted = published + below_threshold + dropped
+    if persisted:
         store.save_articles(persisted)
         db.save_items_batch(persisted)
-        return
 
-    path, content = publisher.publish(published)
+    # V3 — Auto-publish emniyet sübabı: en eski pending yeterince yaşlıysa yayınla.
+    auto_hours = float(os.getenv("AUTO_PUBLISH_AFTER_HOURS", "24"))
+    auto_count = 0
+    if auto_hours > 0 and store.is_active:
+        oldest_age = store.oldest_pending_age_hours()
+        if oldest_age is not None and oldest_age >= auto_hours:
+            pending_rows = store.get_pending_items()
+            if pending_rows:
+                logger.info(
+                    f"⏰ Otomasyon tetiklendi: en eski pending {oldest_age:.1f}h "
+                    f"(>= {auto_hours}h) — {len(pending_rows)} haber yayınlanıyor."
+                )
+                items_to_publish = [
+                    {
+                        "hash": r["id_hash"],
+                        "title": r["title"],
+                        "title_tr": r.get("title_tr"),
+                        "link": r["link"],
+                        "source": r["source"],
+                        "ai_insight": r.get("ai_insight"),
+                        "impact_score": r.get("impact_score"),
+                        "category": r.get("category"),
+                    }
+                    for r in pending_rows
+                ]
+                from publish_workflow import publish_newsletter
+                result = publish_newsletter(
+                    items_to_publish, store, publisher, trigger="auto"
+                )
+                auto_count = result.get("count", 0)
 
-    # Bütünlük: bülten kaydını yalnızca makaleler kalıcılaştıysa yaz (yetim bülten olmasın).
-    if store.save_articles(persisted) or not store.is_active:
-        store.save_newsletter(os.path.basename(path) if path else None, content, len(published))
-    saved = db.save_items_batch(persisted)
+    # Healthcheck heartbeat (UptimeRobot / healthchecks.io vb. — opsiyonel).
+    hc = os.getenv("HEALTHCHECK_URL")
+    if hc:
+        with contextlib.suppress(requests.RequestException):
+            requests.get(hc, timeout=10)
+
+    auto_suffix = f", {auto_count} auto-yayınlandı" if auto_count else ""
     logger.info(
-        f"✅ Döngü tamamlandı. {len(published)} haber bültende, {saved} kayıt yerel DB'ye, "
-        f"{len(persisted)} makale Supabase'e ({len(dropped)} tekrar, {failed} analiz hatası)."
+        f"✅ Döngü tamam. {len(published)} yeni pending, {len(below_threshold)} eşik-altı, "
+        f"{len(dropped)} duplicate, {failed} analiz hatası{auto_suffix}."
     )
 
 

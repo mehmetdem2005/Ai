@@ -1,0 +1,34 @@
+# Docker build context'i temiz tut.
+.git
+.gitignore
+.github/
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Çalışma anı artıkları (volume ile mount edilir)
+db/*.sqlite
+logs/*.log
+outputs/*.md
+
+# Yerel sırlar (compose env_file ile dışarıdan verilir)
+.env
+.env.local
+
+# Editor/OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Dokümanlar (image içine gerek yok)
+docs/
+README*.md
+*.md.bak
+hermes/
+infra/

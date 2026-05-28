@@ -126,6 +126,82 @@ def test_select_for_publication_handles_missing_scores():
     assert [i["title"] for i in out] == ["b"]
 
 
+def test_select_for_publication_unlimited_when_limit_zero():
+    # V3 — hardcode prangası kaldırma: limit=0 → sınırsız (eşiği geçen herkes).
+    items = [{"title": chr(ord("a") + i), "impact_score": 7 + (i % 3)} for i in range(12)]
+    out = main.select_for_publication(items, min_score=7, limit=0)
+    assert len(out) == 12
+    # Skor sıralaması korunmalı (büyükten küçüğe).
+    scores = [i["impact_score"] for i in out]
+    assert scores == sorted(scores, reverse=True)
+
+
+# ---- V3: clustering pure parser ----
+
+def test_clustering_parse_assigns_categories():
+    import clustering
+    items = [{"hash": "h1"}, {"hash": "h2"}, {"hash": "h3"}]
+    raw = '{"Yatırımlar": ["h1", "h2"], "Klinik": ["h3"]}'
+    out = clustering._parse_clusters(raw, items)
+    assert out == {"h1": "Yatırımlar", "h2": "Yatırımlar", "h3": "Klinik"}
+
+
+def test_clustering_parse_handles_extra_text_and_fences():
+    import clustering
+    items = [{"hash": "x"}, {"hash": "y"}]
+    raw = 'işte sonuç:\n```json\n{"Genel Kategori": ["x", "y"]}\n```\nteşekkürler'
+    out = clustering._parse_clusters(raw, items)
+    assert out == {"x": "Genel Kategori", "y": "Genel Kategori"}
+
+
+def test_clustering_parse_falls_back_to_genel_on_bad_json():
+    import clustering
+    items = [{"hash": "a"}, {"hash": "b"}]
+    assert clustering._parse_clusters("bozuk yanıt", items) == {"a": "Genel", "b": "Genel"}
+    assert clustering._parse_clusters("{bozuk", items) == {"a": "Genel", "b": "Genel"}
+
+
+def test_clustering_parse_fills_missing_hashes_with_genel():
+    import clustering
+    items = [{"hash": "h1"}, {"hash": "h2"}, {"hash": "h3"}]
+    raw = '{"Yatırımlar": ["h1"]}'  # h2, h3 atanmadı
+    out = clustering._parse_clusters(raw, items)
+    assert out["h1"] == "Yatırımlar"
+    assert out["h2"] == "Genel"
+    assert out["h3"] == "Genel"
+
+
+# ---- V3: growth agent pure parser ----
+
+def test_growth_parse_extracts_posts():
+    import growth_agent
+    raw = (
+        '{"posts": [{"platform":"linkedin","kind":"post","content":"Hook metni"},'
+        '{"platform":"twitter","kind":"thread","content":"tweet 1\\n---\\ntweet 2"}],'
+        '"strategy_note":"Tek post + zincir karması"}'
+    )
+    out = growth_agent._parse_growth(raw)
+    assert len(out["posts"]) == 2
+    assert out["posts"][0]["platform"] == "linkedin"
+    assert out["posts"][1]["kind"] == "thread"
+    assert "karması" in out["strategy_note"]
+
+
+def test_growth_parse_filters_empty_content():
+    import growth_agent
+    raw = '{"posts": [{"platform":"x","content":""},{"platform":"linkedin","content":"valid"}]}'
+    out = growth_agent._parse_growth(raw)
+    assert len(out["posts"]) == 1
+    assert out["posts"][0]["content"] == "valid"
+
+
+def test_growth_parse_handles_bad_json():
+    import growth_agent
+    out = growth_agent._parse_growth("JSON yok burada")
+    assert out["posts"] == []
+    assert "parse" in out["strategy_note"].lower() or "bozuk" in out["strategy_note"].lower()
+
+
 def test_deduper_drops_near_duplicate(monkeypatch):
     d = main.SemanticDeduper()
     d.is_active = True
