@@ -641,6 +641,24 @@ class SupabaseStore:
             }
             for i in items
         ]
+        result = self._upsert_articles(rows)
+        if result is True:
+            return True
+        # impact_score sütunu henüz eklenmemişse (migration çalıştırılmadı): skoru atıp tekrar dene.
+        # Rozet zaten newsletters.content'ten geldiği için pipeline durmamalı; sütun eklenince otomatik dolar.
+        if result == "missing_impact_score":
+            self.logger.warning(
+                "Supabase 'articles.impact_score' sütunu yok — skor DB'ye yazılmadan kaydediliyor. "
+                "Skoru kalıcılaştırmak için migration'ı çalıştır: "
+                "alter table public.articles add column if not exists impact_score numeric;"
+            )
+            for row in rows:
+                row.pop("impact_score", None)
+            return self._upsert_articles(rows) is True
+        return False
+
+    def _upsert_articles(self, rows: list[dict]):
+        """True=başarılı; 'missing_impact_score'=skor sütunu yok; False=diğer hata."""
         try:
             resp = requests.post(
                 f"{self.url}/rest/v1/articles?on_conflict=id_hash",
@@ -648,11 +666,14 @@ class SupabaseStore:
                 json=rows,
                 timeout=30,
             )
-            if resp.status_code >= 300:
-                self.logger.error(f"Supabase articles hatası {resp.status_code}: {resp.text[:200]}")
-                return False
-            self.logger.info(f"☁️ Supabase: {len(rows)} makale yazıldı.")
-            return True
+            if resp.status_code < 300:
+                self.logger.info(f"☁️ Supabase: {len(rows)} makale yazıldı.")
+                return True
+            body = resp.text[:300]
+            if "impact_score" in body:
+                return "missing_impact_score"
+            self.logger.error(f"Supabase articles hatası {resp.status_code}: {body}")
+            return False
         except requests.RequestException as exc:
             self.logger.error(f"Supabase articles bağlantı hatası: {exc}")
             return False
