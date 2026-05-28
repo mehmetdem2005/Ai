@@ -8,9 +8,13 @@ create table if not exists public.articles (
     source       text,
     summary      text,
     ai_insight   text,
+    impact_score numeric,
     embedding    jsonb,
     processed_at timestamptz not null default now()
 );
+
+-- Mevcut kurulumlar için migration (tablo zaten varsa skor sütununu ekle).
+alter table public.articles add column if not exists impact_score numeric;
 
 create table if not exists public.newsletters (
     id            bigint generated always as identity primary key,
@@ -22,6 +26,8 @@ create table if not exists public.newsletters (
 
 create index if not exists articles_source_idx on public.articles (source);
 create index if not exists articles_processed_at_idx on public.articles (processed_at desc);
+-- Çeyreklik "en yüksek puanlı haberler" raporları için.
+create index if not exists articles_impact_score_idx on public.articles (impact_score desc);
 
 -- Kaynaklar (RSS feed'leri) — web yönetim arayüzünden eklenir; pipeline buradan okur.
 create table if not exists public.feeds (

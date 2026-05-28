@@ -104,15 +104,27 @@ DEFAULT_SOURCES = [
     {"name": "TechCrunch Health", "url": "https://techcrunch.com/tag/health/feed/"},
 ]
 
-DEFAULT_SYSTEM_PROMPT = """Sen, sağlık teknolojileri (MedTech) ve Biyoteknoloji alanında uzmanlaşmış kıdemli bir yatırım analisti ve yapay zeka stratejistisin.
-Okuyucuların: Sağlık sektörüne yatırım yapan melek yatırımcılar (VC'ler), hastane CIO'ları ve sağlık odaklı AI geliştiren mühendisler.
-Görev: Verilen haberi oku ve okuyucu kitlesi için NEDEN ÖNEMLİ olduğunu maksimum 3 cümle ile analiz et.
-- Sadece "ne oldu" deme, "bunun ticari veya teknolojik etkisi ne olacak" (Impact) kısmına odaklan.
-- Eğer haberde çoklu ajan sistemleri (multi-agent), otomasyon, giyilebilir teknoloji veya yeni bir algoritmik yaklaşım varsa, mutlaka vurgula.
-- Dil: Resmi, veri odaklı, net ve profesyonel (Türkçe)."""
+DEFAULT_SYSTEM_PROMPT = """Sen, sağlık teknolojileri (MedTech) ve Biyoteknoloji alanında uzmanlaşmış kıdemli bir yatırım analistisin. Okuyucuların: sağlık sektörüne yatırım yapan VC'ler, hastane CIO'ları ve sağlık odaklı AI geliştiren mühendisler.
+
+Görevlerin:
+1. Haberi oku ve hedef kitle için teknolojik/ticari etkisine göre 1 ile 10 arası bir IMPACT SCORE (Etki Puanı) ver.
+2. Haber başlığının akıcı, doğal bir Türkçe çevirisini yap.
+3. Bu etkinin NEDENİNİ maksimum 3 cümle ile analiz et (insight) — "ne oldu" değil, "ticari/teknolojik etkisi ne" sorusuna odaklan.
+
+KATI KURALLAR:
+- ASLA madde imi (bullet point) veya alt başlık kullanma.
+- Haberin orijinal metninde geçmiyorsa, sırf süslemek için "çoklu ajan (multi-agent)", "otomasyon" gibi kelimeleri ZORLA KULLANMA. Orijinal kal.
+- Dil: resmi, veri odaklı, net Türkçe.
+- Çıktıyı SADECE geçerli bir JSON objesi olarak ver; JSON dışında hiçbir metin, açıklama veya kod çiti (```), ekleme.
+- Şema: {"score": <1-10 tamsayı>, "title_tr": "<Türkçe başlık>", "insight": "<en fazla 3 cümle analiz>"}"""
 
 SYSTEM_PROMPT = os.getenv("SYSTEM_PROMPT") or DEFAULT_SYSTEM_PROMPT
 NEWSLETTER_TITLE = os.getenv("NEWSLETTER_TITLE", "🧬 Sağlık Teknolojisi & Yapay Zeka Sinyali")
+
+# V2 "Filtreleme ve Skorlama Ağ Geçidi" ayarları
+MAX_NEW_PER_SOURCE = int(os.getenv("MAX_NEW_PER_SOURCE", "2"))  # kaynak başına taze haber kotası
+MIN_IMPACT_SCORE = int(os.getenv("MIN_IMPACT_SCORE", "7"))      # bu puanın altı bültene girmez
+MAX_PUBLISHED = int(os.getenv("MAX_PUBLISHED", "5"))            # bültene giren maksimum haber
 
 # Analizi başarısız olan maddeler kalıcılaştırılmaz; sonraki turda yeniden denenir.
 ANALYSIS_FAILED = "__ANALYSIS_FAILED__"
@@ -180,6 +192,35 @@ def cosine_similarity(a: list[float], b: list[float]) -> float:
     return dot / (norm_a * norm_b)
 
 
+def apply_source_quota(items: list[dict], limit: int) -> list[dict]:
+    """Her kaynaktan en fazla `limit` öğe tut (giriş sırası = tazelik korunur).
+
+    Amaç: çok haber basan kaynakların (TechCrunch, Fierce) az ama öz basan
+    kaynakları (Nature) havuzdan dışlamasını engellemek.
+    """
+    if limit <= 0:
+        return items
+    counts: dict[str, int] = {}
+    out: list[dict] = []
+    for item in items:
+        src = item.get("source", "")
+        if counts.get(src, 0) >= limit:
+            continue
+        counts[src] = counts.get(src, 0) + 1
+        out.append(item)
+    return out
+
+
+def select_for_publication(items: list[dict], min_score: int, limit: int) -> list[dict]:
+    """Skoru >= min_score olanları büyükten küçüğe sırala; en yüksek `limit` öğeyi döndür."""
+    qualified = [
+        i for i in items
+        if isinstance(i.get("impact_score"), (int, float)) and i["impact_score"] >= min_score
+    ]
+    qualified.sort(key=lambda i: i["impact_score"], reverse=True)
+    return qualified[:limit]
+
+
 # ==========================================
 # 2. ÇEKİRDEK BİLEŞENLER
 # ==========================================
@@ -195,6 +236,7 @@ class DatabaseManager:
                     link TEXT,
                     source TEXT,
                     embedding TEXT,
+                    impact_score REAL,
                     processed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
                 """
@@ -202,6 +244,8 @@ class DatabaseManager:
             cols = {row[1] for row in conn.execute("PRAGMA table_info(processed_items)")}
             if "embedding" not in cols:
                 conn.execute("ALTER TABLE processed_items ADD COLUMN embedding TEXT")
+            if "impact_score" not in cols:
+                conn.execute("ALTER TABLE processed_items ADD COLUMN impact_score REAL")
 
     def filter_new_hashes(self, hash_list: list[str]) -> set[str]:
         if not hash_list:
@@ -241,13 +285,14 @@ class DatabaseManager:
                 i["link"],
                 i["source"],
                 json.dumps(i["embedding"]) if i.get("embedding") else None,
+                i.get("impact_score"),
             )
             for i in items
         ]
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.executemany(
                 "INSERT OR IGNORE INTO processed_items "
-                "(id_hash, title, link, source, embedding) VALUES (?, ?, ?, ?, ?)",
+                "(id_hash, title, link, source, embedding, impact_score) VALUES (?, ?, ?, ?, ?, ?)",
                 tuples,
             )
             return cursor.rowcount
@@ -404,42 +449,64 @@ class AIProcessor:
     )
     def _call_llm(self, prompt: str) -> str:
         if not self.is_active:
-            return "[MOCK] API key yok. Bu bir taslak (mock) analist notudur."
+            return '{"score": 8, "title_tr": "", "insight": "[MOCK] API anahtarı yok. Bu bir taslak analist notudur."}'
         response = self.client.chat.completions.create(
             model=self.model,
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": prompt},
             ],
-            temperature=0.4,
+            temperature=0.3,
         )
         return (response.choices[0].message.content or "").strip()
 
     @staticmethod
-    def _parse(raw: str, fallback_title: str) -> tuple[str, str]:
-        """LLM çıktısından (BAŞLIK:/ANALİZ:) Türkçe başlık ve analizi ayıkla."""
-        title_match = re.search(r"ba[şs]l[ıi]k\s*:\s*(.+)", raw, re.IGNORECASE)
-        analiz_match = re.search(r"anal[iıİ]z\s*:\s*(.+)", raw, re.IGNORECASE | re.DOTALL)
-        title_tr = title_match.group(1).splitlines()[0].strip() if title_match else fallback_title
-        analiz = analiz_match.group(1).strip() if analiz_match else raw.strip()
-        return title_tr or fallback_title, analiz
+    def _parse_analysis(raw: str, fallback_title: str) -> dict | None:
+        """LLM'in JSON çıktısından {score, title_tr, insight} ayıkla.
+
+        Çevredeki metni/kod çitlerini yok sayıp ilk JSON objesini alır.
+        Geçersiz JSON veya eksik/bozuk alan → None (madde analiz başarısız sayılır).
+        """
+        match = re.search(r"\{.*\}", raw, re.DOTALL)
+        if not match:
+            return None
+        try:
+            data = json.loads(match.group(0))
+        except (json.JSONDecodeError, TypeError):
+            return None
+        if not isinstance(data, dict):
+            return None
+        score = data.get("score")
+        insight = data.get("insight")
+        if not isinstance(score, (int, float)) or isinstance(score, bool):
+            return None
+        if not isinstance(insight, str) or not insight.strip():
+            return None
+        score = max(1, min(10, int(round(score))))
+        title_tr = str(data.get("title_tr") or "").strip() or fallback_title
+        return {"score": score, "title_tr": title_tr, "insight": insight.strip()}
 
     def process(self, items: list[dict]) -> list[dict]:
         if not items:
             return []
         mode = f"{self.provider}/{self.model}" if self.is_active else "mock"
-        self.logger.info(f"🧠 {len(items)} makale {mode} ile analiz ediliyor...")
+        self.logger.info(f"🧠 {len(items)} makale {mode} ile analiz + skorlanıyor...")
         for item in items:
             prompt = (
                 f"Haber başlığı: {item['title']}\n"
                 f"Özet: {item['summary']}\n\n"
-                "Yanıtını TAM olarak şu iki satır formatında ver, başka açıklama ekleme:\n"
-                "BAŞLIK: <haber başlığının akıcı, doğal Türkçe çevirisi>\n"
-                "ANALİZ: <okuyucu için neden önemli, en fazla 3 cümle>"
+                "Yukarıdaki kurallara göre SADECE bir JSON objesi döndür."
             )
             try:
                 raw = self._call_llm(prompt)
-                item["title_tr"], item["ai_insight"] = self._parse(raw, item["title"])
+                parsed = self._parse_analysis(raw, item["title"])
+                if parsed is None:
+                    self.logger.warning(f"JSON çözümlenemedi ({item['title'][:40]}) — atlandı.")
+                    item["ai_insight"] = ANALYSIS_FAILED
+                    continue
+                item["impact_score"] = parsed["score"]
+                item["title_tr"] = parsed["title_tr"]
+                item["ai_insight"] = parsed["insight"]
             except Exception as exc:
                 self.logger.error(f"Analiz hatası ({item['title'][:40]}): {exc}")
                 item["ai_insight"] = ANALYSIS_FAILED
@@ -466,7 +533,11 @@ class Publisher:
         for idx, item in enumerate(items, 1):
             heading = item.get("title_tr") or item["title"]
             lines.append(f"### {idx}. [{heading}]({item['link']})")
-            lines.append(f"**Kaynak:** {item['source']}")
+            meta = f"**Kaynak:** {item['source']}"
+            score = item.get("impact_score")
+            if score is not None:
+                meta += f"  ·  📊 **Sinyal Gücü:** {int(score)}/10"
+            lines.append(meta)
             lines.append("")
             lines.append(f"💡 **Analist Sinyali:**\n> {item['ai_insight']}")
             lines.append("")
@@ -565,6 +636,7 @@ class SupabaseStore:
                 "source": i["source"],
                 "summary": i.get("summary"),
                 "ai_insight": i.get("ai_insight"),
+                "impact_score": i.get("impact_score"),
                 "embedding": i.get("embedding"),
             }
             for i in items
@@ -636,6 +708,10 @@ def run_pipeline() -> None:
         logger.info("ℹ️ Yeni sinyal bulunamadı.")
         return
 
+    # V2 — Kaynak kotası: her kaynaktan en fazla MAX_NEW_PER_SOURCE taze haber (havuzu dengele).
+    new_data = apply_source_quota(new_data, MAX_NEW_PER_SOURCE)
+    logger.info(f"⚖️ Kaynak kotası: {len(new_data)} aday kaldı (kaynak başına ≤{MAX_NEW_PER_SOURCE}).")
+
     kept, dropped = deduper.deduplicate(new_data, history)
     if not kept:
         logger.info("ℹ️ Tüm yeni içerikler mevcutlara benzer — bülten üretilmedi.")
@@ -656,16 +732,31 @@ def run_pipeline() -> None:
         store.save_articles(dropped)
         return
 
-    path, content = publisher.publish(ok)
+    # V2 — Skorla sırala, eşiği geçenleri al, en yüksek MAX_PUBLISHED'i yayınla.
+    published = select_for_publication(ok, MIN_IMPACT_SCORE, MAX_PUBLISHED)
+    logger.info(
+        f"🎯 {len(ok)} skorlanan makaleden {len(published)} tanesi seçildi "
+        f"(eşik ≥{MIN_IMPACT_SCORE}, en fazla {MAX_PUBLISHED})."
+    )
+
+    # Skorları kalıcılaştır (eşik altı dahil) — çeyreklik "en yüksek puanlı haberler" raporu için.
+    persisted = ok + dropped
+
+    if not published:
+        logger.info(f"ℹ️ Hiçbir makale {MIN_IMPACT_SCORE} eşiğini geçemedi — bülten üretilmedi.")
+        store.save_articles(persisted)
+        db.save_items_batch(persisted)
+        return
+
+    path, content = publisher.publish(published)
 
     # Bütünlük: bülten kaydını yalnızca makaleler kalıcılaştıysa yaz (yetim bülten olmasın).
-    persisted = ok + dropped
     if store.save_articles(persisted) or not store.is_active:
-        store.save_newsletter(os.path.basename(path) if path else None, content, len(ok))
+        store.save_newsletter(os.path.basename(path) if path else None, content, len(published))
     saved = db.save_items_batch(persisted)
     logger.info(
-        f"✅ Döngü tamamlandı. {saved} kayıt yerel DB'ye, {len(persisted)} makale Supabase'e "
-        f"({len(dropped)} tekrar eleme, {failed} analiz hatası)."
+        f"✅ Döngü tamamlandı. {len(published)} haber bültende, {saved} kayıt yerel DB'ye, "
+        f"{len(persisted)} makale Supabase'e ({len(dropped)} tekrar, {failed} analiz hatası)."
     )
 
 
