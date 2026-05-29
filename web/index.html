@@ -338,6 +338,68 @@
       await renderAuthUI();
     }
 
+    function paintCronButton(btn, state) {
+      // state: "active" | "disabled_manually" | "disabled_inactivity" | "unknown"
+      if (state === "active") {
+        btn.innerHTML = "⏸️ <span class=\"label\">Cron Açık</span>";
+        btn.title = "Otomatik cron şu an çalışıyor (08:00 ve 18:00 İstanbul) — tıkla durdur.";
+        btn.classList.remove("primary");
+        btn.classList.add("ghost");
+      } else if (state === "unknown") {
+        btn.innerHTML = "⚠️ <span class=\"label\">Cron ?</span>";
+        btn.title = "Cron durumu okunamadı.";
+      } else {
+        btn.innerHTML = "▶️ <span class=\"label\">Cron Kapalı</span>";
+        btn.title = "Otomatik cron şu an durduruldu — tıkla başlat.";
+        btn.classList.remove("ghost");
+        btn.classList.add("primary");
+      }
+      btn.disabled = false;
+    }
+
+    async function refreshCronButton(btn) {
+      const { data: sess } = await sb.auth.getSession();
+      const token = sess && sess.session && sess.session.access_token;
+      if (!token) return;
+      try {
+        const r = await fetch("/api/workflow-state", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!r.ok) { paintCronButton(btn, "unknown"); return; }
+        const out = await r.json();
+        paintCronButton(btn, out.state || "unknown");
+      } catch {
+        paintCronButton(btn, "unknown");
+      }
+    }
+
+    async function toggleCron(btn) {
+      const { data: sess } = await sb.auth.getSession();
+      const token = sess && sess.session && sess.session.access_token;
+      if (!token) { openLogin(); return; }
+      btn.disabled = true;
+      const orig = btn.innerHTML;
+      btn.innerHTML = "⏳ <span class=\"label\">Değişiyor…</span>";
+      try {
+        const r = await fetch("/api/workflow-toggle", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const out = await r.json().catch(() => ({}));
+        if (!r.ok) {
+          alert("Cron durumu değiştirilemedi: " + (out.error || r.status));
+          btn.innerHTML = orig;
+          btn.disabled = false;
+          return;
+        }
+        paintCronButton(btn, out.new_state);
+      } catch (exc) {
+        alert("Ağ hatası: " + exc);
+        btn.innerHTML = orig;
+        btn.disabled = false;
+      }
+    }
+
     async function triggerWorkflow(btn) {
       const { data: sess } = await sb.auth.getSession();
       const token = sess && sess.session && sess.session.access_token;
@@ -386,6 +448,15 @@
         triggerBtn.title = "Worker'ı manuel çalıştır — yeni haberler çekilir ve onaya gelir";
         triggerBtn.onclick = () => triggerWorkflow(triggerBtn);
         authBox.appendChild(triggerBtn);
+
+        const cronBtn = document.createElement("button");
+        cronBtn.className = "iconbtn";
+        cronBtn.dataset.role = "cron";
+        cronBtn.innerHTML = "⏳ <span class=\"label\">Cron…</span>";
+        cronBtn.disabled = true;
+        cronBtn.onclick = () => toggleCron(cronBtn);
+        authBox.appendChild(cronBtn);
+        refreshCronButton(cronBtn);
 
         const adminBtn = document.createElement("a");
         adminBtn.className = "iconbtn";
