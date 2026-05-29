@@ -4,5 +4,11 @@
   "outputDirectory": "web/dist",
   "framework": null,
   "cleanUrls": true,
-  "trailingSlash": false
+  "trailingSlash": false,
+  "redirects": [
+    { "source": "/landing", "destination": "/", "permanent": true },
+    { "source": "/landing.html", "destination": "/", "permanent": true },
+    { "source": "/yonetim", "destination": "/admin", "permanent": true },
+    { "source": "/yonetim.html", "destination": "/admin", "permanent": true }
+  ]
 }
