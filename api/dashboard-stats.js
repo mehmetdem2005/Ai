@@ -12,8 +12,17 @@ async function verifyAdmin(token, supabaseUrl, supabaseKey) {
   return role === "admin" ? user : null;
 }
 
+// Tabloya göre uygun primary key — Supabase REST'te select için bir kolon adı gerekir.
+const TABLE_KEY = {
+  articles: "id_hash",
+  newsletters: "id",
+  feeds: "id",
+  long_reads: "id",
+};
+
 async function pgCount(supabaseUrl, sbHeaders, table, filter = "") {
-  const url = `${supabaseUrl}/rest/v1/${table}?select=id${filter ? "&" + filter : ""}`;
+  const col = TABLE_KEY[table] || "id";
+  const url = `${supabaseUrl}/rest/v1/${table}?select=${col}${filter ? "&" + filter : ""}`;
   const r = await fetch(url, {
     headers: { ...sbHeaders, Prefer: "count=exact", Range: "0-0" },
   });
