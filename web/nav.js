@@ -155,9 +155,7 @@
     </div>
     <div class="foot-col">
       <h5 data-i18n="footer.col_sub">Abone ol</h5>
-      <a data-i18n="footer.link_sub_free" href="abonelik.html">Ücretsiz</a>
-      <a data-i18n="footer.link_sub_pro" href="abonelik.html">Premium</a>
-      <a data-i18n="footer.link_sub_team" href="abonelik.html">Kurumsal</a>
+      <a href="abonelik.html" data-i18n="footer.link_sub_signup">E-postaya kaydol</a>
       <a data-i18n="footer.link_sub_contact" href="hakkinda.html#iletisim">İletişim</a>
     </div>
   </div>

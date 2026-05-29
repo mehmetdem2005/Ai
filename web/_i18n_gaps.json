@@ -1,5 +1,14 @@
 {
-  "landing.html": [],
+  "landing.html": [
+    {
+      "text": "Bugün",
+      "context": "section > div > span"
+    },
+    {
+      "text": "En son brief yükleniyor…",
+      "context": "section > div > span"
+    }
+  ],
   "reader.html": [],
   "admin.html": [],
   "editorial.html": [],
