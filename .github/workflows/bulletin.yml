@@ -19,11 +19,22 @@ jobs:
       EMBEDDING_MODEL: text-embedding-3-small
       DEDUP_THRESHOLD: "0.86"
       MAX_ENTRIES_PER_FEED: "10"
+      # V3 — filtreleme/yayın ayarları (secret veya boş → kod varsayılanı kullanılır)
+      MAX_NEW_PER_SOURCE: ${{ vars.MAX_NEW_PER_SOURCE }}
+      MIN_IMPACT_SCORE: ${{ vars.MIN_IMPACT_SCORE }}
+      MAX_PUBLISHED: ${{ vars.MAX_PUBLISHED }}
+      # V3 — auto-publish emniyet sübabı (Streamlit deploy edilmediyse cron'un tek yayın yolu)
+      AUTO_PUBLISH_AFTER_HOURS: ${{ vars.AUTO_PUBLISH_AFTER_HOURS }}
       DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+      # V3 — Beehiiv (secret yoksa auto-publish Beehiiv adımını atlar, site yine güncellenir)
+      BEEHIIV_API_KEY: ${{ secrets.BEEHIIV_API_KEY }}
+      BEEHIIV_PUB_ID: ${{ secrets.BEEHIIV_PUB_ID }}
+      # V3 — opsiyonel uptime heartbeat
+      HEALTHCHECK_URL: ${{ secrets.HEALTHCHECK_URL }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5

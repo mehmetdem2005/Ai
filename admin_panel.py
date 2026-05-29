@@ -65,7 +65,7 @@ if not store.is_active:
 with st.sidebar:
     st.header("Durum")
     age = store.oldest_pending_age_hours()
-    auto_hours = float(os.getenv("AUTO_PUBLISH_AFTER_HOURS", "24"))
+    auto_hours = engine._env_float("AUTO_PUBLISH_AFTER_HOURS", 24)
     if age is None:
         st.info("Pending haber yok.")
     else:

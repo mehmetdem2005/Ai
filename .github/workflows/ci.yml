@@ -23,6 +23,7 @@ jobs:
       - name: Lint (ruff)
         run: ruff check .
       - name: Güvenlik (bandit)
-        run: bandit -q -r main.py
+        # Tüm proje kaynağı (venv/test/web hariç) — V3 modülleri de kapsama girsin.
+        run: bandit -q -r . -x ./.venv,./venv,./tests,./web
       - name: Testler (pytest)
         run: pytest -q

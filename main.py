@@ -63,6 +63,32 @@ logging.basicConfig(
 )
 logger = logging.getLogger("SovereignBio")
 
+
+def _env_int(name: str, default: int) -> int:
+    """os.getenv + int — boş/geçersiz değerde (GitHub Actions tanımsız var'ı '' geçirir)
+    sessizce default'a düşer. Aksi halde int('') ValueError ile çökerdi."""
+    raw = (os.getenv(name) or "").strip()
+    if not raw:
+        return default
+    try:
+        return int(float(raw))  # "7", "7.0", "7" hepsi çalışsın
+    except (ValueError, TypeError):
+        logger.warning(f"{name}='{raw}' sayıya çevrilemedi — varsayılan {default} kullanılıyor.")
+        return default
+
+
+def _env_float(name: str, default: float) -> float:
+    """_env_int'in float karşılığı (boş/geçersiz → default)."""
+    raw = (os.getenv(name) or "").strip()
+    if not raw:
+        return default
+    try:
+        return float(raw)
+    except (ValueError, TypeError):
+        logger.warning(f"{name}='{raw}' sayıya çevrilemedi — varsayılan {default} kullanılıyor.")
+        return default
+
+
 GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
 
 # Sadece geçici hatalarda yeniden dene; 401/400/404 gibi kalıcı hatalarda anında bırak.
@@ -124,9 +150,9 @@ NEWSLETTER_TITLE = os.getenv("NEWSLETTER_TITLE", "🧬 Sağlık Teknolojisi & Ya
 
 # V2/V3 ayarları — "hardcode prangası yok" prensibi:
 #   0 = sınırsız (LLM/skor karar verir); pozitif değer = sert üst sınır.
-MAX_NEW_PER_SOURCE = int(os.getenv("MAX_NEW_PER_SOURCE", "0"))  # kaynak başına taze haber kotası
-MIN_IMPACT_SCORE = int(os.getenv("MIN_IMPACT_SCORE", "7"))      # bu puanın altı bültene girmez
-MAX_PUBLISHED = int(os.getenv("MAX_PUBLISHED", "0"))            # bültene giren maksimum (0=sınırsız)
+MAX_NEW_PER_SOURCE = _env_int("MAX_NEW_PER_SOURCE", 0)  # kaynak başına taze haber kotası (0=sınırsız)
+MIN_IMPACT_SCORE = _env_int("MIN_IMPACT_SCORE", 7)      # bu puanın altı bültene girmez
+MAX_PUBLISHED = _env_int("MAX_PUBLISHED", 0)            # bültene giren maksimum (0=sınırsız)
 
 # Analizi başarısız olan maddeler kalıcılaştırılmaz; sonraki turda yeniden denenir.
 ANALYSIS_FAILED = "__ANALYSIS_FAILED__"
@@ -308,7 +334,7 @@ class DatabaseManager:
 class DataFetcher:
     def __init__(self, sources: list[dict]) -> None:
         self.sources = sources
-        self.max_entries = int(os.getenv("MAX_ENTRIES_PER_FEED", "10"))
+        self.max_entries = _env_int("MAX_ENTRIES_PER_FEED", 10)
         self.logger = logging.getLogger("Fetcher")
 
     def clean_html(self, html: str) -> str:
@@ -371,7 +397,7 @@ class SemanticDeduper:
     def __init__(self) -> None:
         self.logger = logging.getLogger("Deduper")
         self.provider = os.getenv("EMBEDDING_PROVIDER", "gemini").lower()
-        self.threshold = float(os.getenv("DEDUP_THRESHOLD", "0.86"))
+        self.threshold = _env_float("DEDUP_THRESHOLD", 0.86)
         cfg = EMBED_PROVIDERS.get(self.provider)
         self.is_active = False
         if cfg is None:
@@ -762,24 +788,34 @@ class SupabaseStore:
         return []
 
     def update_articles_status(self, hashes: list[str], status: str) -> bool:
-        """Verilen hash'lerin status'unu toplu günceller (pending → published/rejected)."""
+        """Verilen hash'lerin status'unu toplu günceller (pending → published/rejected).
+
+        URL uzunluk sınırı için 100'lük gruplar halinde PATCH atar (auto-publish'te
+        yüzlerce pending birikebilir; tek in.() çağrısı URL'i taşırırdı)."""
         if not self.is_active or not hashes:
             return True
-        in_list = ",".join(hashes)
-        try:
-            resp = requests.patch(
-                f"{self.url}/rest/v1/articles?id_hash=in.({in_list})",
-                headers=self._headers(),
-                json={"status": status},
-                timeout=30,
-            )
-            if resp.status_code < 300:
-                self.logger.info(f"Status -> '{status}': {len(hashes)} makale güncellendi.")
-                return True
-            self.logger.error(f"update_articles_status {resp.status_code}: {resp.text[:200]}")
-        except requests.RequestException as exc:
-            self.logger.error(f"update_articles_status bağlantı hatası: {exc}")
-        return False
+        all_ok = True
+        for i in range(0, len(hashes), 100):
+            chunk = hashes[i : i + 100]
+            in_list = ",".join(chunk)
+            try:
+                resp = requests.patch(
+                    f"{self.url}/rest/v1/articles?id_hash=in.({in_list})",
+                    headers=self._headers(),
+                    json={"status": status},
+                    timeout=30,
+                )
+                if resp.status_code >= 300:
+                    self.logger.error(
+                        f"update_articles_status {resp.status_code}: {resp.text[:200]}"
+                    )
+                    all_ok = False
+            except requests.RequestException as exc:
+                self.logger.error(f"update_articles_status bağlantı hatası: {exc}")
+                all_ok = False
+        if all_ok:
+            self.logger.info(f"Status -> '{status}': {len(hashes)} makale güncellendi.")
+        return all_ok
 
     def oldest_pending_age_hours(self) -> float | None:
         """En eski pending makalenin yaşı (saat). Pending yoksa None."""
@@ -842,8 +878,10 @@ def run_pipeline() -> None:
         return
 
     # V2 — Kaynak kotası: her kaynaktan en fazla MAX_NEW_PER_SOURCE taze haber (havuzu dengele).
+    # MAX_NEW_PER_SOURCE=0 → sınırsız (eleme işini AI skoru yapar).
     new_data = apply_source_quota(new_data, MAX_NEW_PER_SOURCE)
-    logger.info(f"⚖️ Kaynak kotası: {len(new_data)} aday kaldı (kaynak başına ≤{MAX_NEW_PER_SOURCE}).")
+    quota_desc = f"kaynak başına ≤{MAX_NEW_PER_SOURCE}" if MAX_NEW_PER_SOURCE > 0 else "sınırsız"
+    logger.info(f"⚖️ Kaynak kotası ({quota_desc}): {len(new_data)} aday kaldı.")
 
     kept, dropped = deduper.deduplicate(new_data, history)
     for item in dropped:
@@ -888,7 +926,9 @@ def run_pipeline() -> None:
         item["status"] = "pending"
 
     # Eşik altı ok'ları da DB'ye 'rejected' olarak yaz (skor saklansın, pending'te görünmesin).
-    below_threshold = [i for i in ok if i not in published]
+    # Hash-set ile ayır (dict '==' karşılaştırması yerine — O(n) ve sağlam).
+    published_hashes = {i["hash"] for i in published}
+    below_threshold = [i for i in ok if i["hash"] not in published_hashes]
     for item in below_threshold:
         item["status"] = "rejected"
 
@@ -898,7 +938,7 @@ def run_pipeline() -> None:
         db.save_items_batch(persisted)
 
     # V3 — Auto-publish emniyet sübabı: en eski pending yeterince yaşlıysa yayınla.
-    auto_hours = float(os.getenv("AUTO_PUBLISH_AFTER_HOURS", "24"))
+    auto_hours = _env_float("AUTO_PUBLISH_AFTER_HOURS", 24)
     auto_count = 0
     if auto_hours > 0 and store.is_active:
         oldest_age = store.oldest_pending_age_hours()

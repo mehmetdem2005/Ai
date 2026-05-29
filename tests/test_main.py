@@ -2,6 +2,34 @@
 import main
 
 
+def test_env_int_empty_and_invalid_fall_back(monkeypatch):
+    # GitHub Actions tanımsız var'ı "" geçirir → int("") çökerdi. Default'a düşmeli.
+    monkeypatch.setenv("X_TEST_INT", "")
+    assert main._env_int("X_TEST_INT", 7) == 7
+    monkeypatch.setenv("X_TEST_INT", "  ")
+    assert main._env_int("X_TEST_INT", 7) == 7
+    monkeypatch.setenv("X_TEST_INT", "abc")
+    assert main._env_int("X_TEST_INT", 7) == 7
+    monkeypatch.delenv("X_TEST_INT", raising=False)
+    assert main._env_int("X_TEST_INT", 7) == 7
+
+
+def test_env_int_valid_values(monkeypatch):
+    monkeypatch.setenv("X_TEST_INT", "10")
+    assert main._env_int("X_TEST_INT", 7) == 10
+    monkeypatch.setenv("X_TEST_INT", "6.0")  # "6.0" da int 6 olmalı
+    assert main._env_int("X_TEST_INT", 7) == 6
+
+
+def test_env_float_empty_and_invalid_fall_back(monkeypatch):
+    monkeypatch.setenv("X_TEST_FLOAT", "")
+    assert main._env_float("X_TEST_FLOAT", 24.0) == 24.0
+    monkeypatch.setenv("X_TEST_FLOAT", "xyz")
+    assert main._env_float("X_TEST_FLOAT", 24.0) == 24.0
+    monkeypatch.setenv("X_TEST_FLOAT", "0")
+    assert main._env_float("X_TEST_FLOAT", 24.0) == 0.0
+
+
 def test_cosine_identical():
     assert round(main.cosine_similarity([1.0, 2.0, 3.0], [1.0, 2.0, 3.0]), 6) == 1.0
 
