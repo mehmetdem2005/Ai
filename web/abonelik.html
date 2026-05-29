@@ -5,148 +5,87 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Sovereign · Abonelik</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600;700&family=Newsreader:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=DM+Serif+Display&family=Source+Serif+4:wght@400;500;600&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="tokens.css" />
 <link rel="stylesheet" href="mobile.css" />
 <style>
-  .tier-grid {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
-    max-width: 1100px; margin: 0 auto;
-    padding: 0 32px 56px;
+  .sub-hero {
+    max-width: 720px; margin: 0 auto;
+    padding: 56px 28px 24px; text-align: center;
   }
-  .tier {
-    background: var(--surface);
-    border: 1px solid var(--line);
-    padding: 28px 24px;
-    display: flex; flex-direction: column;
-    position: relative;
+  .sub-hero h1 {
+    margin: 0 0 16px;
+    font-size: 40px; font-weight: 700; line-height: 1.15; letter-spacing: -0.025em;
+    color: var(--ink);
   }
-  .tier.featured {
-    border: 2px solid var(--ink);
-    background: var(--bg-2);
-  }
-  .tier-badge {
-    position: absolute; top: -1px; right: -1px;
-    padding: 5px 12px;
-    background: var(--ink); color: var(--surface);
-    font-family: var(--font-mono); font-size: 10px;
-    letter-spacing: 0.12em; text-transform: uppercase;
-  }
-  .tier-name {
-    font-family: var(--font-mono); font-size: 11px;
-    letter-spacing: 0.14em; text-transform: uppercase; color: var(--cyan-ink);
-  }
-  .tier h3 {
-    margin: 8px 0 14px;
-    font-family: var(--font-display); font-weight: 500;
-    font-size: 30px; letter-spacing: -0.025em; line-height: 1.05;
-  }
-  .tier-price {
-    display: flex; align-items: baseline; gap: 4px;
-    margin-bottom: 14px;
-  }
-  .tier-price .num {
-    font-family: var(--font-display); font-weight: 500;
-    font-size: 44px; letter-spacing: -0.03em; line-height: 1;
-  }
-  .tier-price .unit {
-    font-family: var(--font-mono); font-size: 12px; color: var(--mid);
-    letter-spacing: 0.04em;
-  }
-  .tier .desc {
-    font-size: 14.5px;
-    color: var(--mid); line-height: 1.5; margin: 0 0 22px;
-    min-height: 44px;
-  }
-  .tier-cta {
-    margin-bottom: 20px;
-  }
-  .tier-features {
-    list-style: none; padding: 0; margin: 0;
-    border-top: 1px solid var(--line); padding-top: 16px;
-  }
-  .tier-features li {
-    padding: 7px 0 7px 22px;
-    position: relative;
-    font-size: 13.5px; color: var(--ink-2);
-    line-height: 1.45;
-  }
-  .tier-features li::before {
-    content: "✓";
-    position: absolute; left: 0;
-    color: var(--cyan-ink); font-weight: 600;
-  }
-  .tier-features li.dim {
-    color: var(--mid);
-  }
-  .tier-features li.dim::before { content: "—"; color: var(--mid); }
-
-  /* Comparison */
-  .compare {
-    max-width: 1100px; margin: 0 auto;
-    padding: 56px 32px 48px;
-    border-top: 1px solid var(--ink);
-  }
-  .compare h2 {
-    margin: 0 0 24px;
-    font-family: var(--font-display); font-size: 32px; font-weight: 500;
-    letter-spacing: -0.025em; text-align: center;
-  }
-  .compare table {
-    width: 100%; border-collapse: collapse;
-  }
-  .compare th, .compare td {
-    padding: 14px 16px; text-align: left;
-    border-bottom: 1px solid var(--line);
-    font-size: 14px;
-  }
-  .compare th {
-    font-family: var(--font-mono); font-size: 11px;
-    letter-spacing: 0.08em; text-transform: uppercase; color: var(--mid);
-    font-weight: 500;
-    border-bottom: 1px solid var(--ink);
-  }
-  .compare td.feature { font-weight: 500; color: var(--ink); }
-  .compare td.val { text-align: center; font-family: var(--font-mono); }
-  .compare td.val.yes { color: var(--ok); }
-  .compare td.val.no { color: var(--mid); }
-
-  /* FAQ */
-  .faq-band {
-    max-width: 760px; margin: 0 auto;
-    padding: 48px 32px 80px;
-  }
-  .faq-band h2 {
-    margin: 0 0 24px;
-    font-family: var(--font-display); font-size: 28px; font-weight: 500;
-    letter-spacing: -0.02em;
-  }
-  .faq-band details {
-    padding: 16px 0; border-bottom: 1px solid var(--line);
-  }
-  .faq-band summary {
-    cursor: pointer;
-    font-family: var(--font-display); font-size: 17px; font-weight: 500;
-    list-style: none;
-    display: flex; justify-content: space-between; align-items: center;
-  }
-  .faq-band summary::-webkit-details-marker { display: none; }
-  .faq-band summary::after {
-    content: "+"; color: var(--cyan); font-size: 22px;
-    font-weight: 300;
-  }
-  .faq-band details[open] summary::after { content: "−"; }
-  .faq-band details p {
-    margin: 10px 0 0; font-family: var(--font-display); font-size: 15.5px;
-    color: var(--ink-2); line-height: 1.6;
+  .sub-hero h1 em { font-style: normal; color: var(--cyan); }
+  .sub-hero p.dek {
+    margin: 0 auto;
+    font-size: 17px; line-height: 1.55; color: var(--ink-2);
+    max-width: 540px;
   }
 
-  @media (max-width: 900px) {
-    .tier-grid { grid-template-columns: 1fr; padding: 0 20px 48px; }
-    .compare { padding: 40px 20px; }
-    .compare table { display: block; overflow-x: auto; white-space: nowrap; }
-    .faq-band { padding: 36px 20px 60px; }
+  .sub-form-card {
+    max-width: 480px; margin: 36px auto 24px;
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--radius-lg); padding: 28px 30px;
+    box-shadow: var(--shadow);
+  }
+  .sub-form-card .row {
+    display: flex; gap: 8px; flex-wrap: wrap;
+  }
+  .sub-form-card input[type="email"] {
+    flex: 1; min-width: 200px;
+    padding: 12px 14px;
+    border: 1px solid var(--line); border-radius: var(--radius);
+    font-family: inherit; font-size: 14.5px;
+    background: var(--bg); color: var(--ink);
+  }
+  .sub-form-card input[type="email"]:focus { outline: none; border-color: var(--cyan); }
+  .sub-btn {
+    padding: 12px 22px; font-size: 14.5px; font-weight: 600;
+    background: var(--cyan); color: #fff; border: 1px solid var(--cyan);
+    border-radius: var(--radius); cursor: pointer; font-family: inherit;
+    white-space: nowrap;
+  }
+  .sub-btn:hover:not(:disabled) { background: var(--cyan-ink); }
+  .sub-btn:disabled { opacity: 0.6; cursor: wait; }
+  .sub-msg {
+    margin-top: 14px; padding: 10px 12px; border-radius: var(--radius);
+    font-size: 13.5px; display: none;
+  }
+  .sub-msg.ok { display: block; background: var(--ok-soft); color: var(--ok); }
+  .sub-msg.err { display: block; background: var(--alert-soft); color: var(--alert); }
+
+  .sub-footer-note {
+    text-align: center; font-size: 12.5px; color: var(--mid);
+    max-width: 480px; margin: 0 auto;
+  }
+
+  .sub-manifesto {
+    max-width: 720px; margin: 64px auto 80px; padding: 0 28px;
+  }
+  .sub-manifesto h2 {
+    text-align: center; font-size: 13px; font-weight: 600;
+    color: var(--mid); text-transform: uppercase; letter-spacing: 0.12em;
+    margin: 0 0 32px;
+  }
+  .sub-manifesto .blk {
+    margin-bottom: 28px;
+  }
+  .sub-manifesto .blk h3 {
+    margin: 0 0 8px;
+    font-size: 18px; font-weight: 600;
+  }
+  .sub-manifesto .blk p {
+    margin: 0; font-size: 15.5px; line-height: 1.65; color: var(--ink-2);
+  }
+
+  @media (max-width: 540px) {
+    .sub-hero { padding-top: 40px; }
+    .sub-hero h1 { font-size: 30px; }
+    .sub-hero p.dek { font-size: 15px; }
+    .sub-form-card { margin: 28px 16px 20px; padding: 22px 20px; }
   }
 </style>
 </head>
@@ -154,127 +93,41 @@
 
 <div id="topnav-mount"></div>
 
-<div class="page-wrap" style="padding-bottom: 0;">
-  <div class="page-head" style="text-align: center; margin: 0 auto 48px;">
-    <div class="crumb" style="text-align: center;">/ Abonelik</div>
-    <h1 data-i18n="subscribe.three_plans">Üç plan. <em data-i18n="subscribe.same_brief_always">Hep aynı brief.</em></h1>
-    <p class="dek" style="margin: 0 auto;" data-i18n="subscribe.editorial_quality_same">Sovereign'in editoryal kalitesi her planda aynı. Plan farkı erişim derinliği ve ekibinizin yararlanabileceği özellikler.</p>
-  </div>
-</div>
-
-<div class="tier-grid">
-
-  <div class="tier" id="ucretsiz">
-    <div class="tier-name" data-i18n="subscribe.free">Ücretsiz</div>
-    <h3>Brief</h3>
-    <div class="tier-price">
-      <span class="num">₺0</span>
-      <span class="unit">/ ay</span>
-    </div>
-    <p class="desc" data-i18n="subscribe.basic_package_desc">Sektörü uzaktan takip etmek için temel paket.</p>
-    <button class="btn lg tier-cta" data-i18n="subscribe.start_free">Bedavadan başla</button>
-    <ul class="tier-features">
-      <li data-i18n="subscribe.daily_2_briefs">Günde 2 brief (sabah &amp; akşam)</li>
-      <li data-i18n="subscribe.last_30_days_archive">Son 30 gün arşivi</li>
-      <li>E-posta ile teslim</li>
-      <li class="dim">Uzun okumalar</li>
-      <li class="dim" data-i18n="subscribe.full_archive_access">Tam arşiv erişimi</li>
-      <li class="dim" data-i18n="subscribe.topic_clusters_filter">Konu kümeleri filtresi</li>
-      <li class="dim" data-i18n="subscribe.team_license_free">Ekip lisansı</li>
-    </ul>
-  </div>
-
-  <div class="tier featured" id="pro">
-    <div class="tier-badge" data-i18n="subscribe.recommended">Önerilen</div>
-    <div class="tier-name">Premium</div>
-    <h3>Pro</h3>
-    <div class="tier-price">
-      <span class="num"><em>₺149</em></span>
-      <span class="unit">/ ay · KDV dahil</span>
-    </div>
-    <p class="desc" data-i18n="subscribe.full_access_pro_desc">Bireysel profesyoneller için tam erişim.</p>
-    <button class="btn primary lg tier-cta" data-i18n="subscribe.go_pro">Pro'ya geç →</button>
-    <ul class="tier-features">
-      <li data-i18n="subscribe.daily_briefs_plus_weekly">Günde 2 brief + haftalık uzun okuma</li>
-      <li data-i18n="subscribe.full_archive_unlimited">Tam arşiv erişimi (sınırsız)</li>
-      <li data-i18n="subscribe.topic_clusters_custom_filters">Konu kümeleri ve özel filtreler</li>
-      <li data-i18n="subscribe.morning_summary_podcast">Sabah özet podcast'i</li>
-      <li data-i18n="subscribe.independent_newsletters">Bağımsız bültenler (regulasyon, klinik)</li>
-      <li data-i18n="subscribe.direct_editor_access">Soru sormak için doğrudan editör erişimi</li>
-      <li class="dim" data-i18n="subscribe.team_license_free">Ekip lisansı</li>
-    </ul>
-  </div>
-
-  <div class="tier" id="kurumsal">
-    <div class="tier-name">Kurumsal</div>
-    <h3>Team</h3>
-    <div class="tier-price">
-      <span class="num" data-i18n="subscribe.lets_talk">Görüşelim</span>
-    </div>
-    <p class="desc" data-i18n="subscribe.team_plan_desc">5+ kişilik ekipler, kurumlar ve eğitim için.</p>
-    <a class="btn lg tier-cta" href="hakkinda.html#iletisim" style="text-align:center; justify-content:center;" data-i18n="subscribe.contact_us">İletişime geç</a>
-    <ul class="tier-features">
-      <li data-i18n="subscribe.all_pro_features">Tüm Pro özellikleri</li>
-      <li data-i18n="subscribe.team_license_unlimited">Ekip lisansı (sınırsız kullanıcı)</li>
-      <li>Tek faturalama, SSO/SAML</li>
-      <li data-i18n="subscribe.custom_reports_team">Özel raporlar ve sektör derlemeleri</li>
-      <li data-i18n="subscribe.prioritized_correspondence">Önceliklendirilmiş yazışma</li>
-      <li data-i18n="subscribe.training_sessions_quarterly">Eğitim oturumları (3 ayda bir)</li>
-      <li data-i18n="subscribe.monthly_sector_panel_team">Aylık sektör paneli</li>
-    </ul>
-  </div>
-
-</div>
-
-<section class="compare">
-  <h2 data-i18n="subscribe.plan_comparison">Plan karşılaştırması</h2>
-  <table>
-    <thead>
-      <tr>
-        <th data-i18n="subscribe.feature_header">Özellik</th>
-        <th style="text-align:center;">Brief</th>
-        <th style="text-align:center;">Pro</th>
-        <th style="text-align:center;">Team</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr><td class="feature" data-i18n="subscribe.daily_brief_2x">Günlük brief (2×)</td><td class="val yes">✓</td><td class="val yes">✓</td><td class="val yes">✓</td></tr>
-      <tr><td class="feature">E-posta teslimat</td><td class="val yes">✓</td><td class="val yes">✓</td><td class="val yes">✓</td></tr>
-      <tr><td class="feature" data-i18n="subscribe.archive_access">Arşiv erişimi</td><td class="val" data-i18n="subscribe.thirty_days">30 gün</td><td class="val">Tam</td><td class="val">Tam</td></tr>
-      <tr><td class="feature" data-i18n="subscribe.weekly_long_read">Haftalık uzun okuma</td><td class="val no">—</td><td class="val yes">✓</td><td class="val yes">✓</td></tr>
-      <tr><td class="feature" data-i18n="subscribe.topic_clusters">Konu kümeleri</td><td class="val no">—</td><td class="val yes">✓</td><td class="val yes">✓</td></tr>
-      <tr><td class="feature">Sabah podcast'i</td><td class="val no">—</td><td class="val yes">✓</td><td class="val yes">✓</td></tr>
-      <tr><td class="feature" data-i18n="subscribe.editor_access">Editör erişimi</td><td class="val no">—</td><td class="val">E-posta</td><td class="val" data-i18n="subscribe.priority">Öncelikli</td></tr>
-      <tr><td class="feature" data-i18n="subscribe.team_license">Ekip lisansı</td><td class="val no">—</td><td class="val no">—</td><td class="val yes" data-i18n="subscribe.unlimited">Sınırsız</td></tr>
-      <tr><td class="feature">SSO / SAML</td><td class="val no">—</td><td class="val no">—</td><td class="val yes">✓</td></tr>
-      <tr><td class="feature" data-i18n="subscribe.custom_reports_table">Özel raporlar</td><td class="val no">—</td><td class="val no">—</td><td class="val yes">✓</td></tr>
-      <tr><td class="feature" data-i18n="subscribe.monthly_sector_panel">Aylık sektör paneli</td><td class="val no">—</td><td class="val no">—</td><td class="val yes">✓</td></tr>
-    </tbody>
-  </table>
+<section class="sub-hero">
+  <h1><span data-i18n="subscribe.hero_h1_a">Sovereign brief'lerine</span> <em data-i18n="subscribe.hero_h1_b">abone ol.</em></h1>
+  <p class="dek" data-i18n="subscribe.hero_dek">Günde 2 kez, sabah ve akşam. Sağlık teknolojisi ve yapay zekâ alanında damıtılmış sinyal — doğrudan e-posta kutuna.</p>
 </section>
 
-<section class="faq-band">
-  <h2 data-i18n="subscribe.faq">Sıkça sorulan</h2>
-  <details open>
-    <summary data-i18n="subscribe.cancel_anytime_question">İstediğim zaman iptal edebilir miyim?</summary>
-    <p data-i18n="subscribe.cancel_anytime_answer">Evet. Pro abonelikler aylık otomatik yenilenir, panelinizden tek tıkla iptal edersiniz. İptal sonrası dönem sonuna kadar erişiminiz devam eder.</p>
-  </details>
-  <details>
-    <summary data-i18n="subscribe.free_plan_validity_question">Ücretsiz plan ne zamana kadar geçerli?</summary>
-    <p data-i18n="subscribe.free_plan_validity_answer">Sürekli. Ücretsiz plan zaman sınırlı bir deneme değil; kalıcı bir plan. Sadece bazı özelliklere erişim sınırlı.</p>
-  </details>
-  <details>
-    <summary data-i18n="subscribe.pro_plan_vat_question">Pro plan fiyatlandırmasına KDV dahil mi?</summary>
-    <p data-i18n="subscribe.pro_plan_vat_answer">Evet, ₺149 fiyatı KDV dahil son tutardır. Fatura kesim talebinde bulunursanız kurumsal faturalandırma yapılır.</p>
-  </details>
-  <details>
-    <summary data-i18n="subscribe.sharing_subscription_question">Birden çok kişiyle aboneliği paylaşabilir miyim?</summary>
-    <p data-i18n="subscribe.sharing_subscription_answer">Bireysel Pro abonelikler tek kullanıcılıdır. 3 veya daha fazla kullanıcıya ihtiyacınız varsa Team planı maliyet açısından daha avantajlı.</p>
-  </details>
-  <details>
-    <summary data-i18n="subscribe.payment_methods_question">Hangi ödeme yöntemlerini kabul ediyorsunuz?</summary>
-    <p data-i18n="subscribe.payment_methods_answer">Bireysel: Kredi/banka kartı (Visa, Mastercard, Troy), Apple Pay, Google Pay. Kurumsal: havale/EFT ile yıllık ödeme.</p>
-  </details>
+<div class="sub-form-card">
+  <form id="subForm" method="POST" action="__BEEHIIV_SUBSCRIBE_URL__" target="_blank">
+    <label for="subEmail" style="font-size:12px;color:var(--mid);font-weight:500;text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:6px;" data-i18n="subscribe.email_lbl">E-posta</label>
+    <div class="row">
+      <input id="subEmail" name="email" type="email" required autocomplete="email" placeholder="sen@şirket.com" />
+      <button type="submit" class="sub-btn" data-i18n="subscribe.subscribe_btn">Abone ol</button>
+    </div>
+    <div class="sub-msg" id="subMsg"></div>
+  </form>
+</div>
+
+<p class="sub-footer-note" data-i18n="subscribe.privacy_note">KVKK/GDPR uyumlu. İstediğin zaman tek tıkla çıkabilirsin. Spam yapmıyoruz, e-posta paylaşılmıyor.</p>
+
+<section class="sub-manifesto">
+  <h2 data-i18n="subscribe.manifesto_label">Neden Sovereign</h2>
+
+  <div class="blk">
+    <h3 data-i18n="subscribe.why_h3">Sinyal, gürültü değil.</h3>
+    <p data-i18n="subscribe.why_p">Her gün yüzlerce yayından gelen sağlık-AI haberlerini taramak imkansız. Sovereign otonom bir yapay zekâ motoruyla onlarca kaynağı tarar, benzer haberleri eler ve sadece etki puanı yüksek sinyalleri damıtır.</p>
+  </div>
+
+  <div class="blk">
+    <h3 data-i18n="subscribe.how_h3">Nasıl çalışıyor.</h3>
+    <p data-i18n="subscribe.how_p">RSS'den taranan haberler embedding-tabanlı benzerlik filtresinden geçer, ardından DeepSeek-v4-pro tarafından analiz edilip 1-10 etki puanı ile skorlanır. Eşiği geçenler editöryal onaydan geçtikten sonra bültene girer.</p>
+  </div>
+
+  <div class="blk">
+    <h3 data-i18n="subscribe.you_h3">Senin için.</h3>
+    <p data-i18n="subscribe.you_p">VC, hastane CIO'su, dijital sağlık girişimcisi veya klinik AI mühendisiyseniz, sabah kahveniz ve akşam kapanışınız arasında sektörü kaçırmadan takip etmek istersiniz. Sovereign tam bunun için.</p>
+  </div>
 </section>
 
 <div id="footer-mount"></div>
@@ -283,6 +136,37 @@
 <script src="nav.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="auth.js"></script>
+
+<script>
+(function () {
+  const form = document.getElementById('subForm');
+  const msg = document.getElementById('subMsg');
+  // Eğer build sırasında Beehiiv URL inject edilmediyse, mailto fallback'e geç.
+  const beehiivPlaceholder = "__BEEHIIV_SUBSCRIBE_URL__";
+  const currentAction = form.getAttribute('action');
+  if (!currentAction || currentAction.indexOf("__") === 0) {
+    // Fallback: mailto formu (kullanıcının kendi adresinden)
+    form.setAttribute('action', 'mailto:mehmetdem782100@gmail.com');
+    form.setAttribute('method', 'GET');
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = document.getElementById('subEmail').value.trim();
+      if (!email) return;
+      const subject = encodeURIComponent('Sovereign abonelik isteği');
+      const body = encodeURIComponent(`Abone olmak isteyen e-posta: ${email}`);
+      location.href = `mailto:mehmetdem782100@gmail.com?subject=${subject}&body=${body}`;
+      msg.textContent = 'E-posta uygulaman açılacak. Mesajı gönderdiğinde manuel olarak Beehiiv\'e ekleyeceğiz.';
+      msg.className = 'sub-msg ok';
+    });
+  } else {
+    // Beehiiv URL'i var — target="_blank" ile Beehiiv'in formuna yönlendir
+    form.addEventListener('submit', () => {
+      msg.textContent = 'Beehiiv abonelik sayfasına yönlendiriliyorsun. Orada onayını tamamla.';
+      msg.className = 'sub-msg ok';
+    });
+  }
+})();
+</script>
 
 </body>
 </html>

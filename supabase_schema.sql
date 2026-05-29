@@ -54,8 +54,21 @@ create table if not exists public.feeds (
     created_at timestamptz not null default now()
 );
 
+-- Uzun-format LLM analiz (editorial.html sayfası) — bir bülten için
+-- DeepSeek üretimi 1500-2000 kelimelik derinlemesine analiz cache'lenir.
+create table if not exists public.long_reads (
+    id            bigint generated always as identity primary key,
+    newsletter_id bigint references public.newsletters(id) on delete cascade,
+    content       text not null,
+    model         text,
+    generated_at  timestamptz not null default now(),
+    generated_by  text
+);
+create index if not exists long_reads_newsletter_idx on public.long_reads (newsletter_id);
+
 -- Güvenlik: RLS aç. Sunucu service_role key kullandığı için RLS'i baypas eder ve
 -- çalışmaya devam eder; politika tanımlanmadığı için anon/public erişim reddedilir.
 alter table public.articles enable row level security;
 alter table public.newsletters enable row level security;
 alter table public.feeds enable row level security;
+alter table public.long_reads enable row level security;

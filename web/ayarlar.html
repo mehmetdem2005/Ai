@@ -160,7 +160,6 @@
     <a href="#dil" class="active" data-i18n="ayarlar.sec_lang">Dil</a>
     <a href="#gorunum" data-i18n="ayarlar.sec_view">Görünüm</a>
     <a href="#bildirim" data-i18n="ayarlar.sec_notif">Bildirimler</a>
-    <a href="#abonelik" data-i18n="ayarlar.sec_sub">Abonelik</a>
     <a href="#hesap" data-i18n="ayarlar.sec_acc">Hesap</a>
   </aside>
 
@@ -281,66 +280,49 @@
       </div>
     </section>
 
-    <section class="setting-block" id="abonelik">
-      <h2 data-i18n="ayarlar.sec_sub">Abonelik</h2>
-      <p class="desc" data-i18n="ayarlar.sec_sub_desc">Mevcut plan ve faturalama bilgileriniz.</p>
-
-      <div class="setting-row">
-        <div>
-          <div class="lbl" data-i18n="settings.current_plan">Mevcut plan</div>
-          <div class="hint" data-i18n="settings.current_plan_v">Brief — Ücretsiz</div>
-        </div>
-        <a href="abonelik.html" class="btn sm" data-i18n="settings.upgrade">Yükselt</a>
-      </div>
-      <div class="setting-row">
-        <div>
-          <div class="lbl" data-i18n="settings.payment">Ödeme yöntemi</div>
-          <div class="hint" data-i18n="settings.payment_v">Henüz eklenmedi</div>
-        </div>
-        <button class="btn sm" data-i18n="settings.add">Ekle</button>
-      </div>
-      <div class="setting-row">
-        <div>
-          <div class="lbl" data-i18n="settings.billing">Fatura geçmişi</div>
-          <div class="hint" data-i18n="settings.billing_v">Aktif fatura yok.</div>
-        </div>
-        <button class="btn sm" disabled style="opacity:.5;" data-i18n="settings.view">Görüntüle</button>
-      </div>
-    </section>
-
     <section class="setting-block" id="hesap">
       <h2 data-i18n="ayarlar.sec_acc">Hesap</h2>
       <p class="desc" data-i18n="ayarlar.sec_acc_desc">Profil bilgileri ve güvenlik.</p>
 
-      <div class="setting-row">
+      <div class="setting-row" id="accountSignedOut" style="display:none;">
         <div>
-          <div class="lbl" data-i18n="settings.email">E-posta</div>
-          <div class="hint">hello@sovereign.tr</div>
+          <div class="lbl" data-i18n="settings.signed_out">Henüz giriş yapmadın</div>
+          <div class="hint" data-i18n="settings.signed_out_desc">Hesap ayarlarını görmek için giriş yapmalısın.</div>
         </div>
-        <button class="btn sm" data-i18n="settings.change">Değiştir</button>
-      </div>
-      <div class="setting-row">
-        <div>
-          <div class="lbl" data-i18n="settings.password">Şifre</div>
-          <div class="hint" data-i18n="settings.password_v">Son güncelleme bilinmiyor</div>
-        </div>
-        <button class="btn sm" data-i18n="settings.reset">Sıfırla</button>
-      </div>
-      <div class="setting-row">
-        <div>
-          <div class="lbl" data-i18n="settings.export">Veri dışa aktarma</div>
-          <div class="hint" data-i18n="settings.export_desc">Okuma geçmişi, ayarlar, abonelik verisi.</div>
-        </div>
-        <button class="btn sm" data-i18n="settings.download">İndir (JSON)</button>
+        <button class="btn sm primary" id="signInBtn" data-i18n="nav.signin">Giriş</button>
       </div>
 
-      <div class="danger">
-        <div class="setting-row" style="border-top: none; padding: 0;">
+      <div id="accountSignedIn" style="display:none;">
+        <div class="setting-row">
           <div>
-            <div class="lbl" data-i18n="settings.delete">Hesabı sil</div>
-            <div class="hint" data-i18n="settings.delete_desc">Tüm veriler kalıcı olarak silinir.</div>
+            <div class="lbl" data-i18n="settings.email">E-posta</div>
+            <div class="hint" id="accountEmail">—</div>
           </div>
-          <button class="btn sm" style="background: var(--alert); color: #fff; border-color: var(--alert);" data-i18n="settings.delete_btn">Sil</button>
+          <button class="btn sm" id="changeEmailBtn" data-i18n="settings.change">Değiştir</button>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="lbl" data-i18n="settings.password">Şifre</div>
+            <div class="hint" data-i18n="settings.password_v">Son güncelleme bilinmiyor</div>
+          </div>
+          <button class="btn sm" id="changePasswordBtn" data-i18n="settings.reset">Sıfırla</button>
+        </div>
+        <div class="setting-row">
+          <div>
+            <div class="lbl" data-i18n="settings.export">Veri dışa aktarma</div>
+            <div class="hint" data-i18n="settings.export_desc">Okuma geçmişi, ayarlar, abonelik verisi.</div>
+          </div>
+          <button class="btn sm" id="exportDataBtn" data-i18n="settings.download">İndir (JSON)</button>
+        </div>
+
+        <div class="danger">
+          <div class="setting-row" style="border-top: none; padding: 0;">
+            <div>
+              <div class="lbl" data-i18n="settings.delete">Hesabı sil</div>
+              <div class="hint" data-i18n="settings.delete_desc">Tüm veriler kalıcı olarak silinir.</div>
+            </div>
+            <button class="btn sm" id="deleteAccountBtn" disabled style="opacity:.5;background:var(--alert);color:#fff;border-color:var(--alert);" data-i18n="settings.coming_soon">Yakında</button>
+          </div>
         </div>
       </div>
     </section>
@@ -356,20 +338,71 @@
 <script src="auth.js"></script>
 
 <script>
-  // Settings page interactions
+  // ── Theme / density / accent — gerçek davranış ─────────────────────────
+  function applyPref(key, val) {
+    if (key === 'theme') {
+      if (val === 'system') {
+        document.documentElement.removeAttribute('data-theme');
+      } else {
+        document.documentElement.setAttribute('data-theme', val);
+      }
+    } else if (key === 'density') {
+      document.documentElement.setAttribute('data-density', val);
+    } else if (key === 'accent') {
+      document.documentElement.setAttribute('data-accent', val);
+    }
+  }
+  function loadPrefs() {
+    ['theme', 'density', 'accent'].forEach(key => {
+      const saved = localStorage.getItem('sov_' + key);
+      if (saved) {
+        applyPref(key, saved);
+        // Aktif butonu güncelle
+        const seg = document.querySelector(`.seg[data-key="${key}"]`);
+        if (seg) {
+          seg.querySelectorAll('button').forEach(b => {
+            b.classList.toggle('active', b.dataset.val === saved);
+          });
+        }
+      }
+    });
+  }
+  loadPrefs();
+
   document.querySelectorAll('.seg').forEach(seg => {
     seg.addEventListener('click', e => {
       if (e.target.tagName !== 'BUTTON') return;
       seg.querySelectorAll('button').forEach(b => b.classList.remove('active'));
       e.target.classList.add('active');
+      const key = seg.dataset.key;
+      const val = e.target.dataset.val;
+      if (key && val) {
+        localStorage.setItem('sov_' + key, val);
+        applyPref(key, val);
+      }
     });
   });
-  document.querySelectorAll('.toggle').forEach(t => {
+
+  // ── Bildirim toggles — localStorage persist ──────────────────────────
+  document.querySelectorAll('.setting-row .toggle').forEach((t, i) => {
+    // Etiketten anahtar üret (lbl text)
+    const row = t.closest('.setting-row');
+    const lbl = row?.querySelector('.lbl');
+    const key = 'sov_notif_' + (lbl?.dataset?.i18n || ('n' + i)).replace(/\W/g, '_');
+    // Kayıtlı durumu yükle (varsayılan: on)
+    const saved = localStorage.getItem(key);
+    const on = saved === null ? true : saved === '1';
+    t.classList.toggle('on', on);
+    t.setAttribute('aria-pressed', on);
     t.addEventListener('click', () => {
-      t.classList.toggle('on');
-      t.setAttribute('aria-pressed', t.classList.contains('on'));
+      const newOn = !t.classList.contains('on');
+      t.classList.toggle('on', newOn);
+      t.setAttribute('aria-pressed', newOn);
+      localStorage.setItem(key, newOn ? '1' : '0');
     });
   });
+
+  // ── Lang picker — auth.js + nav.js zaten ana mekaniğe sahip ────────────
   document.querySelectorAll('.lang-pick').forEach(p => {
     p.addEventListener('click', e => {
       e.preventDefault();
@@ -377,9 +410,80 @@
       p.classList.add('active');
       const code = p.dataset.langPick;
       localStorage.setItem('sov_lang', code);
-      // Trigger nav lang update
       document.querySelector(`.lang-option[data-lang="${code}"]`)?.click();
     });
+  });
+
+  // ── Hesap section — Supabase Auth ─────────────────────────────────────
+  async function refreshAccountSection() {
+    const signedIn = document.getElementById('accountSignedIn');
+    const signedOut = document.getElementById('accountSignedOut');
+    const emailEl = document.getElementById('accountEmail');
+    if (!window.sovSb) {
+      // auth.js henüz init olmadıysa biraz bekle
+      setTimeout(refreshAccountSection, 200);
+      return;
+    }
+    const { data } = await window.sovSb.auth.getSession();
+    if (data && data.session) {
+      signedIn.style.display = '';
+      signedOut.style.display = 'none';
+      if (emailEl) emailEl.textContent = data.session.user.email || '—';
+    } else {
+      signedIn.style.display = 'none';
+      signedOut.style.display = 'flex';
+    }
+  }
+  setTimeout(refreshAccountSection, 200);
+  document.addEventListener('DOMContentLoaded', refreshAccountSection);
+  window.addEventListener('focus', refreshAccountSection);
+  // Auth state değişince
+  setTimeout(() => {
+    if (window.sovSb) {
+      window.sovSb.auth.onAuthStateChange(refreshAccountSection);
+    }
+  }, 500);
+
+  document.getElementById('signInBtn')?.addEventListener('click', () => {
+    document.getElementById('sovBackdrop')?.classList.add('open');
+  });
+
+  document.getElementById('changeEmailBtn')?.addEventListener('click', async () => {
+    const newEmail = prompt('Yeni e-posta adresi:');
+    if (!newEmail || !window.sovSb) return;
+    const { error } = await window.sovSb.auth.updateUser({ email: newEmail });
+    if (error) alert('Hata: ' + error.message);
+    else alert('Doğrulama bağlantısı yeni adresine gönderildi.');
+  });
+
+  document.getElementById('changePasswordBtn')?.addEventListener('click', async () => {
+    const newPw = prompt('Yeni şifre (en az 6 karakter):');
+    if (!newPw || newPw.length < 6 || !window.sovSb) return;
+    const { error } = await window.sovSb.auth.updateUser({ password: newPw });
+    if (error) alert('Hata: ' + error.message);
+    else alert('Şifre güncellendi.');
+  });
+
+  document.getElementById('exportDataBtn')?.addEventListener('click', async () => {
+    if (!window.sovSb) return;
+    const { data } = await window.sovSb.auth.getSession();
+    const user = data?.session?.user;
+    const dump = {
+      user: user ? { id: user.id, email: user.email, created_at: user.created_at } : null,
+      preferences: {
+        lang: localStorage.getItem('sov_lang'),
+        theme: localStorage.getItem('sov_theme'),
+        density: localStorage.getItem('sov_density'),
+        accent: localStorage.getItem('sov_accent'),
+      },
+      exported_at: new Date().toISOString(),
+    };
+    const blob = new Blob([JSON.stringify(dump, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `sovereign-veri-${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(a.href);
   });
 
   // Scroll-spy
