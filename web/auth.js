@@ -6,6 +6,17 @@
   const SUPABASE_ANON_KEY = "__SUPABASE_ANON_KEY__";
   const ADMIN_PANEL_URL = "__ADMIN_PANEL_URL__";
 
+  // Tema/yoğunluk/aksan'ı render'dan önce uygula (FOUC önler).
+  (function applyEarlyPrefs() {
+    const html = document.documentElement;
+    const theme = localStorage.getItem('sov_theme');
+    if (theme && theme !== 'system') html.setAttribute('data-theme', theme);
+    const density = localStorage.getItem('sov_density');
+    if (density) html.setAttribute('data-density', density);
+    const accent = localStorage.getItem('sov_accent');
+    if (accent) html.setAttribute('data-accent', accent);
+  })();
+
   function ready(fn) {
     if (document.readyState !== "loading") fn();
     else document.addEventListener("DOMContentLoaded", fn);
@@ -292,6 +303,26 @@
     actions.appendChild(bar);
   }
 
+  // Masthead'deki "Son güncelleme: ..." metnini en güncel bülten tarihinden doldur.
+  async function refreshMasthead() {
+    const el = document.querySelector(".masthead .vol");
+    if (!el) return;
+    try {
+      const r = await fetch("/data.json", { cache: "no-store" });
+      const data = await r.json();
+      if (!Array.isArray(data) || !data.length) return;
+      const d = new Date(data[0].created_at);
+      const months = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+      const pad = (n) => String(n).padStart(2, "0");
+      const text = `Son güncelleme: ${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}, ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      // data-i18n'i kaldır ki i18n.js statik değeri override etmesin
+      el.removeAttribute("data-i18n");
+      el.textContent = text;
+    } catch {
+      // sessizce geç — masthead default text kalır
+    }
+  }
+
   async function init() {
     if (!window.supabase || !SUPABASE_URL || SUPABASE_URL.indexOf("__") === 0) {
       return; // Supabase CDN yüklenmedi ya da placeholder eksik
@@ -305,6 +336,7 @@
       injectModal();
       setupModalEvents();
       renderAuth();
+      refreshMasthead();
       window.sovSb.auth.onAuthStateChange(() => renderAuth());
     }, 100);
   }

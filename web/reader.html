@@ -314,10 +314,11 @@
       `<span class="sid">${fmt(d).toUpperCase()} · ${edition(d)}</span>` +
       `<span class="date">·</span>` +
       `<span class="date">${timeAgo(d)}</span>` +
-      `<span class="pill ok"><span class="dot"></span>YAYINDA</span>` +
+      `<span class="pill ok"><span class="dot"></span><span data-i18n="reader.in_publication">YAYINDA</span></span>` +
       `<div class="actions">` +
-        `<button class="btn sm" id="dlBtn">⤓ İndir</button>` +
-        `<button class="btn sm primary" id="shBtn">⤴ Paylaş</button>` +
+        `<a class="btn sm" href="editorial.html?bulten=${encodeURIComponent(nl.id)}" data-i18n="reader.long_read">📖 Uzun okuma →</a>` +
+        `<button class="btn sm" id="dlBtn" data-i18n="reader.download_btn">⤓ İndir</button>` +
+        `<button class="btn sm primary" id="shBtn" data-i18n="reader.share_btn">⤴ Paylaş</button>` +
       `</div>`;
     document.getElementById("dlBtn").onclick = () => download(nl);
     document.getElementById("shBtn").onclick = () => share(nl);

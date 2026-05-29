@@ -5,254 +5,282 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Sovereign · Editorial Wire — Uzun okuma</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600;700&family=Newsreader:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=DM+Serif+Display&family=Source+Serif+4:wght@400;500;600&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="tokens.css" />
 <link rel="stylesheet" href="mobile.css" />
 <style>
-  body { background: var(--bg); }
-  .wrap { max-width: 720px; margin: 0 auto; padding: 56px 24px 96px; }
-  .back {
-    display: inline-block; font-family: var(--font-mono); font-size: 11px;
-    letter-spacing: 0.08em; color: var(--mid); margin-bottom: 40px;
-    border: none;
+  .editorial-wrap {
+    max-width: 720px; margin: 0 auto; padding: 32px 28px 80px;
   }
-  .back:hover { color: var(--ink); }
+  .back-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 12.5px; color: var(--mid); text-decoration: none;
+    margin-bottom: 24px;
+  }
+  .back-link:hover { color: var(--cyan); }
 
-  .head-meta {
-    display: flex; gap: 16px; align-items: center;
-    padding-bottom: 18px; border-bottom: 1px solid var(--ink);
-    font-family: var(--font-mono); font-size: 11px; color: var(--mid);
-    letter-spacing: 0.06em;
-  }
-  .head-meta .sid { color: var(--cyan-ink); }
-  .head-meta .spacer { flex: 1; }
-
-  h1.headline {
-    margin: 36px 0 22px;
-    font-family: var(--font-display); font-weight: 500;
-    font-size: 52px; line-height: 1.05; letter-spacing: -0.03em;
-    color: var(--ink); text-wrap: balance;
-  }
-  .dek {
-    font-family: var(--font-display); font-weight: 400; font-size: 22px; line-height: 1.45; color: var(--ink-2);
-    max-width: 640px; text-wrap: pretty;
-  }
-
-  .byline {
-    margin: 28px 0 0;
-    display: flex; gap: 14px; align-items: center;
-    font-family: var(--font-mono); font-size: 11px;
-    color: var(--mid); letter-spacing: 0.06em;
-  }
-  .byline .by { color: var(--ink); font-weight: 500; }
-
-  .meta-grid {
-    margin: 36px 0 48px;
-    padding: 20px 0;
+  .meta-row {
+    display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+    font-family: var(--font-mono); font-size: 12px; color: var(--mid);
     border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink);
-    display: grid; grid-template-columns: repeat(5, 1fr);
+    padding: 12px 0; margin-bottom: 28px;
   }
-  .meta-grid .cell { padding: 0 14px; border-right: 1px solid var(--line); }
-  .meta-grid .cell:first-child { padding-left: 0; }
-  .meta-grid .cell:last-child { border-right: none; padding-right: 0; }
-  .meta-grid .k {
-    font-family: var(--font-mono); font-size: 9.5px; color: var(--mid);
-    letter-spacing: 0.14em; text-transform: uppercase;
+  .meta-row .sid { font-weight: 600; color: var(--ink); letter-spacing: 0.06em; }
+  .meta-row .actions { margin-left: auto; display: flex; gap: 8px; }
+  .meta-row .btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 6px 10px; font-size: 12px; border: 1px solid var(--ink);
+    background: var(--surface); color: var(--ink); cursor: pointer;
+    text-decoration: none; font-family: inherit;
   }
-  .meta-grid .v {
-    margin-top: 4px;
-    font-family: var(--font-display); font-size: 22px; font-weight: 500;
-    letter-spacing: -0.02em; line-height: 1;
-  }
+  .meta-row .btn.primary { background: var(--ink); color: var(--surface); }
 
-  .body {
-    font-family: var(--font-serif);
+  .kicker {
+    font-family: var(--font-mono); font-size: 11px;
+    letter-spacing: 0.1em; color: var(--mid); text-transform: uppercase;
+  }
+  .body h1 {
+    margin: 14px 0 18px;
+    font-size: 36px; font-weight: 700; line-height: 1.18;
+    letter-spacing: -0.02em;
+  }
+  .body h2 {
+    margin: 36px 0 14px;
+    font-size: 20px; font-weight: 700; line-height: 1.3;
+  }
+  .body h3 {
+    margin: 26px 0 10px;
+    font-size: 16px; font-weight: 700;
   }
   .body p {
-    margin: 0 0 22px;
-    font-size: 18px; line-height: 1.7; color: var(--ink-2);
-    text-wrap: pretty;
+    margin: 0 0 18px;
+    font-size: 16.5px; line-height: 1.7; color: var(--ink-2);
   }
-  .body p strong { color: var(--ink); font-weight: 500; }
+  .body strong { color: var(--ink); font-weight: 600; }
+  .body blockquote {
+    margin: 24px 0; padding: 18px 24px;
+    border-left: 4px solid var(--cyan);
+    background: var(--cyan-soft); color: var(--ink);
+    font-size: 18px; line-height: 1.55; font-weight: 500;
+  }
+  .body ul, .body ol { padding-left: 24px; margin: 12px 0 20px; }
+  .body li { font-size: 16px; line-height: 1.7; margin: 6px 0; color: var(--ink-2); }
 
-  .body h2.section {
-    margin: 64px 0 4px;
-    font-family: var(--font-mono); font-size: 11px;
-    letter-spacing: 0.18em; text-transform: uppercase;
-    color: var(--cyan-ink);
-    padding-bottom: 6px; border-bottom: 1px solid var(--cyan-ink);
-    display: inline-block;
+  .empty-state {
+    text-align: center; padding: 50px 24px;
+    border: 1px dashed var(--line); border-radius: var(--radius-lg);
+    background: var(--bg-2);
   }
-  .body h2.section + p { margin-top: 18px; }
+  .empty-state h2 { font-size: 18px; margin: 0 0 8px; }
+  .empty-state p { color: var(--mid); font-size: 14px; margin: 0 0 16px; }
 
-  .pull {
-    margin: 48px -40px;
-    padding: 32px 40px;
-    border-left: 3px solid var(--cyan); background: var(--bg-2);
-    font-family: var(--font-display); font-weight: 400; font-size: 30px; line-height: 1.2; letter-spacing: -0.02em;
-    color: var(--ink); text-wrap: balance; text-align: center;
+  .footer-note {
+    margin-top: 36px; padding-top: 18px;
+    border-top: 1px solid var(--line);
+    font-size: 12px; color: var(--mid);
   }
+  .footer-note span.mono { font-family: var(--font-mono); }
 
-  .figure {
-    margin: 48px -40px;
-    border: 1px solid var(--ink); background: var(--surface);
+  .gen-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 10px 18px; font-size: 14px; font-weight: 600;
+    border: 1px solid var(--cyan); background: var(--cyan); color: #fff;
+    border-radius: var(--radius); cursor: pointer; font-family: inherit;
   }
-  .figure .head {
-    padding: 14px 22px; border-bottom: 1px solid var(--ink);
-    display: flex; align-items: center; gap: 10px;
-    font-family: var(--font-mono); font-size: 10.5px;
-    letter-spacing: 0.12em; text-transform: uppercase; color: var(--mid);
-  }
-  .figure .chart { padding: 28px; background: var(--bg); height: 240px; position: relative; }
-  .figure .chart svg { width: 100%; height: 100%; }
-  .figure .cap {
-    padding: 12px 22px; border-top: 1px solid var(--line);
-    font-family: var(--font-serif); font-size: 14px;
-    color: var(--mid);
-  }
-
-  .body ul {
-    padding-left: 0; list-style: none; margin: 16px 0;
-  }
-  .body ul li {
-    font-size: 17px; line-height: 1.6;
-    color: var(--ink-2); padding: 12px 0 12px 28px;
-    border-bottom: 1px dashed var(--line); position: relative;
-  }
-  .body ul li::before {
-    content: "§"; position: absolute; left: 0;
-    font-family: var(--font-display); color: var(--cyan);
-  }
-
-  .end {
-    margin-top: 72px; padding-top: 24px;
-    border-top: 1px solid var(--ink);
-    display: flex; gap: 14px; align-items: center;
-    font-family: var(--font-mono); font-size: 11px;
-    color: var(--mid); letter-spacing: 0.06em;
-  }
-  .end .mark {
-    width: 12px; height: 12px; background: var(--ink); display: inline-block;
-  }
-  .end .spacer { flex: 1; }
-
-  /* ===== RESPONSIVE ===== */
-  @media (max-width: 900px) {
-    .wrap { padding: 36px 20px 64px; }
-    h1.headline { font-size: 36px !important; line-height: 1.08; }
-    .dek { font-size: 18px; }
-    .meta-grid { grid-template-columns: repeat(3, 1fr); margin: 28px 0 36px; padding: 14px 0; }
-    .meta-grid .cell { padding: 8px 12px !important; }
-    .meta-grid .v { font-size: 16px !important; }
-    .body p { font-size: 16.5px !important; line-height: 1.6; }
-    .pull { margin: 32px -20px; padding: 24px 22px; font-size: 22px !important; }
-    .figure { margin: 28px -20px; }
-    .figure .chart { height: 180px; padding: 18px; }
-    .end { font-size: 10.5px; flex-wrap: wrap; gap: 8px; }
-  }
-  @media (max-width: 640px) {
-    .wrap { padding: 28px 16px 48px; }
-    h1.headline { font-size: 28px !important; }
-    .dek { font-size: 16.5px; }
-    .meta-grid { grid-template-columns: 1fr 1fr; }
-    .body p { font-size: 16px !important; }
-    .pull { font-size: 20px !important; padding: 20px 18px; }
-  }
+  .gen-btn:hover:not(:disabled) { background: var(--cyan-ink); }
+  .gen-btn:disabled { opacity: .5; cursor: not-allowed; }
 </style>
 </head>
 <body>
 
 <div id="topnav-mount"></div>
 
-<article class="wrap">
-  <a class="back" href="reader.html" data-i18n="editorial.back_to_newsletter_list">← BÜLTEN LİSTESİNE DÖN</a>
+<div class="editorial-wrap">
+  <a class="back-link" href="reader.html"><span data-i18n="editorial.back">← Bültene dön</span></a>
 
-  <div class="head-meta">
-    <span class="sid" data-i18n="editorial.edition_date_header">28 MAYIS 2026 · AKŞAM EDİSYONU</span>
-    <span>·</span>
-    <span>Uzun okuma</span>
-    <span class="spacer"></span>
-    <span data-i18n="editorial.approx_reading_time">~6 DAKİKA</span>
+  <div id="loading" style="color: var(--mid);" data-i18n="editorial.loading">Yükleniyor…</div>
+
+  <div id="content" style="display: none;">
+    <div class="meta-row" id="metaRow"></div>
+    <article class="body" id="body"></article>
+    <div class="footer-note" id="footerNote"></div>
   </div>
 
-  <h1 class="headline" data-i18n="editorial.fda_approved_ai_radiology_workflow_what">FDA, ilk yapay zekâ destekli radyoloji akışını onayladı. Yüzeyin altında ne <em data-i18n="editorial.changed_verb">değişti.</em></h1>
-
-  <p class="dek" data-i18n="editorial.surface_headline_deeper_changes">Onay başlığa çıktı. Asıl değişim üç katman aşağıda: lisanslı veri tedariki, yeni bir denetim emsali, ve şimdi sıraya giren dört dosya. Bugünün akşam brief'inden bir sentez.</p>
-
-  <div class="byline">
-    <span class="by" data-i18n="editorial.sovereign_editorial_label">SOVEREIGN EDİTÖRYAL</span>
-    <span>·</span>
-    <span data-i18n="editorial.generated_by_ai">YAPAY ZEKÂ TARAFINDAN ÜRETİLDİ</span>
-  </div>
-
-  <div class="meta-grid">
-    <div class="cell"><div class="k">Tarih</div><div class="v">28 May</div></div>
-    <div class="cell"><div class="k">Edisyon</div><div class="v" data-i18n="editorial.evening_label">Akşam</div></div>
-    <div class="cell"><div class="k">Konu</div><div class="v">Regulasyon</div></div>
-    <div class="cell"><div class="k" data-i18n="editorial.production_label">Üretim</div><div class="v">Otomatik</div></div>
-    <div class="cell"><div class="k">Format</div><div class="v" data-i18n="editorial.five_sections_label">5 bölüm</div></div>
-  </div>
-
-  <div class="body">
-
-    <p data-i18n="editorial.limited_indication_nodule_triage">Onay sınırlı endikasyon ile geldi: toraks tomografisinde küçük nodül triajı, altı milimetreden küçükler filtresiyle. <strong data-i18n="editorial.what_headline_doesnt_say">Bu, başlığın söylediği değil; başlığın söylemediği önemli.</strong> Yıl içinde kapsamın genişleyebileceğini, benzer dosyaların kuyruğa girdiğini gösteren üç ayrı raporu aynı gün içinde okuduk.</p>
-
-    <p data-i18n="editorial.competitors_similar_architecture_training_data_diff">Ön klinik aşamadaki dört rakip benzer mimari aileyi kullanıyor. Asıl fark, eğitim verisinin <strong data-i18n="editorial.licensed_multicenter_cohort">lisanslı çoklu-merkez kohort</strong> olması: kişisel sağlık verisinden arındırılmış, geri-izlenebilir, ve önemli olarak yeniden eğitilemeyen bir veri tabanı. Bu, modelin tekrarlanabilirliğini de belirsizleştiriyor.</p>
-
-    <h2 class="section">/ De Novo emsali</h2>
-
-    <p data-i18n="editorial.instead_of_510k_equivalent">Bu sefer 510(k) eşdeğeri yerine <strong>De Novo yolu</strong> seçildi. Bu, gelecek dosyalar için referans oluşturuyor; mimari özgüllüğü olmayan modeller için yeni bir denetim kategorisi açıldı. Konvansiyonu değiştiren karar bu.</p>
-
-    <div class="pull" data-i18n="editorial.not_first_ai_filing_first">"Bu, yapay zekânın klinik akışa girdiği ilk dosya değil — ilk <em>foundation model</em> dosyası."</div>
-
-    <p><strong data-i18n="editorial.impact_midscale_imaging_integrators">Etki orta-ölçekli görüntüleme entegratörlerinde toplanıyor</strong><span data-i18n="editorial.impact_midscale_tail">: satış döngüsü kısalır, pazarın geleneksel oligopolü sıkışır. Üç ayrı kanal raporu bu yönde.</span></p>
-
-    <div class="figure">
-      <div class="head">
-        <span>FIG·1</span>
-        <span style="color:var(--ink);" data-i18n="editorial.signal_intensity_last_14_days">SİNYAL YOĞUNLUĞU · SON 14 GÜN</span>
-        <span style="margin-left:auto;" data-i18n="editorial.sovereign_archive">SOVEREIGN ARŞİV</span>
-      </div>
-      <div class="chart">
-        <svg viewBox="0 0 600 240" preserveAspectRatio="none">
-          <line x1="0" y1="200" x2="600" y2="200" stroke="#E2D9C6"/>
-          <line x1="0" y1="140" x2="600" y2="140" stroke="#E2D9C6" stroke-dasharray="2 4"/>
-          <line x1="0" y1="80" x2="600" y2="80" stroke="#E2D9C6" stroke-dasharray="2 4"/>
-          <polyline points="0,180 40,160 80,170 120,140 160,150 200,120 240,130 280,100 320,90 360,110 400,70 440,80 480,50 520,30 560,40 600,20"
-            fill="none" stroke="#0369A1" stroke-width="2.5"/>
-          <circle cx="600" cy="20" r="5" fill="#0F1419"/>
-        </svg>
-      </div>
-      <div class="cap" data-i18n="editorial.signals_per_edition_may28_peak">Bülten edisyonları başına yayınlanan sinyal sayısı. 28 Mayıs akşam edisyonu zirvede.</div>
-    </div>
-
-    <h2 class="section" data-i18n="editorial.where_skepticism_belongs">/ Çekincenin yeri</h2>
-
-    <p data-i18n="editorial.post_market_surveillance_not_transparent">Pazar sonrası gözlem verisi henüz şeffaf değil. <strong data-i18n="editorial.in_two_preclinical_files">İki ön klinik dosyada</strong> alt-grup performansında ırk-ilişkili sapma raporlandı; bu rapor mevcut onayda açıklanmadı. Takip eden 12 ay kritik — şeffaflık getirilmezse bir sonraki dosya zorlaşır.</p>
-
-    <ul>
-      <li data-i18n="editorial.review_time_per_radiologist">Klinik akışta radyolog başına gözden geçirme süresi <strong>−24%</strong> (klinik denemede).</li>
-      <li data-i18n="editorial.sales_cycle_shortens_midscale">Orta-ölçekli görüntüleme entegratörleri için satış döngüsü kısalır.</li>
-      <li data-i18n="editorial.de_novo_precedent_foundation_models">De Novo yolu emsal oluşturdu; foundation-model tabanlı cihazlar için kategori açıldı.</li>
-      <li data-i18n="editorial.licensed_phi_free_cohort_oligopoly_uncertain">Lisanslı PHI-arındırılmış kohort tedariki dar bir oligopol — bu yapı belirsiz.</li>
-    </ul>
-
-    <p data-i18n="editorial.sovereign_watchlist_three_filings">Sovereign editoryal ekibi takip listesinde: bu mimariyi kullanan üç ek başvuru. Bir sonraki edisyonda ilk dosyanın FDA Q-Sub yanıtını özetleyeceğiz.</p>
-
-    <div class="end">
-      <span class="mark"></span>
-      <span data-i18n="editorial.edition_date_header">28 MAYIS 2026 · AKŞAM EDİSYONU</span>
-      <span class="spacer"></span>
-      <span data-i18n="editorial.reading_end">OKUMA SONU</span>
+  <div id="empty" class="empty-state" style="display: none;">
+    <h2 data-i18n="editorial.no_long_read">Bu bülten için uzun okuma henüz oluşturulmadı.</h2>
+    <p data-i18n="editorial.no_long_read_desc">Admin bu bültenin derinlemesine analizini üretebilir. 1500-2000 kelimelik tek seferlik analiz, ardından cache'lenir.</p>
+    <div id="adminGen" style="display: none;">
+      <button class="gen-btn" id="genBtn">📖 <span data-i18n="editorial.generate">Uzun analiz üret</span></button>
+      <p style="margin-top:12px;font-size:12px;color:var(--mid);" data-i18n="editorial.generate_warn">Üretim 1-2 dakika sürer ve DeepSeek API tüketir.</p>
     </div>
   </div>
-</article>
+</div>
 
+<div id="footer-mount"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
 <script src="i18n.js"></script>
 <script src="nav.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="auth.js"></script>
+
+<script>
+(function () {
+  const params = new URLSearchParams(location.search);
+  const newsletterId = params.get('bulten');
+
+  const TR_MONTHS = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+  function fmt(d) { return `${d.getDate()} ${TR_MONTHS[d.getMonth()]} ${d.getFullYear()}`; }
+  function edition(d) { return d.getHours() < 12 ? 'SABAH' : 'AKŞAM'; }
+
+  async function getToken() {
+    if (!window.sovSb) return null;
+    const { data } = await window.sovSb.auth.getSession();
+    return data?.session?.access_token || null;
+  }
+  async function isAdmin() {
+    if (!window.sovSb) return false;
+    const { data } = await window.sovSb.auth.getSession();
+    return data?.session?.user?.app_metadata?.role === 'admin';
+  }
+
+  function downloadLR(lr, d) {
+    const blob = new Blob([lr.content], { type: 'text/markdown;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `uzun-okuma-${d.toISOString().slice(0,10)}.md`;
+    document.body.appendChild(a); a.click(); a.remove();
+    URL.revokeObjectURL(a.href);
+  }
+  async function shareLR(d) {
+    const url = location.href;
+    if (navigator.share) {
+      try { await navigator.share({ title: 'Sovereign uzun okuma · ' + fmt(d), url }); }
+      catch {}
+    } else {
+      try { await navigator.clipboard.writeText(url); alert('Link kopyalandı.'); }
+      catch { prompt('Link:', url); }
+    }
+  }
+
+  function renderLongRead(lr, newsletter) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('empty').style.display = 'none';
+    document.getElementById('content').style.display = 'block';
+    const d = new Date(newsletter.created_at);
+
+    const meta = document.getElementById('metaRow');
+    meta.innerHTML =
+      `<span class="sid">${fmt(d).toUpperCase()} · ${edition(d)} EDİSYONU</span>` +
+      `<span>UZUN OKUMA</span>` +
+      `<div class="actions">` +
+        `<button class="btn" id="dlBtn">⤓ İndir</button>` +
+        `<button class="btn primary" id="shBtn">⤴ Paylaş</button>` +
+      `</div>`;
+    document.getElementById('dlBtn').onclick = () => downloadLR(lr, d);
+    document.getElementById('shBtn').onclick = () => shareLR(d);
+
+    // Markdown render — ilk başlık kicker olarak işle, kalan body
+    const content = lr.content || '';
+    const html = DOMPurify.sanitize(marked.parse(content));
+    document.getElementById('body').innerHTML = `<span class="kicker">SOVEREIGN · UZUN OKUMA · ${fmt(d).toUpperCase()}</span>` + html;
+
+    const footerNote = document.getElementById('footerNote');
+    footerNote.innerHTML =
+      `<strong>Model:</strong> <span class="mono">${lr.model || '—'}</span> · ` +
+      `<strong>Üretildi:</strong> ${new Date(lr.generated_at).toLocaleString('tr-TR')}` +
+      (lr.generated_by ? ` · <strong>Tetikleyen:</strong> ${lr.generated_by}` : '');
+  }
+
+  async function fetchNewsletter(id) {
+    const data = await (await fetch('./data.json', { cache: 'no-store' })).json();
+    return data.find(n => String(n.id) === String(id));
+  }
+
+  async function fetchLongRead(id) {
+    const r = await fetch('/api/longread?newsletter_id=' + encodeURIComponent(id));
+    if (r.status === 404) return null;
+    if (!r.ok) throw new Error('longread fetch failed');
+    return await r.json();
+  }
+
+  async function generate(id) {
+    const token = await getToken();
+    if (!token) { alert('Giriş gerekli'); return null; }
+    const r = await fetch('/api/longread', {
+      method: 'POST',
+      headers: {
+        Authorization: 'Bearer ' + token,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ newsletter_id: id }),
+    });
+    const out = await r.json();
+    if (!r.ok) {
+      alert('Hata: ' + (out.error || r.status) + (out.detail ? '\n' + out.detail : ''));
+      return null;
+    }
+    return out;
+  }
+
+  async function init() {
+    if (!newsletterId) {
+      document.getElementById('loading').textContent = 'Bülten ID gerekli (?bulten=N)';
+      return;
+    }
+    let nl;
+    try {
+      nl = await fetchNewsletter(newsletterId);
+    } catch {
+      document.getElementById('loading').textContent = 'Bülten bulunamadı.';
+      return;
+    }
+    if (!nl) {
+      document.getElementById('loading').textContent = 'Bülten bulunamadı.';
+      return;
+    }
+
+    let lr;
+    try { lr = await fetchLongRead(newsletterId); }
+    catch (e) {
+      document.getElementById('loading').textContent = 'Sunucu hatası: ' + e;
+      return;
+    }
+
+    if (lr) {
+      renderLongRead(lr, nl);
+      return;
+    }
+
+    // Yok — empty state göster
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('empty').style.display = 'block';
+
+    // Admin'se "Üret" butonunu göster
+    if (window.sovSb) {
+      const admin = await isAdmin();
+      if (admin) {
+        document.getElementById('adminGen').style.display = 'block';
+        document.getElementById('genBtn').onclick = async function () {
+          this.disabled = true;
+          const original = this.innerHTML;
+          this.innerHTML = '⏳ Üretiliyor… (1-2 dakika)';
+          const result = await generate(newsletterId);
+          this.disabled = false;
+          this.innerHTML = original;
+          if (result) renderLongRead(result, nl);
+        };
+      }
+    }
+  }
+
+  setTimeout(init, 300);
+  setTimeout(() => {
+    if (window.sovSb) window.sovSb.auth.onAuthStateChange(init);
+  }, 600);
+})();
+</script>
+
 </body>
 </html>

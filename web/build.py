@@ -22,6 +22,7 @@ URL = os.environ["SUPABASE_URL"].rstrip("/")
 KEY = os.environ["SUPABASE_KEY"]
 ANON_KEY = os.environ.get("SUPABASE_ANON_KEY", "")
 ADMIN_PANEL_URL = os.environ.get("ADMIN_PANEL_URL", "https://sovereign-admin.vercel.app")
+BEEHIIV_SUBSCRIBE_URL = os.environ.get("BEEHIIV_SUBSCRIBE_URL", "")
 
 HERE = pathlib.Path(__file__).parent
 DIST = HERE / "dist"
@@ -55,6 +56,7 @@ PLACEHOLDERS = {
     "__SUPABASE_URL__": URL,
     "__SUPABASE_ANON_KEY__": ANON_KEY,
     "__ADMIN_PANEL_URL__": ADMIN_PANEL_URL,
+    "__BEEHIIV_SUBSCRIBE_URL__": BEEHIIV_SUBSCRIBE_URL,
 }
 
 

@@ -487,3 +487,47 @@ footer.foot-pro {
   font-size: 16px; line-height: 1.55; color: var(--ink-2);
   max-width: 640px;
 }
+
+/* ===== Tema / yoğunluk / aksan override (ayarlar.html ile localStorage'tan ayarlanır) ===== */
+[data-theme="dark"] {
+  --bg: #0d1117;
+  --bg-2: #161b22;
+  --surface: #161b22;
+  --surface-2: #0d1117;
+  --ink: #e6edf3;
+  --ink-2: #c9d1d9;
+  --mid: #8b949e;
+  --muted: #6e7681;
+  --line: #30363d;
+  --line-2: #21262d;
+  --tint: #1c2128;
+  --cyan-soft: #0c2d6b;
+  --alert-soft: #4a1213;
+  --ok-soft: #0c2c1d;
+  --warn-soft: #3a2e10;
+}
+
+[data-density="compact"] {
+  --page-y: 28px;
+  --page-x: 20px;
+}
+[data-density="comfy"] {
+  --page-y: 56px;
+  --page-x: 40px;
+}
+[data-density="compact"] .page-wrap { padding: 28px 20px 40px; }
+[data-density="comfy"] .page-wrap   { padding: 56px 40px 80px; }
+[data-density="compact"] .card,
+[data-density="compact"] .setting-block { padding: 14px; }
+[data-density="comfy"] .card,
+[data-density="comfy"] .setting-block   { padding: 28px; }
+
+[data-accent="indigo"] {
+  --cyan: #6366f1; --cyan-bright: #818cf8; --cyan-ink: #4f46e5; --cyan-soft: #eef2ff;
+}
+[data-accent="forest"] {
+  --cyan: #1A7F37; --cyan-bright: #2da44e; --cyan-ink: #116329; --cyan-soft: #dafbe1;
+}
+[data-accent="red"] {
+  --cyan: #cf222e; --cyan-bright: #fa4549; --cyan-ink: #a40e26; --cyan-soft: #ffebe9;
+}
