@@ -30,7 +30,7 @@
 </div>
 
 <header class="appbar">
-  <a href="landing.html" class="brand" data-page="landing">
+  <a href="/" class="brand" data-page="landing">
     <span class="brand-name">Sovereign<em>.</em></span>
     <span class="tagline">Günlük Biyoteknoloji + Yapay Zekâ Brief'i</span>
   </a>
@@ -50,7 +50,7 @@
           <div class="dd-label" data-i18n="nav.explore">Keşfet</div>
           <a href="reader.html"><b data-i18n="nav.archive">Arşiv</b><span>Tüm geçmiş edisyonlar</span></a>
           <a href="editorial.html"><b data-i18n="nav.longreads">Uzun okumalar</b><span>Haftalık derinlemesine</span></a>
-          <a href="reader.html#konular"><b data-i18n="nav.topics">Konu kümeleri</b><span>Regulasyon · Klinik AI · CRISPR</span></a>
+          <a href="reader.html"><b data-i18n="nav.topics">Konu kümeleri</b><span>Regulasyon · Klinik AI · CRISPR</span></a>
         </div>
       </div>
     </div>
@@ -90,7 +90,7 @@
       <button class="drawer-close" aria-label="Kapat">×</button>
     </div>
     <nav class="drawer-nav">
-      <a href="landing.html" class="dn-link" data-page="landing" data-i18n="nav.home">Anasayfa</a>
+      <a href="/" class="dn-link" data-page="landing" data-i18n="nav.home">Anasayfa</a>
 
       <details class="dn-group">
         <summary><span data-i18n="nav.briefs">Bültenler</span> <span class="chev">▾</span></summary>
@@ -101,7 +101,7 @@
           <div class="dn-sublabel" data-i18n="nav.explore">Keşfet</div>
           <a href="reader.html" data-i18n="nav.archive">Arşiv</a>
           <a href="editorial.html" data-i18n="nav.longreads">Uzun okumalar</a>
-          <a href="reader.html#konular" data-i18n="nav.topics">Konu kümeleri</a>
+          <a href="reader.html" data-i18n="nav.topics">Konu kümeleri</a>
         </div>
       </details>
 
@@ -144,7 +144,7 @@
       <a data-i18n="footer.link_brief_today" href="reader.html">Bugünkü brief</a>
       <a data-i18n="footer.link_brief_archive" href="reader.html">Arşiv</a>
       <a data-i18n="footer.link_brief_long" href="editorial.html">Uzun okumalar</a>
-      <a data-i18n="footer.link_brief_topics" href="reader.html#konular">Konu kümeleri</a>
+      <a data-i18n="footer.link_brief_topics" href="reader.html">Konu kümeleri</a>
     </div>
     <div class="foot-col">
       <h5 data-i18n="footer.col_about">Hakkında</h5>
@@ -156,8 +156,8 @@
     <div class="foot-col">
       <h5 data-i18n="footer.col_sub">Abone ol</h5>
       <a data-i18n="footer.link_sub_free" href="abonelik.html">Ücretsiz</a>
-      <a data-i18n="footer.link_sub_pro" href="abonelik.html#pro">Premium</a>
-      <a data-i18n="footer.link_sub_team" href="abonelik.html#kurumsal">Kurumsal</a>
+      <a data-i18n="footer.link_sub_pro" href="abonelik.html">Premium</a>
+      <a data-i18n="footer.link_sub_team" href="abonelik.html">Kurumsal</a>
       <a data-i18n="footer.link_sub_contact" href="hakkinda.html#iletisim">İletişim</a>
     </div>
   </div>
