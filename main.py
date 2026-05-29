@@ -687,8 +687,7 @@ KURALLAR:
             intro = re.sub(r"^```.*?\n|\n```$", "", intro, flags=re.DOTALL).strip()
             intro = re.sub(r"^#{1,6}\s.*\n", "", intro).strip()
             # Tek satıra indir — markdown'da paragraf zaten tek blok.
-            intro = " ".join(intro.split())
-            return intro
+            return " ".join(intro.split())
         except Exception as exc:
             self.logger.warning(f"Intro üretimi başarısız: {exc}")
             return ""
