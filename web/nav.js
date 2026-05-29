@@ -49,7 +49,7 @@
         <div class="dd-col">
           <div class="dd-label" data-i18n="nav.explore">Keşfet</div>
           <a href="reader.html"><b data-i18n="nav.archive">Arşiv</b><span>Tüm geçmiş edisyonlar</span></a>
-          <a href="editorial.html"><b data-i18n="nav.longreads">Uzun okumalar</b><span>Haftalık derinlemesine</span></a>
+          <a href="reader.html"><b data-i18n="nav.longreads">Uzun okumalar</b><span>Haftalık derinlemesine</span></a>
           <a href="reader.html"><b data-i18n="nav.topics">Konu kümeleri</b><span>Regulasyon · Klinik AI · CRISPR</span></a>
         </div>
       </div>
@@ -100,7 +100,7 @@
           <a href="reader.html" data-i18n="nav.morning">Sabah edisyonu</a>
           <div class="dn-sublabel" data-i18n="nav.explore">Keşfet</div>
           <a href="reader.html" data-i18n="nav.archive">Arşiv</a>
-          <a href="editorial.html" data-i18n="nav.longreads">Uzun okumalar</a>
+          <a href="reader.html" data-i18n="nav.longreads">Uzun okumalar</a>
           <a href="reader.html" data-i18n="nav.topics">Konu kümeleri</a>
         </div>
       </details>
@@ -143,7 +143,7 @@
       <h5 data-i18n="footer.col_brief">Bülten</h5>
       <a data-i18n="footer.link_brief_today" href="reader.html">Bugünkü brief</a>
       <a data-i18n="footer.link_brief_archive" href="reader.html">Arşiv</a>
-      <a data-i18n="footer.link_brief_long" href="editorial.html">Uzun okumalar</a>
+      <a data-i18n="footer.link_brief_long" href="reader.html">Uzun okumalar</a>
       <a data-i18n="footer.link_brief_topics" href="reader.html">Konu kümeleri</a>
     </div>
     <div class="foot-col">

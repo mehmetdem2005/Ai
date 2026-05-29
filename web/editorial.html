@@ -226,7 +226,9 @@
 
   async function init() {
     if (!newsletterId) {
-      document.getElementById('loading').textContent = 'Bülten ID gerekli (?bulten=N)';
+      // Editorial bağımsız sayfa değil — bülten seçilmesi gerek.
+      // Reader'a yönlendir, kullanıcı oradan istediği bülteni seçsin.
+      location.replace('reader.html');
       return;
     }
     let nl;
