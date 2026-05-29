@@ -133,3 +133,296 @@
   .page-wrap { padding: 28px 16px 48px; }
   .page-head h1 { font-size: 28px !important; }
 }
+
+/* ============================================================
+   MOBILE REFINEMENT EK KURALLARI (375x812 iPhone hedef)
+   Override için yüksek specificity + !important kullanıldı.
+   Sadece @media içinde aktif, masaüstünü etkilemez.
+   ============================================================ */
+
+/* Yatay overflow savunması — herhangi bir overflow leak'ini engelle */
+body { overflow-x: hidden; }
+
+/* ===== READER LAYOUT FIX (≤ 800px) =====
+   Reader sayfasında .list-col 380px sabit; 375px iPhone'da taşıyordu.
+   900px breakpoint yetersiz olduğu için 800px'te tek kolon zorla. */
+@media (max-width: 800px) {
+  /* Reader: 380px sol kenar 375px'i taşırıyordu */
+  .layout {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  .list-col {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+  }
+}
+
+/* ===== STICKY ELEMENTLERİ KAPAT (≤ 900px) =====
+   Mobilde sticky liste/TOC kullanıcıyı sıkıştırıyor — relative'e geç. */
+@media (max-width: 900px) {
+  .list-col,
+  aside.settings-toc,
+  aside.toc {
+    position: relative !important;
+    top: auto !important;
+    max-height: none !important;
+  }
+}
+
+/* ===== ANA MOBILE REFINEMENT (≤ 640px) ===== */
+@media (max-width: 640px) {
+
+  /* --- 1) Touch target minima: Apple HIG 44px kuralı --- */
+  .btn,
+  button.btn,
+  a.btn {
+    min-height: 44px !important;
+    padding: 12px 16px !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .btn.sm {
+    min-height: 38px !important;
+    padding: 9px 13px !important;
+  }
+  .iconbtn,
+  button.iconbtn {
+    min-width: 44px !important;
+    min-height: 44px !important;
+    padding: 10px !important;
+  }
+  .sov-admin-btn {
+    min-height: 44px !important;
+    padding: 12px 16px !important;
+  }
+
+  /* --- 2) iOS Safari zoom-in fix: input font-size >= 16px --- */
+  /* 16px altı input'larda iOS odaklanınca otomatik zoom yapıyor */
+  input[type="email"],
+  input[type="password"],
+  input[type="text"],
+  input[type="search"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="url"],
+  input.txt,
+  textarea,
+  select,
+  .sov-modal input,
+  .sov-modal textarea {
+    font-size: 16px !important;
+  }
+
+  /* --- 4) Heading scales (editorial okunabilirlik) --- */
+  .body h1,
+  .reader-body h1 {
+    font-size: 24px !important;
+    line-height: 1.25 !important;
+  }
+  .body h2,
+  .reader-body h2 {
+    font-size: 20px !important;
+  }
+  .body h3,
+  .reader-body h3 {
+    font-size: 18px !important;
+  }
+
+  /* --- 7) Tablo mobile scroll --- */
+  .runs-table,
+  table.runs-table {
+    display: block !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    font-size: 12px !important;
+    white-space: nowrap;
+  }
+  .runs-table th,
+  .runs-table td {
+    padding: 8px 10px !important;
+  }
+
+  /* --- 8) Editorial padding (yan boşluk darlığı) --- */
+  .editorial-wrap {
+    padding: 20px 16px 60px !important;
+  }
+  .reader-wrap,
+  .reader-body {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  /* --- 9) Meta-row stack: yazar/tarih + aksiyon butonları altalta --- */
+  .meta-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+  .meta-row .actions {
+    margin-left: 0 !important;
+    width: 100% !important;
+    display: flex !important;
+    gap: 8px !important;
+  }
+  .meta-row .actions .btn {
+    flex: 1 !important;
+  }
+
+  /* --- 10) Settings TOC tap area --- */
+  aside.settings-toc a,
+  aside.toc a {
+    padding: 10px 12px !important;
+    min-height: 44px !important;
+    display: flex !important;
+    align-items: center !important;
+  }
+
+  /* --- 11) Lang-pick + segmented control --- */
+  .lang-pick {
+    padding: 11px 12px !important;
+    min-height: 44px !important;
+    display: inline-flex;
+    align-items: center;
+  }
+  .seg button,
+  .seg .btn {
+    min-height: 40px !important;
+    flex: 1 !important;
+  }
+
+  /* --- 12) Settings toggle büyüt (mevcut 38x22 küçük) --- */
+  .toggle {
+    width: 42px !important;
+    height: 26px !important;
+    min-height: 26px;
+  }
+  .toggle::after,
+  .toggle .knob {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  /* --- 15) Stat card mobile --- */
+  .stat-card {
+    padding: 16px !important;
+  }
+  .stat-card .value {
+    font-size: 22px !important;
+  }
+
+  /* --- 16) Admin grid + generic card sıkı --- */
+  .admin-grid {
+    gap: 12px !important;
+    grid-template-columns: 1fr !important;
+  }
+  .card {
+    padding: 16px 14px !important;
+  }
+
+  /* --- 17) Feed-row actions wrap --- */
+  .feed-row {
+    flex-wrap: wrap !important;
+  }
+  .feed-actions {
+    flex-wrap: wrap !important;
+    gap: 8px !important;
+    width: 100%;
+  }
+
+  /* --- 18) Back-link tap area --- */
+  .back-link,
+  a.back-link {
+    min-height: 44px !important;
+    padding: 8px 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+  }
+
+  /* --- 19) Blockquote okunabilirlik --- */
+  .body blockquote,
+  .reader-body blockquote {
+    padding: 14px 16px !important;
+    margin: 16px 0 !important;
+    font-size: 16px !important;
+    line-height: 1.55 !important;
+  }
+}
+
+/* ===== ULTRA-MOBILE TWEAKS (≤ 540px) ===== */
+@media (max-width: 540px) {
+
+  /* --- 4) Hero başlıkları küçült --- */
+  .hero-min h1 {
+    font-size: 26px !important;
+    line-height: 1.2 !important;
+  }
+  .sub-hero h1 {
+    font-size: 28px !important;
+    line-height: 1.2 !important;
+  }
+
+  /* --- 5) Form row stack: subscribe / newsletter card --- */
+  .sub-form-card .row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+  .sub-form-card .row input,
+  .sub-form-card .row .input {
+    width: 100% !important;
+  }
+  .sub-form-card .row .btn {
+    width: 100% !important;
+  }
+
+  /* --- 6) Action bar stack (toolbar'lar dikey) --- */
+  .actions-bar,
+  .action-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+  }
+  .actions-bar .btns,
+  .action-bar .btns {
+    flex-direction: column !important;
+    width: 100% !important;
+  }
+  .actions-bar .btns .btn,
+  .action-bar .btns .btn {
+    width: 100% !important;
+  }
+
+  /* --- 13) Modal mobilde tam ekrana yakın --- */
+  .sov-modal {
+    max-width: calc(100vw - 24px) !important;
+    width: calc(100vw - 24px) !important;
+    padding: 22px 18px !important;
+    margin: 12px !important;
+  }
+}
+
+/* ===== TINY PHONES (≤ 375px) — iPhone SE / mini ===== */
+@media (max-width: 375px) {
+  /* Hero başlık iyice küçül; tek satıra zorla */
+  .hero-min h1 {
+    font-size: 22px !important;
+  }
+  .sub-hero h1 {
+    font-size: 24px !important;
+  }
+  .page-head h1 {
+    font-size: 24px !important;
+  }
+  /* Buton paddingleri çok geniş kalmasın */
+  .btn {
+    padding: 12px 14px !important;
+  }
+  /* Kart padding sıkı */
+  .card,
+  .card-body {
+    padding: 14px 12px !important;
+  }
+}

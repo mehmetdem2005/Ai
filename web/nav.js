@@ -182,7 +182,54 @@
     return 'landing';
   }
 
+  function injectMobileStyles() {
+    if (document.getElementById('nav-mobile-style')) return;
+    const s = document.createElement('style');
+    s.id = 'nav-mobile-style';
+    s.textContent = `
+/* Drawer panel — wider on mobile + momentum scroll */
+.nav-drawer .drawer-panel {
+  width: 100% !important;
+  max-width: 360px !important;
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+}
+
+/* Drawer close button — WCAG 44x44 touch target (40x40 minimum per spec) */
+.nav-drawer .drawer-close {
+  width: 40px !important;
+  height: 40px !important;
+  min-width: 40px;
+  min-height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Mega-menu dropdown — mobile fixed overlay */
+@media (max-width: 640px) {
+  .dd-panel {
+    position: fixed !important;
+    top: calc(env(safe-area-inset-top) + 70px) !important;
+    left: 16px !important;
+    right: 16px !important;
+    min-width: auto !important;
+    max-width: calc(100vw - 32px);
+    max-height: 70vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .dd-panel.dd-wide {
+    grid-template-columns: 1fr !important;
+    gap: 0 !important;
+  }
+}
+`;
+    document.head.appendChild(s);
+  }
+
   function mount() {
+    injectMobileStyles();
     const navMount = document.getElementById('topnav-mount');
     if (navMount) {
       navMount.outerHTML = NAV_HTML;
@@ -206,6 +253,18 @@
           document.querySelectorAll('.dd.open').forEach(d => d.classList.remove('open'));
         }
       });
+
+      // Touch-outside close — same close logic for touchstart (mobile)
+      document.addEventListener('touchstart', e => {
+        if (!e.target.closest('.dd')) {
+          document.querySelectorAll('.dd.open').forEach(d => d.classList.remove('open'));
+        }
+      }, { passive: true });
+
+      // Scroll-close — page scroll closes any open dropdown (prevents flicker)
+      window.addEventListener('scroll', () => {
+        document.querySelectorAll('.dd.open').forEach(d => d.classList.remove('open'));
+      }, { passive: true });
 
       // Hamburger drawer
       const drawer = document.getElementById('navDrawer');
