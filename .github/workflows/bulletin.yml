@@ -11,6 +11,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
+      # UTF-8 garantisi — Ubuntu runner default C.UTF-8 ama bazen alt-process'lerde
+      # düşebiliyor; Python source ve LLM I/O'da Türkçe karakterler ASCII'ye düşmesin.
+      LANG: C.UTF-8
+      LC_ALL: C.UTF-8
+      PYTHONIOENCODING: utf-8
+      PYTHONUTF8: "1"
       RUN_MODE: once
       LLM_PROVIDER: deepseek
       DEEPSEEK_MODEL: deepseek-v4-pro
