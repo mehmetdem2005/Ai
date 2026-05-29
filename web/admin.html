@@ -108,8 +108,8 @@
 
   <div class="a-head">
     <span class="kicker">/ Feeds</span>
-    <h1>Kaynak <em>yönetimi</em></h1>
-    <p>Sovereign'in taradığı RSS/Atom kaynakları. Eklemeler bir sonraki batch çalışmasında etkin olur. Bu sayfa arama motorlarına kapalıdır.</p>
+    <h1>Kaynak <em data-i18n="admin.management">yönetimi</em></h1>
+    <p data-i18n="admin.rss_atom_sources_info">Sovereign'in taradığı RSS/Atom kaynakları. Eklemeler bir sonraki batch çalışmasında etkin olur. Bu sayfa arama motorlarına kapalıdır.</p>
   </div>
 
   <div class="summary">
@@ -119,19 +119,19 @@
       <div class="delta">+6 · 7g</div>
     </div>
     <div class="stat-tile">
-      <div class="label">Sağlıklı</div>
+      <div class="label" data-i18n="admin.healthy">Sağlıklı</div>
       <div class="value" style="color:var(--ok);">136</div>
       <div class="delta">95.7%</div>
     </div>
     <div class="stat-tile">
-      <div class="label">Yavaş</div>
+      <div class="label" data-i18n="admin.slow">Yavaş</div>
       <div class="value" style="color:#B45309;">4</div>
       <div class="delta neg">p95 &gt; 1.5s</div>
     </div>
     <div class="stat-tile">
-      <div class="label">Çevrim dışı</div>
+      <div class="label" data-i18n="admin.offline">Çevrim dışı</div>
       <div class="value" style="color:var(--alert);">2</div>
-      <div class="delta neg">−1 dün</div>
+      <div class="delta neg" data-i18n="admin.yesterday_minus_one">−1 dün</div>
     </div>
   </div>
 
@@ -141,19 +141,19 @@
     </div>
     <div class="row">
       <div>
-        <label class="label">Kaynak adı</label>
+        <label class="label" data-i18n="admin.source_name">Kaynak adı</label>
         <input class="input" placeholder="ör. STAT News" />
       </div>
       <div>
         <label class="label">RSS / Atom URL</label>
         <input class="input mono" placeholder="https://www.statnews.com/feed/" />
       </div>
-      <button class="btn primary lg">+ Ekle &amp; doğrula</button>
+      <button class="btn primary lg" data-i18n="admin.add_and_verify">+ Ekle &amp; doğrula</button>
     </div>
     <div class="opts">
-      <label><input type="checkbox" checked /> bir sonraki batchten aktif</label>
-      <label><input type="checkbox" /> öncelikli kaynak (×2)</label>
-      <label><input type="checkbox" checked /> önce doğrula</label>
+      <label><input type="checkbox" checked /> <span data-i18n="admin.next_batch_active">bir sonraki batchten aktif</span></label>
+      <label><input type="checkbox" /> <span data-i18n="admin.priority_source_x2">öncelikli kaynak (×2)</span></label>
+      <label><input type="checkbox" checked /> <span data-i18n="admin.verify_first">önce doğrula</span></label>
     </div>
   </div>
 
@@ -164,14 +164,14 @@
     </div>
     <div class="filter-row">
       <input placeholder="⌕ ada veya url'ye göre filtrele…" />
-      <button class="btn sm">Tümü</button>
+      <button class="btn sm" data-i18n="admin.all">Tümü</button>
       <button class="btn sm">OK</button>
       <button class="btn sm">Slow</button>
       <button class="btn sm">Down</button>
     </div>
     <table class="data">
       <thead><tr>
-        <th>Kaynak</th><th>Son çekim</th><th>24h</th><th>Sinyal · 30g</th><th>Ağırlık</th><th>Durum</th><th></th>
+        <th>Kaynak</th><th data-i18n="admin.last_fetch">Son çekim</th><th>24h</th><th>Sinyal · 30g</th><th data-i18n="admin.weight">Ağırlık</th><th>Durum</th><th></th>
       </tr></thead>
       <tbody>
         <tr><td><div class="name">STAT News</div><div class="domain">statnews.com/feed</div></td><td class="num">4m</td><td class="num">12</td><td class="num">348</td><td class="num">1.0×</td><td><span class="pill ok"><span class="dot"></span>OK</span></td>
@@ -193,14 +193,14 @@
   </div>
 
   <div class="card key-card">
-    <h3>🔑 Yönetim anahtarı</h3>
+    <h3 data-i18n="admin.admin_key">🔑 Yönetim anahtarı</h3>
     <div class="keyrow">
       <input class="input mono" type="password" placeholder="Supabase service_role" value="••••••••••••••••" />
       <button class="btn">Kaydet</button>
       <button class="btn" style="color:var(--alert); border-color:var(--alert);">Sil</button>
     </div>
     <div class="warn-box">
-      <b>Local only</b> · Anahtar yalnızca bu cihazın tarayıcısında (localStorage) saklanır; siteye veya repoya gönderilmez. Ortak bilgisayarda kullanma; işin bitince "Sil"e bas.
+      <b>Local only</b> <span data-i18n="admin.local_only_note">· Anahtar yalnızca bu cihazın tarayıcısında (localStorage) saklanır; siteye veya repoya gönderilmez. Ortak bilgisayarda kullanma; işin bitince "Sil"e bas.</span>
     </div>
   </div>
 
