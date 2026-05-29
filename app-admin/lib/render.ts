@@ -1,4 +1,5 @@
 import { marked } from "marked";
+import { generateIntro } from "./intro";
 import type { PublishItem } from "./types";
 
 const TR_MONTHS = [
@@ -35,15 +36,16 @@ function nowIstanbul(): Date {
   return new Date(iso);
 }
 
-export function renderMarkdown(items: PublishItem[]): string {
+export async function renderMarkdown(items: PublishItem[]): Promise<string> {
   const title = process.env.NEWSLETTER_TITLE ?? "MedTech Sinyali";
   const dt = nowIstanbul();
   const readable = `${dt.getDate()} ${TR_MONTHS[dt.getMonth() + 1]} ${dt.getFullYear()}`;
+  const intro = await generateIntro(items);
   const lines = [
     `# ${title}`,
     `**Tarih:** ${readable}`,
     "",
-    "Sektördeki gürültüyü filtreliyor, otonom yapay zeka mimarimizle sadece sinyali veriyoruz:",
+    intro,
     "",
     "---",
     "",

@@ -13,7 +13,7 @@ jobs:
     env:
       RUN_MODE: once
       LLM_PROVIDER: deepseek
-      DEEPSEEK_MODEL: deepseek-reasoner
+      DEEPSEEK_MODEL: deepseek-v4-pro
       GEMINI_MODEL: gemini-2.5-flash
       EMBEDDING_PROVIDER: openai
       EMBEDDING_MODEL: text-embedding-3-small

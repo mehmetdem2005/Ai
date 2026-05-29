@@ -99,8 +99,8 @@ LLM_PROVIDERS = {
     "deepseek": {
         "base_url": "https://api.deepseek.com",
         "key_env": "DEEPSEEK_API_KEY",
-        # deepseek-v4-pro (frontier) | deepseek-reasoner (R1/düşünme) | deepseek-chat
-        "default_model": "deepseek-reasoner",
+        # deepseek-v4-pro (frontier — Türkçe için en iyi) | deepseek-reasoner (R1) | deepseek-chat
+        "default_model": "deepseek-v4-pro",
     },
     "gemini": {
         "base_url": GEMINI_BASE_URL,
@@ -131,19 +131,30 @@ DEFAULT_SOURCES = [
     {"name": "TechCrunch Health", "url": "https://techcrunch.com/tag/health/feed/"},
 ]
 
-DEFAULT_SYSTEM_PROMPT = """Sen, sağlık teknolojileri (MedTech) ve Biyoteknoloji alanında uzmanlaşmış kıdemli bir yatırım analistisin. Okuyucuların: sağlık sektörüne yatırım yapan VC'ler, hastane CIO'ları ve sağlık odaklı AI geliştiren mühendisler.
+DEFAULT_SYSTEM_PROMPT = """Sen, sağlık teknolojileri (MedTech) ve biyoteknolojide uzmanlaşmış kıdemli bir analistsin. Okuyucun: sağlık VC'leri, hastane CIO'ları, dijital sağlık girişimcileri ve sağlık AI mühendisleri. Onlar 60 saniyede konuyu kavramak istiyor — boş laf, klişe ve klavye tıkırtısı kaldırmaz.
 
 Görevlerin:
-1. Haberi oku ve hedef kitle için teknolojik/ticari etkisine göre 1 ile 10 arası bir IMPACT SCORE (Etki Puanı) ver.
-2. Haber başlığının akıcı, doğal bir Türkçe çevirisini yap.
-3. Bu etkinin NEDENİNİ maksimum 3 cümle ile analiz et (insight) — "ne oldu" değil, "ticari/teknolojik etkisi ne" sorusuna odaklan.
+1. Haberi sindir, hedef kitle için teknolojik/ticari etkiyi 1-10 arası bir IMPACT SCORE ile değerlendir.
+2. Başlığı akıcı, doğal Türkçe'ye çevir — okurken garip durmasın, gazete manşeti gibi olsun.
+3. Haberin gerçek anlamını anlatan bir "insight" yaz. "Ne oldu" değil — "BU NEDEN ÖNEMLİ, KİME DOKUNUYOR, NE DEĞİŞECEK" anlat. İnsan gibi konuş.
 
-KATI KURALLAR:
-- ASLA madde imi (bullet point) veya alt başlık kullanma.
-- Haberin orijinal metninde geçmiyorsa, sırf süslemek için "çoklu ajan (multi-agent)", "otomasyon" gibi kelimeleri ZORLA KULLANMA. Orijinal kal.
-- Dil: resmi, veri odaklı, net Türkçe.
-- Çıktıyı SADECE geçerli bir JSON objesi olarak ver; JSON dışında hiçbir metin, açıklama veya kod çiti (```), ekleme.
-- Şema: {"score": <1-10 tamsayı>, "title_tr": "<Türkçe başlık>", "insight": "<en fazla 3 cümle analiz>"}"""
+DİL KURALLARI (en kritik):
+- Türkçe karakterleri MUTLAKA doğru kullan: ı ş ğ ü ö ç İ Ş Ğ Ü Ö Ç. ASCII transliterasyon (örn. "saglik", "calisma", "isleme", "ozet") KESİNLİKLE YASAK — bu, çıktıyı çöpe çevirir.
+- Akıcı, sade, doğal Türkçe yaz. Bir arkadaşına anlatır gibi — ama yüzeysel değil, bilgi yoğun.
+- Yapay/şişirme sektör jargonu yok. ("Paradigma değişimi", "ekosistem", "disrupsiyon" gibi klişeler yasak.) Teknik terim gerekiyorsa kısaca açıkla, parantezde İngilizce orijinalini ver.
+- "Bu haber gösteriyor ki…", "Sonuç olarak…", "Özetle…" gibi içi boş bağlaçlarla başlama. Direkt değere git.
+
+UZUNLUK:
+- Sınır yok ama gevezelik de yok. Haberin ağırlığı kadar yaz: bazen 2 cümle, bazen 6 cümle. Doldurma yapma; söyleyecek şeyin bittiğinde dur.
+
+İÇERİK YAKLAŞIMI:
+- Somut rakam, oyuncu, kıyas ver. ("X şirketi", "$Y milyon yatırım", "Z'ye benzer ama farkı şu…")
+- Riski/fırsatı isimle: kime tehdit, kime kazanç?
+- Spekülatif değilsin — gözlemleyen analiztsin. Verisi olmayan iddiada bulunma.
+
+ÇIKTI:
+- SADECE geçerli JSON. Açıklama, kod çiti (```), önsöz yok.
+- Şema: {"score": <1-10 tamsayı>, "title_tr": "<Türkçe başlık>", "insight": "<insanca yazılmış analiz>"}"""
 
 SYSTEM_PROMPT = os.getenv("SYSTEM_PROMPT") or DEFAULT_SYSTEM_PROMPT
 NEWSLETTER_TITLE = os.getenv("NEWSLETTER_TITLE", "🧬 Sağlık Teknolojisi & Yapay Zeka Sinyali")
@@ -493,6 +504,51 @@ class AIProcessor:
         )
         return (response.choices[0].message.content or "").strip()
 
+    # En az 6 harflik bir Türkçe metinde aksanlı karakter görünmüyorsa,
+    # neredeyse kesinlikle LLM ASCII transliterasyon yapmıştır.
+    _TR_CHARS = set("ışğüöçİŞĞÜÖÇ")
+
+    # İngilizce metinde GÖRÜNMEYECEK kadar Türkçe'ye özgü ASCII kalıpları.
+    # Sadece bir tanesi bile yüksek güvenle "ASCII translit" işaretidir.
+    _ASCII_TR_HINTS = (
+        # Türkçe işlevsel kelimeler (İngilizce'de geçmez):
+        " icin ", " olarak ", " olan ", " icinde ", " uzerine ", " uzerinden ",
+        " arasinda ", " yonelik ", " hakkinda ", " gibi ", " kadar ",
+        " ancak ", " ayrica ", " ayni ", " kendi ", " ozellikle ",
+        # Türkçe kelime kökleri (aksansız hali):
+        " sirket", " saglik", " gelis", " calisma", " orneg", " yenil",
+        " yatir", " kullan", " bilgi", " yasak", " onem", " etki",
+        " gosterg", " sektor", " urun", " hizmet", " surec", " yaklas",
+        " akilli", " ozellig", " buyuk", " kucuk", " kiritik", " hiz",
+        " temel", " baslang", " sonr", " once", " gunl", " yeni ",
+        " arastir", " gelistir", " girisim",
+        " olus", " merkez", " kapsam", " saglay", " uretim", " uretiyor",
+        " kayit", " kayd", " degis", " degerl", " olcek", " genis",
+        " toplam", " sundu", " yaratti", " duyur", " baski",
+        # Türkçe fiil ekleri (kelime sonu, İngilizce'de görünmez):
+        "iyor.", "iyor ", "iyor,", "uyor.", "uyor ", "uyor,",
+        "miyor", "muyor", "tirir", "tirma", "tirler", "lardir",
+        "lerdir", "dirler", "diler", "miydi", "muydu", "musunuz",
+        " ki ", " yapt", " etti", " oldu", " gelmis", " gitmis",
+    )
+
+    @classmethod
+    def _looks_ascii_transliterated(cls, text: str) -> bool:
+        """LLM'in Türkçe metni ASCII'ye düşürüp düşürmediğini sezgisel tespit eder.
+
+        Bir Türkçe paragrafta normalde en az birkaç aksanlı harf olur. Yoksa ya
+        düz İngilizce ya da ASCII translit — content/insight'ta ikisi de bug.
+
+        Strateji: Aksanlı karakter yoksa VE Türkçe'ye özgü herhangi bir desen
+        görünüyorsa → translit. İpuçları İngilizce'de görünmeyecek kadar
+        belirgindir, bu yüzden 1 eşleşme yeterli."""
+        if not text or len(text) < 30:
+            return False
+        if any(c in cls._TR_CHARS for c in text):
+            return False
+        low = f" {text.lower()} "
+        return any(h in low for h in cls._ASCII_TR_HINTS)
+
     @staticmethod
     def _parse_analysis(raw: str, fallback_title: str) -> dict | None:
         """LLM'in JSON çıktısından {score, title_tr, insight} ayıkla.
@@ -519,20 +575,53 @@ class AIProcessor:
         title_tr = str(data.get("title_tr") or "").strip() or fallback_title
         return {"score": score, "title_tr": title_tr, "insight": insight.strip()}
 
+    def _analyze_one(self, item: dict, *, retry_for_ascii: bool = True) -> dict | None:
+        """Tek bir haberin LLM analizi. ASCII transliterasyon tespit edilirse bir kez
+        daha 'Türkçe karakter zorunlu' uyarısıyla yeniden dener."""
+        prompt = (
+            f"Haber başlığı: {item['title']}\n"
+            f"Özet: {item['summary']}\n\n"
+            "Yukarıdaki kurallara göre SADECE bir JSON objesi döndür."
+        )
+        raw = self._call_llm(prompt)
+        parsed = self._parse_analysis(raw, item["title"])
+        if parsed is None:
+            return None
+        # ASCII translit tespit edildiyse (LLM Türkçe karakterleri yedi) — bir kez daha
+        # net bir uyarıyla iste; ikinci denemede de aynıysa kabul et (sonsuz döngü olmasın).
+        if retry_for_ascii and (
+            self._looks_ascii_transliterated(parsed["title_tr"])
+            or self._looks_ascii_transliterated(parsed["insight"])
+        ):
+            self.logger.warning(
+                f"⚠️ LLM çıktısı ASCII translit ({item['title'][:50]}) — Türkçe karakter zorunlu uyarısıyla yeniden istiyorum."
+            )
+            warn_prompt = (
+                prompt
+                + "\n\nÖNEMLİ UYARI: Önceki cevabında Türkçe karakterleri (ı ş ğ ü ö ç) "
+                "ASCII'ye düşürdün — bu YASAK. Bu sefer mutlaka doğru Türkçe karakterlerle yaz."
+            )
+            raw2 = self._call_llm(warn_prompt)
+            parsed2 = self._parse_analysis(raw2, item["title"])
+            if parsed2 is not None and not (
+                self._looks_ascii_transliterated(parsed2["title_tr"])
+                or self._looks_ascii_transliterated(parsed2["insight"])
+            ):
+                return parsed2
+            # İkinci deneme de başarısız — yine de ilk çıktıyı kullan, log düş.
+            self.logger.error(
+                f"❌ İkinci denemede de ASCII translit kaldı ({item['title'][:50]}) — yine de kaydediliyor."
+            )
+        return parsed
+
     def process(self, items: list[dict]) -> list[dict]:
         if not items:
             return []
         mode = f"{self.provider}/{self.model}" if self.is_active else "mock"
         self.logger.info(f"🧠 {len(items)} makale {mode} ile analiz + skorlanıyor...")
         for item in items:
-            prompt = (
-                f"Haber başlığı: {item['title']}\n"
-                f"Özet: {item['summary']}\n\n"
-                "Yukarıdaki kurallara göre SADECE bir JSON objesi döndür."
-            )
             try:
-                raw = self._call_llm(prompt)
-                parsed = self._parse_analysis(raw, item["title"])
+                parsed = self._analyze_one(item)
                 if parsed is None:
                     self.logger.warning(f"JSON çözümlenemedi ({item['title'][:40]}) — atlandı.")
                     item["ai_insight"] = ANALYSIS_FAILED
@@ -547,18 +636,75 @@ class AIProcessor:
 
 
 class Publisher:
+    _INTRO_SYSTEM_PROMPT = """Sen sağlık teknolojileri & biyoteknoloji bülteninin başyazarısın. Sana bu sayının haberleri verilecek. Bültenin ilk paragrafını yazacaksın: okuyucu (VC, hastane CIO, sağlık AI mühendisi) "tamam bu sayıda neler var, neden açayım" diye anlasın.
+
+KURALLAR:
+- 2-4 cümle. Akıcı, doğal Türkçe. Bir arkadaşına "bu hafta sektörde şunlar oldu" der gibi.
+- Klişe başlama yasak: "Bu hafta...", "Bültenimizde...", "Sevgili okuyucular..." — KESİNLİKLE HAYIR.
+- Direkt en güçlü temayı/oyuncuyu söyleyerek başla. Eğer iki net tema varsa ikisini bağla. Tek mega-haber varsa onu vurgula.
+- Türkçe karakterleri (ı ş ğ ü ö ç) MUTLAKA doğru kullan. ASCII transliterasyon YASAK.
+- Hiçbir madde imi, başlık, alıntı yok — sadece düz paragraf metin.
+- Çıktı: SADECE paragraf metni. Tırnak, kod çiti, "İşte intro:" gibi önsöz yok."""
+
     def __init__(self) -> None:
         self.logger = logging.getLogger("Publisher")
+
+    def _generate_intro(self, items: list[dict]) -> str:
+        """Bültenin başına gidecek 2-4 cümlelik akıcı giriş paragrafını LLM ile üret.
+
+        LLM yapılandırması yoksa veya hata olursa boş string döner (intro atlanır)."""
+        if not items:
+            return ""
+        provider = os.getenv("LLM_PROVIDER", "deepseek").lower()
+        cfg = LLM_PROVIDERS.get(provider) or LLM_PROVIDERS["deepseek"]
+        api_key = os.getenv(cfg["key_env"])
+        if not api_key:
+            return ""
+        model = os.getenv(f"{provider.upper()}_MODEL") or cfg["default_model"]
+
+        # Top 6 haber özetinden LLM'e bağlam ver; daha fazlasını tokensız tutmaya gerek yok.
+        top = sorted(items, key=lambda i: i.get("impact_score") or 0, reverse=True)[:6]
+        digest = "\n".join(
+            f"- ({int(i.get('impact_score') or 0)}/10) {i.get('title_tr') or i['title']}"
+            for i in top
+        )
+        user_msg = (
+            f"Bu sayıda toplam {len(items)} haber var. En etkili {len(top)} tanesinin "
+            f"başlıkları (Türkçe):\n{digest}\n\nBu sayının açılış paragrafını yaz."
+        )
+        try:
+            client = OpenAI(api_key=api_key, base_url=cfg["base_url"])
+            resp = client.chat.completions.create(
+                model=model,
+                messages=[
+                    {"role": "system", "content": self._INTRO_SYSTEM_PROMPT},
+                    {"role": "user", "content": user_msg},
+                ],
+                temperature=0.7,
+            )
+            intro = (resp.choices[0].message.content or "").strip()
+            # Markdown başlığı ya da kod çiti gelirse temizle.
+            intro = re.sub(r"^```.*?\n|\n```$", "", intro, flags=re.DOTALL).strip()
+            intro = re.sub(r"^#{1,6}\s.*\n", "", intro).strip()
+            # Tek satıra indir — markdown'da paragraf zaten tek blok.
+            intro = " ".join(intro.split())
+            return intro
+        except Exception as exc:
+            self.logger.warning(f"Intro üretimi başarısız: {exc}")
+            return ""
 
     def render(self, items: list[dict]) -> str:
         dt = now_ist()
         readable = f"{dt.day} {TR_MONTHS[dt.month]} {dt.year}"
+        intro = self._generate_intro(items) or (
+            "Sektördeki gürültüyü filtreliyor, otonom yapay zeka mimarimizle "
+            "sadece sinyali veriyoruz."
+        )
         lines = [
             f"# {NEWSLETTER_TITLE}",
             f"**Tarih:** {readable}",
             "",
-            "Sektördeki gürültüyü filtreliyor, otonom yapay zeka mimarimizle "
-            "sadece sinyali veriyoruz:",
+            intro,
             "",
             "---",
             "",

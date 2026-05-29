@@ -41,7 +41,7 @@ export async function publishNewsletter(
     (a, b) => (b.impact_score ?? 0) - (a.impact_score ?? 0)
   );
 
-  const markdown = renderMarkdown(sorted);
+  const markdown = await renderMarkdown(sorted);
   const html = renderHtml(markdown);
   const title = newsletterTitle();
   const filename = newsletterFilename();
