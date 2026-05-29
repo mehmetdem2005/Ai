@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Sovereign · Editorial Wire — Pipeline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600;700&family=Newsreader:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=DM+Serif+Display&family=Source+Serif+4:wght@400;500;600&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="tokens.css" />
+<link rel="stylesheet" href="mobile.css" />
+<style>
+  .dash { padding: 32px 32px 60px; max-width: 1300px; margin: 0 auto; }
+
+  .d-head { display: flex; justify-content: space-between; align-items: end; margin-bottom: 32px; }
+  .d-head h1 {
+    margin: 6px 0 0; font-family: var(--font-display);
+    font-size: 34px; font-weight: 500; letter-spacing: -0.02em;
+    line-height: 1.1;
+  }
+  .d-head .right {
+    display: flex; align-items: center; gap: 14px;
+    font-family: var(--font-mono); font-size: 11px; color: var(--mid);
+  }
+  .d-head .live::before {
+    content: ""; width: 7px; height: 7px; background: var(--ok); border-radius: 999px;
+    display: inline-block; margin-right: 6px;
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  /* Status strip */
+  .pipe {
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    border: 1px solid var(--ink); background: var(--surface);
+    margin-bottom: 24px;
+  }
+  .pipe .stage {
+    padding: 18px 22px; border-right: 1px solid var(--line);
+    position: relative;
+  }
+  .pipe .stage:last-child { border-right: none; }
+  .pipe .num {
+    font-family: var(--font-mono); font-size: 10.5px; color: var(--cyan);
+    letter-spacing: 0.1em;
+  }
+  .pipe .name { margin-top: 4px; font-size: 13px; font-weight: 500; }
+  .pipe .v {
+    margin-top: 10px;
+    font-family: var(--font-display); font-size: 28px; font-weight: 500;
+    letter-spacing: -0.025em; line-height: 1;
+  }
+  .pipe .mod {
+    margin-top: 10px;
+    font-family: var(--font-mono); font-size: 10.5px; color: var(--mid);
+    letter-spacing: 0.04em;
+  }
+
+  /* Stats row */
+  .stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0; margin-bottom: 24px; border: 1px solid var(--ink); background: var(--surface); }
+  .stats .stat-tile { border: none; border-right: 1px solid var(--line); padding: 22px; }
+  .stats .stat-tile:last-child { border-right: none; }
+
+  /* Two col */
+  .twocol { display: grid; grid-template-columns: 1.6fr 1fr; gap: 20px; margin-bottom: 24px; }
+
+  /* Chart */
+  .chart-card .card-body { padding: 0; }
+  .chart-wrap {
+    padding: 24px 28px;
+    background: var(--surface);
+    height: 280px;
+  }
+  .chart-wrap svg { width: 100%; height: 100%; }
+  .chart-legend {
+    padding: 12px 24px; border-top: 1px solid var(--line);
+    display: flex; gap: 20px;
+    font-family: var(--font-mono); font-size: 11px; color: var(--mid);
+  }
+  .legend-swatch { display: inline-block; width: 12px; height: 3px; vertical-align: middle; margin-right: 6px; }
+
+  /* Provider */
+  .prov-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .prov {
+    padding: 16px; background: var(--bg);
+    border: 1px solid var(--line);
+  }
+  .prov.active { background: var(--surface); border-color: var(--ink); }
+  .prov h5 {
+    margin: 0;
+    font-family: var(--font-display); font-size: 17px; font-weight: 500;
+    letter-spacing: -0.005em;
+  }
+  .prov .model { font-family: var(--font-mono); font-size: 11px; color: var(--mid); margin-top: 2px; }
+  .prov .row {
+    margin-top: 10px;
+    display: flex; justify-content: space-between;
+    font-family: var(--font-mono); font-size: 12px;
+  }
+  .prov .row span { color: var(--mid); }
+  .prov .row b { color: var(--ink); font-weight: 500; }
+
+  .deprec-note {
+    margin-top: 14px;
+    padding: 12px 14px; background: var(--bg-2);
+    border-left: 3px solid var(--alert);
+    font-family: var(--font-serif); font-size: 13.5px; color: var(--ink-2);
+  }
+  .deprec-note b { color: var(--alert); font-style: normal; font-family: var(--font-mono);
+    font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; }
+
+  /* Gauge */
+  .gauge { padding: 22px; display: flex; align-items: center; gap: 22px; }
+  .gauge-vis {
+    width: 130px; height: 130px; position: relative; flex-shrink: 0;
+  }
+  .gauge-vis svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+  .gauge-text {
+    position: absolute; inset: 0; display: grid; place-items: center;
+    font-family: var(--font-display); font-size: 32px; font-weight: 500;
+    letter-spacing: -0.025em;
+  }
+  .gauge-info .k {
+    font-family: var(--font-mono); font-size: 10.5px;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--mid);
+  }
+  .gauge-info .v { font-family: var(--font-mono); font-size: 13px; margin-top: 3px; color: var(--ink-2); }
+  .gauge-info .row { margin-top: 10px; }
+
+  /* Log */
+  .log-list { font-family: var(--font-mono); font-size: 12px; }
+  .log-item {
+    padding: 12px 22px; border-bottom: 1px solid var(--line-2);
+    display: grid; grid-template-columns: 90px 1fr 80px; gap: 12px; align-items: center;
+  }
+  .log-item:last-child { border-bottom: none; }
+  .log-item .ts { color: var(--mid); }
+  .log-item .msg { color: var(--ink-2); }
+  .log-item .msg b { color: var(--ink); font-weight: 500; }
+  .log-item.err .msg { color: var(--alert); }
+  .log-item.warn .msg { color: #B45309; }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 900px) {
+    .dash { padding: 24px 20px 48px; }
+    .d-head { flex-direction: column; align-items: stretch; gap: 14px; }
+    .d-head h1 { font-size: 26px !important; }
+
+    .pipe { grid-template-columns: 1fr 1fr; }
+    .pipe .stage { border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 14px 16px; }
+    .pipe .stage:nth-child(2n) { border-right: none; }
+    .pipe .stage:nth-last-child(-n+1) { border-bottom: none; }
+    .pipe .v { font-size: 22px; }
+
+    .stats { grid-template-columns: 1fr 1fr; }
+    .stats .stat-tile { border-bottom: 1px solid var(--line); }
+    .stats .stat-tile:nth-child(2n) { border-right: none; }
+    .stats .stat-tile:nth-last-child(-n+2) { border-bottom: none; }
+
+    .twocol { grid-template-columns: 1fr; }
+    .gauge { padding: 18px 20px; }
+    .gauge-vis { width: 100px; height: 100px; }
+    .gauge-text { font-size: 24px !important; }
+  }
+  @media (max-width: 640px) {
+    .pipe { grid-template-columns: 1fr; }
+    .pipe .stage { border-right: none !important; }
+    .stats { grid-template-columns: 1fr 1fr; }
+    .prov-grid { grid-template-columns: 1fr; }
+    .gauge { flex-direction: column; align-items: start; gap: 14px; }
+    .log-item { grid-template-columns: 70px 1fr 60px; gap: 8px; padding: 9px 14px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="topnav-mount"></div>
+
+<div class="dash">
+
+  <div class="d-head">
+    <div>
+      <span class="kicker">/ Operasyon</span>
+      <h1>Pipeline <em>durumu</em></h1>
+    </div>
+    <div class="right">
+      <span class="live" style="color:var(--ok); font-family:var(--font-mono);">OPERATIONAL</span>
+      <span>·</span>
+      <span>NEXT · 29 MAY 08:00 · IN 7H 42M</span>
+      <button class="btn">▶ Run now</button>
+    </div>
+  </div>
+
+  <div class="pipe">
+    <div class="stage">
+      <div class="num">01 / FETCH</div>
+      <div class="name">Data ingest</div>
+      <div class="v">418</div>
+      <div class="mod">DataFetcher</div>
+    </div>
+    <div class="stage">
+      <div class="num">02 / DEDUP</div>
+      <div class="name">Semantic merge</div>
+      <div class="v">62 <em>·86%</em></div>
+      <div class="mod">SemanticDeduper</div>
+    </div>
+    <div class="stage">
+      <div class="num">03 / ANALYZE</div>
+      <div class="name">LLM analysis</div>
+      <div class="v">11</div>
+      <div class="mod">AIProcessor · R1</div>
+    </div>
+    <div class="stage">
+      <div class="num">04 / PUBLISH</div>
+      <div class="name">Markdown brief</div>
+      <div class="v">1</div>
+      <div class="mod">Publisher</div>
+    </div>
+    <div class="stage">
+      <div class="num">05 / STORE</div>
+      <div class="name">Persist</div>
+      <div class="v">✓</div>
+      <div class="mod">SQLite + Supabase</div>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat-tile">
+      <div class="label">Articles · 30g</div>
+      <div class="value">12,408</div>
+      <div class="delta">▲ +4.2%</div>
+    </div>
+    <div class="stat-tile">
+      <div class="label">Bülten · 30g</div>
+      <div class="value">42</div>
+      <div class="delta">2 missed · recovered</div>
+    </div>
+    <div class="stat-tile">
+      <div class="label">Dedup oranı</div>
+      <div class="value">0.86</div>
+      <div class="delta">▲ +0.02</div>
+    </div>
+    <div class="stat-tile">
+      <div class="label">Token · 30g</div>
+      <div class="value">2.4M</div>
+      <div class="delta">▲ +12.8%</div>
+    </div>
+    <div class="stat-tile">
+      <div class="label">Maliyet · 30g</div>
+      <div class="value">$11.84</div>
+      <div class="delta neg">▼ R1 discount</div>
+    </div>
+  </div>
+
+  <div class="twocol">
+    <div class="card chart-card">
+      <div class="card-header">
+        <h3>Sinyal yoğunluğu · son 14 gün</h3>
+        <span class="mono" style="margin-left:auto; color:var(--mid); font-size:11px;">y: signals · x: batch</span>
+      </div>
+      <div class="chart-wrap">
+        <svg viewBox="0 0 600 240" preserveAspectRatio="none">
+          <line x1="0" y1="200" x2="600" y2="200" stroke="#E2D9C6"/>
+          <line x1="0" y1="140" x2="600" y2="140" stroke="#E2D9C6" stroke-dasharray="2 4"/>
+          <line x1="0" y1="80" x2="600" y2="80" stroke="#E2D9C6" stroke-dasharray="2 4"/>
+          <polyline points="0,180 25,160 50,170 75,140 100,150 125,120 150,130 175,100 200,90 225,110 250,70 275,80 300,50 325,30 350,40 375,55 400,38 425,52 450,30 475,45 500,28 525,40 550,22 575,32 600,18"
+            fill="none" stroke="#0369A1" stroke-width="2.5"/>
+          <circle cx="600" cy="18" r="5" fill="#0F1419"/>
+        </svg>
+      </div>
+      <div class="chart-legend">
+        <span><span class="legend-swatch" style="background:#0369A1;"></span>signals after analysis</span>
+        <span style="margin-left:auto;">peak · T18 · 27 MAY</span>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>Dedup oranı</h3></div>
+      <div class="gauge">
+        <div class="gauge-vis">
+          <svg viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="42" fill="none" stroke="#E2D9C6" stroke-width="10"/>
+            <circle cx="50" cy="50" r="42" fill="none" stroke="#0369A1" stroke-width="10"
+              stroke-dasharray="227" stroke-dashoffset="32"/>
+          </svg>
+          <div class="gauge-text">0.86</div>
+        </div>
+        <div class="gauge-info">
+          <div class="row"><div class="k">Eşik</div><div class="v">cosine ≥ 0.86</div></div>
+          <div class="row"><div class="k">Embedding</div><div class="v">gemini-embedding-001</div></div>
+          <div class="row"><div class="k">Eleme</div><div class="v">418 → 62 (85%)</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="twocol">
+    <div class="card">
+      <div class="card-header">
+        <h3>Kaynak sağlığı · 142 toplam</h3>
+        <span class="pill ok" style="margin-left:auto;"><span class="dot"></span>136 OK</span>
+        <span class="pill neutral">4 SLOW</span>
+        <span class="pill alert">2 DOWN</span>
+      </div>
+      <table class="data">
+        <thead><tr>
+          <th>Source</th><th>Last</th><th>24h</th><th>p95</th><th>Status</th>
+        </tr></thead>
+        <tbody>
+          <tr><td><b>STAT News</b><br/><span class="mono" style="font-size:11px;color:var(--mid);">statnews.com/feed</span></td><td class="mono">4m</td><td class="mono">12</td><td class="mono">340ms</td><td><span class="pill ok"><span class="dot"></span>OK</span></td></tr>
+          <tr><td><b>Nature Biotech</b><br/><span class="mono" style="font-size:11px;color:var(--mid);">nature.com/nbt.rss</span></td><td class="mono">4m</td><td class="mono">8</td><td class="mono">512ms</td><td><span class="pill ok"><span class="dot"></span>OK</span></td></tr>
+          <tr><td><b>FDA News</b><br/><span class="mono" style="font-size:11px;color:var(--mid);">fda.gov/rss</span></td><td class="mono">4m</td><td class="mono">22</td><td class="mono">1,840ms</td><td><span class="pill neutral">SLOW</span></td></tr>
+          <tr><td><b>The Lancet Digital</b><br/><span class="mono" style="font-size:11px;color:var(--mid);">thelancet.com/rss</span></td><td class="mono">4h</td><td class="mono">—</td><td class="mono">timeout</td><td><span class="pill alert"><span class="dot"></span>DOWN</span></td></tr>
+          <tr><td><b>Endpoints</b><br/><span class="mono" style="font-size:11px;color:var(--mid);">endpts.com/feed</span></td><td class="mono">4m</td><td class="mono">14</td><td class="mono">410ms</td><td><span class="pill ok"><span class="dot"></span>OK</span></td></tr>
+          <tr><td><b>FierceBiotech</b><br/><span class="mono" style="font-size:11px;color:var(--mid);">fiercebiotech.com</span></td><td class="mono">4m</td><td class="mono">11</td><td class="mono">390ms</td><td><span class="pill ok"><span class="dot"></span>OK</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h3>LLM sağlayıcı</h3></div>
+      <div class="card-body">
+        <div class="prov-grid">
+          <div class="prov active">
+            <h5>DeepSeek · <em>R1</em></h5>
+            <div class="model">deepseek-reasoner</div>
+            <div class="row"><span>tok/run</span><b>84,120</b></div>
+            <div class="row"><span>$/run</span><b>$0.21</b></div>
+            <div class="row"><span>p50</span><b>1.8s</b></div>
+          </div>
+          <div class="prov">
+            <h5>Gemini · <em>2.5</em></h5>
+            <div class="model">gemini-2.5-flash</div>
+            <div class="row"><span>tok/run</span><b>—</b></div>
+            <div class="row"><span>$/run</span><b>$0.00</b></div>
+            <div class="row"><span>tier</span><b>free</b></div>
+          </div>
+        </div>
+        <div class="deprec-note">
+          <b>⚠ Deprecation</b> · deepseek-reasoner / deepseek-chat 2026-07-24'te kaldırılacak. Kalıcı seçim: <span class="mono">deepseek-v4-pro</span>.
+        </div>
+        <div style="margin-top:18px;">
+          <div class="label">Embedding</div>
+          <div style="font-family:var(--font-mono); font-size:13px; margin-top:4px;">gemini-embedding-001 <span style="color:var(--mid);">· free · 768 dim</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><h3>Run log · son 8</h3>
+      <span class="mono" style="margin-left:auto; color:var(--mid); font-size:11px;">tail -n 8 · /logs/runs.log</span>
+    </div>
+    <div class="log-list">
+      <div class="log-item"><span class="ts">18:03:14</span><span class="msg"><b>RUN-2526.05.28.T18</b> · published · 11 signals · 3m·14s</span><span class="pill ok"><span class="dot"></span>OK</span></div>
+      <div class="log-item warn"><span class="ts">18:01:48</span><span class="msg">feed timeout · thelancet.com — retrying via tenacity (attempt 2/3)</span><span class="pill neutral">WARN</span></div>
+      <div class="log-item"><span class="ts">18:00:02</span><span class="msg">batch start · 142 feeds · deepseek-reasoner</span><span class="pill info"><span class="dot"></span>INFO</span></div>
+      <div class="log-item"><span class="ts">08:02:51</span><span class="msg"><b>RUN-2526.05.28.T08</b> · published · 9 signals · 2m·51s</span><span class="pill ok"><span class="dot"></span>OK</span></div>
+      <div class="log-item"><span class="ts">08:00:00</span><span class="msg">batch start · 142 feeds · deepseek-reasoner</span><span class="pill info"><span class="dot"></span>INFO</span></div>
+      <div class="log-item err"><span class="ts">27 18:01</span><span class="msg">supabase insert failed · 503 — queued for next sync</span><span class="pill alert"><span class="dot"></span>ERR</span></div>
+      <div class="log-item"><span class="ts">27 18:00</span><span class="msg"><b>RUN-2526.05.27.T18</b> · published · 13 signals · 3m·02s</span><span class="pill ok"><span class="dot"></span>OK</span></div>
+      <div class="log-item"><span class="ts">27 08:01</span><span class="msg"><b>RUN-2526.05.27.T08</b> · published · 8 signals · 2m·47s</span><span class="pill ok"><span class="dot"></span>OK</span></div>
+    </div>
+  </div>
+
+</div>
+
+
+<script src="i18n.js"></script>
+<script src="nav.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="auth.js"></script>
+</body>
+</html>

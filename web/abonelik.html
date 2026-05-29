@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Sovereign · Abonelik</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600;700&family=Newsreader:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=DM+Serif+Display&family=Source+Serif+4:wght@400;500;600&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="tokens.css" />
+<link rel="stylesheet" href="mobile.css" />
+<style>
+  .tier-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+    max-width: 1100px; margin: 0 auto;
+    padding: 0 32px 56px;
+  }
+  .tier {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    padding: 28px 24px;
+    display: flex; flex-direction: column;
+    position: relative;
+  }
+  .tier.featured {
+    border: 2px solid var(--ink);
+    background: var(--bg-2);
+  }
+  .tier-badge {
+    position: absolute; top: -1px; right: -1px;
+    padding: 5px 12px;
+    background: var(--ink); color: var(--surface);
+    font-family: var(--font-mono); font-size: 10px;
+    letter-spacing: 0.12em; text-transform: uppercase;
+  }
+  .tier-name {
+    font-family: var(--font-mono); font-size: 11px;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--cyan-ink);
+  }
+  .tier h3 {
+    margin: 8px 0 14px;
+    font-family: var(--font-display); font-weight: 500;
+    font-size: 30px; letter-spacing: -0.025em; line-height: 1.05;
+  }
+  .tier-price {
+    display: flex; align-items: baseline; gap: 4px;
+    margin-bottom: 14px;
+  }
+  .tier-price .num {
+    font-family: var(--font-display); font-weight: 500;
+    font-size: 44px; letter-spacing: -0.03em; line-height: 1;
+  }
+  .tier-price .unit {
+    font-family: var(--font-mono); font-size: 12px; color: var(--mid);
+    letter-spacing: 0.04em;
+  }
+  .tier .desc {
+    font-size: 14.5px;
+    color: var(--mid); line-height: 1.5; margin: 0 0 22px;
+    min-height: 44px;
+  }
+  .tier-cta {
+    margin-bottom: 20px;
+  }
+  .tier-features {
+    list-style: none; padding: 0; margin: 0;
+    border-top: 1px solid var(--line); padding-top: 16px;
+  }
+  .tier-features li {
+    padding: 7px 0 7px 22px;
+    position: relative;
+    font-size: 13.5px; color: var(--ink-2);
+    line-height: 1.45;
+  }
+  .tier-features li::before {
+    content: "✓";
+    position: absolute; left: 0;
+    color: var(--cyan-ink); font-weight: 600;
+  }
+  .tier-features li.dim {
+    color: var(--mid);
+  }
+  .tier-features li.dim::before { content: "—"; color: var(--mid); }
+
+  /* Comparison */
+  .compare {
+    max-width: 1100px; margin: 0 auto;
+    padding: 56px 32px 48px;
+    border-top: 1px solid var(--ink);
+  }
+  .compare h2 {
+    margin: 0 0 24px;
+    font-family: var(--font-display); font-size: 32px; font-weight: 500;
+    letter-spacing: -0.025em; text-align: center;
+  }
+  .compare table {
+    width: 100%; border-collapse: collapse;
+  }
+  .compare th, .compare td {
+    padding: 14px 16px; text-align: left;
+    border-bottom: 1px solid var(--line);
+    font-size: 14px;
+  }
+  .compare th {
+    font-family: var(--font-mono); font-size: 11px;
+    letter-spacing: 0.08em; text-transform: uppercase; color: var(--mid);
+    font-weight: 500;
+    border-bottom: 1px solid var(--ink);
+  }
+  .compare td.feature { font-weight: 500; color: var(--ink); }
+  .compare td.val { text-align: center; font-family: var(--font-mono); }
+  .compare td.val.yes { color: var(--ok); }
+  .compare td.val.no { color: var(--mid); }
+
+  /* FAQ */
+  .faq-band {
+    max-width: 760px; margin: 0 auto;
+    padding: 48px 32px 80px;
+  }
+  .faq-band h2 {
+    margin: 0 0 24px;
+    font-family: var(--font-display); font-size: 28px; font-weight: 500;
+    letter-spacing: -0.02em;
+  }
+  .faq-band details {
+    padding: 16px 0; border-bottom: 1px solid var(--line);
+  }
+  .faq-band summary {
+    cursor: pointer;
+    font-family: var(--font-display); font-size: 17px; font-weight: 500;
+    list-style: none;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .faq-band summary::-webkit-details-marker { display: none; }
+  .faq-band summary::after {
+    content: "+"; color: var(--cyan); font-size: 22px;
+    font-weight: 300;
+  }
+  .faq-band details[open] summary::after { content: "−"; }
+  .faq-band details p {
+    margin: 10px 0 0; font-family: var(--font-display); font-size: 15.5px;
+    color: var(--ink-2); line-height: 1.6;
+  }
+
+  @media (max-width: 900px) {
+    .tier-grid { grid-template-columns: 1fr; padding: 0 20px 48px; }
+    .compare { padding: 40px 20px; }
+    .compare table { display: block; overflow-x: auto; white-space: nowrap; }
+    .faq-band { padding: 36px 20px 60px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="topnav-mount"></div>
+
+<div class="page-wrap" style="padding-bottom: 0;">
+  <div class="page-head" style="text-align: center; margin: 0 auto 48px;">
+    <div class="crumb" style="text-align: center;">/ Abonelik</div>
+    <h1>Üç plan. <em>Hep aynı brief.</em></h1>
+    <p class="dek" style="margin: 0 auto;">Sovereign'in editoryal kalitesi her planda aynı. Plan farkı erişim derinliği ve ekibinizin yararlanabileceği özellikler.</p>
+  </div>
+</div>
+
+<div class="tier-grid">
+
+  <div class="tier" id="ucretsiz">
+    <div class="tier-name">Ücretsiz</div>
+    <h3>Brief</h3>
+    <div class="tier-price">
+      <span class="num">₺0</span>
+      <span class="unit">/ ay</span>
+    </div>
+    <p class="desc">Sektörü uzaktan takip etmek için temel paket.</p>
+    <button class="btn lg tier-cta">Bedavadan başla</button>
+    <ul class="tier-features">
+      <li>Günde 2 brief (sabah &amp; akşam)</li>
+      <li>Son 30 gün arşivi</li>
+      <li>E-posta ile teslim</li>
+      <li class="dim">Uzun okumalar</li>
+      <li class="dim">Tam arşiv erişimi</li>
+      <li class="dim">Konu kümeleri filtresi</li>
+      <li class="dim">Ekip lisansı</li>
+    </ul>
+  </div>
+
+  <div class="tier featured" id="pro">
+    <div class="tier-badge">Önerilen</div>
+    <div class="tier-name">Premium</div>
+    <h3>Pro</h3>
+    <div class="tier-price">
+      <span class="num"><em>₺149</em></span>
+      <span class="unit">/ ay · KDV dahil</span>
+    </div>
+    <p class="desc">Bireysel profesyoneller için tam erişim.</p>
+    <button class="btn primary lg tier-cta">Pro'ya geç →</button>
+    <ul class="tier-features">
+      <li>Günde 2 brief + haftalık uzun okuma</li>
+      <li>Tam arşiv erişimi (sınırsız)</li>
+      <li>Konu kümeleri ve özel filtreler</li>
+      <li>Sabah özet podcast'i</li>
+      <li>Bağımsız bültenler (regulasyon, klinik)</li>
+      <li>Soru sormak için doğrudan editör erişimi</li>
+      <li class="dim">Ekip lisansı</li>
+    </ul>
+  </div>
+
+  <div class="tier" id="kurumsal">
+    <div class="tier-name">Kurumsal</div>
+    <h3>Team</h3>
+    <div class="tier-price">
+      <span class="num">Görüşelim</span>
+    </div>
+    <p class="desc">5+ kişilik ekipler, kurumlar ve eğitim için.</p>
+    <a class="btn lg tier-cta" href="hakkinda.html#iletisim" style="text-align:center; justify-content:center;">İletişime geç</a>
+    <ul class="tier-features">
+      <li>Tüm Pro özellikleri</li>
+      <li>Ekip lisansı (sınırsız kullanıcı)</li>
+      <li>Tek faturalama, SSO/SAML</li>
+      <li>Özel raporlar ve sektör derlemeleri</li>
+      <li>Önceliklendirilmiş yazışma</li>
+      <li>Eğitim oturumları (3 ayda bir)</li>
+      <li>Aylık sektör paneli</li>
+    </ul>
+  </div>
+
+</div>
+
+<section class="compare">
+  <h2>Plan karşılaştırması</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Özellik</th>
+        <th style="text-align:center;">Brief</th>
+        <th style="text-align:center;">Pro</th>
+        <th style="text-align:center;">Team</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td class="feature">Günlük brief (2×)</td><td class="val yes">✓</td><td class="val yes">✓</td><td class="val yes">✓</td></tr>
+      <tr><td class="feature">E-posta teslimat</td><td class="val yes">✓</td><td class="val yes">✓</td><td class="val yes">✓</td></tr>
+      <tr><td class="feature">Arşiv erişimi</td><td class="val">30 gün</td><td class="val">Tam</td><td class="val">Tam</td></tr>
+      <tr><td class="feature">Haftalık uzun okuma</td><td class="val no">—</td><td class="val yes">✓</td><td class="val yes">✓</td></tr>
+      <tr><td class="feature">Konu kümeleri</td><td class="val no">—</td><td class="val yes">✓</td><td class="val yes">✓</td></tr>
+      <tr><td class="feature">Sabah podcast'i</td><td class="val no">—</td><td class="val yes">✓</td><td class="val yes">✓</td></tr>
+      <tr><td class="feature">Editör erişimi</td><td class="val no">—</td><td class="val">E-posta</td><td class="val">Öncelikli</td></tr>
+      <tr><td class="feature">Ekip lisansı</td><td class="val no">—</td><td class="val no">—</td><td class="val yes">Sınırsız</td></tr>
+      <tr><td class="feature">SSO / SAML</td><td class="val no">—</td><td class="val no">—</td><td class="val yes">✓</td></tr>
+      <tr><td class="feature">Özel raporlar</td><td class="val no">—</td><td class="val no">—</td><td class="val yes">✓</td></tr>
+      <tr><td class="feature">Aylık sektör paneli</td><td class="val no">—</td><td class="val no">—</td><td class="val yes">✓</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section class="faq-band">
+  <h2>Sıkça sorulan</h2>
+  <details open>
+    <summary>İstediğim zaman iptal edebilir miyim?</summary>
+    <p>Evet. Pro abonelikler aylık otomatik yenilenir, panelinizden tek tıkla iptal edersiniz. İptal sonrası dönem sonuna kadar erişiminiz devam eder.</p>
+  </details>
+  <details>
+    <summary>Ücretsiz plan ne zamana kadar geçerli?</summary>
+    <p>Sürekli. Ücretsiz plan zaman sınırlı bir deneme değil; kalıcı bir plan. Sadece bazı özelliklere erişim sınırlı.</p>
+  </details>
+  <details>
+    <summary>Pro plan fiyatlandırmasına KDV dahil mi?</summary>
+    <p>Evet, ₺149 fiyatı KDV dahil son tutardır. Fatura kesim talebinde bulunursanız kurumsal faturalandırma yapılır.</p>
+  </details>
+  <details>
+    <summary>Birden çok kişiyle aboneliği paylaşabilir miyim?</summary>
+    <p>Bireysel Pro abonelikler tek kullanıcılıdır. 3 veya daha fazla kullanıcıya ihtiyacınız varsa Team planı maliyet açısından daha avantajlı.</p>
+  </details>
+  <details>
+    <summary>Hangi ödeme yöntemlerini kabul ediyorsunuz?</summary>
+    <p>Bireysel: Kredi/banka kartı (Visa, Mastercard, Troy), Apple Pay, Google Pay. Kurumsal: havale/EFT ile yıllık ödeme.</p>
+  </details>
+</section>
+
+<div id="footer-mount"></div>
+
+<script src="i18n.js"></script>
+<script src="nav.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="auth.js"></script>
+
+</body>
+</html>

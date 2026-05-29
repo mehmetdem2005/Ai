@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Sovereign · Editorial Wire — Uzun okuma</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600;700&family=Newsreader:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=DM+Serif+Display&family=Source+Serif+4:wght@400;500;600&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="tokens.css" />
+<link rel="stylesheet" href="mobile.css" />
+<style>
+  body { background: var(--bg); }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 56px 24px 96px; }
+  .back {
+    display: inline-block; font-family: var(--font-mono); font-size: 11px;
+    letter-spacing: 0.08em; color: var(--mid); margin-bottom: 40px;
+    border: none;
+  }
+  .back:hover { color: var(--ink); }
+
+  .head-meta {
+    display: flex; gap: 16px; align-items: center;
+    padding-bottom: 18px; border-bottom: 1px solid var(--ink);
+    font-family: var(--font-mono); font-size: 11px; color: var(--mid);
+    letter-spacing: 0.06em;
+  }
+  .head-meta .sid { color: var(--cyan-ink); }
+  .head-meta .spacer { flex: 1; }
+
+  h1.headline {
+    margin: 36px 0 22px;
+    font-family: var(--font-display); font-weight: 500;
+    font-size: 52px; line-height: 1.05; letter-spacing: -0.03em;
+    color: var(--ink); text-wrap: balance;
+  }
+  .dek {
+    font-family: var(--font-display); font-weight: 400; font-size: 22px; line-height: 1.45; color: var(--ink-2);
+    max-width: 640px; text-wrap: pretty;
+  }
+
+  .byline {
+    margin: 28px 0 0;
+    display: flex; gap: 14px; align-items: center;
+    font-family: var(--font-mono); font-size: 11px;
+    color: var(--mid); letter-spacing: 0.06em;
+  }
+  .byline .by { color: var(--ink); font-weight: 500; }
+
+  .meta-grid {
+    margin: 36px 0 48px;
+    padding: 20px 0;
+    border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink);
+    display: grid; grid-template-columns: repeat(5, 1fr);
+  }
+  .meta-grid .cell { padding: 0 14px; border-right: 1px solid var(--line); }
+  .meta-grid .cell:first-child { padding-left: 0; }
+  .meta-grid .cell:last-child { border-right: none; padding-right: 0; }
+  .meta-grid .k {
+    font-family: var(--font-mono); font-size: 9.5px; color: var(--mid);
+    letter-spacing: 0.14em; text-transform: uppercase;
+  }
+  .meta-grid .v {
+    margin-top: 4px;
+    font-family: var(--font-display); font-size: 22px; font-weight: 500;
+    letter-spacing: -0.02em; line-height: 1;
+  }
+
+  .body {
+    font-family: var(--font-serif);
+  }
+  .body p {
+    margin: 0 0 22px;
+    font-size: 18px; line-height: 1.7; color: var(--ink-2);
+    text-wrap: pretty;
+  }
+  .body p strong { color: var(--ink); font-weight: 500; }
+
+  .body h2.section {
+    margin: 64px 0 4px;
+    font-family: var(--font-mono); font-size: 11px;
+    letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--cyan-ink);
+    padding-bottom: 6px; border-bottom: 1px solid var(--cyan-ink);
+    display: inline-block;
+  }
+  .body h2.section + p { margin-top: 18px; }
+
+  .pull {
+    margin: 48px -40px;
+    padding: 32px 40px;
+    border-left: 3px solid var(--cyan); background: var(--bg-2);
+    font-family: var(--font-display); font-weight: 400; font-size: 30px; line-height: 1.2; letter-spacing: -0.02em;
+    color: var(--ink); text-wrap: balance; text-align: center;
+  }
+
+  .figure {
+    margin: 48px -40px;
+    border: 1px solid var(--ink); background: var(--surface);
+  }
+  .figure .head {
+    padding: 14px 22px; border-bottom: 1px solid var(--ink);
+    display: flex; align-items: center; gap: 10px;
+    font-family: var(--font-mono); font-size: 10.5px;
+    letter-spacing: 0.12em; text-transform: uppercase; color: var(--mid);
+  }
+  .figure .chart { padding: 28px; background: var(--bg); height: 240px; position: relative; }
+  .figure .chart svg { width: 100%; height: 100%; }
+  .figure .cap {
+    padding: 12px 22px; border-top: 1px solid var(--line);
+    font-family: var(--font-serif); font-size: 14px;
+    color: var(--mid);
+  }
+
+  .body ul {
+    padding-left: 0; list-style: none; margin: 16px 0;
+  }
+  .body ul li {
+    font-size: 17px; line-height: 1.6;
+    color: var(--ink-2); padding: 12px 0 12px 28px;
+    border-bottom: 1px dashed var(--line); position: relative;
+  }
+  .body ul li::before {
+    content: "§"; position: absolute; left: 0;
+    font-family: var(--font-display); color: var(--cyan);
+  }
+
+  .end {
+    margin-top: 72px; padding-top: 24px;
+    border-top: 1px solid var(--ink);
+    display: flex; gap: 14px; align-items: center;
+    font-family: var(--font-mono); font-size: 11px;
+    color: var(--mid); letter-spacing: 0.06em;
+  }
+  .end .mark {
+    width: 12px; height: 12px; background: var(--ink); display: inline-block;
+  }
+  .end .spacer { flex: 1; }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 900px) {
+    .wrap { padding: 36px 20px 64px; }
+    h1.headline { font-size: 36px !important; line-height: 1.08; }
+    .dek { font-size: 18px; }
+    .meta-grid { grid-template-columns: repeat(3, 1fr); margin: 28px 0 36px; padding: 14px 0; }
+    .meta-grid .cell { padding: 8px 12px !important; }
+    .meta-grid .v { font-size: 16px !important; }
+    .body p { font-size: 16.5px !important; line-height: 1.6; }
+    .pull { margin: 32px -20px; padding: 24px 22px; font-size: 22px !important; }
+    .figure { margin: 28px -20px; }
+    .figure .chart { height: 180px; padding: 18px; }
+    .end { font-size: 10.5px; flex-wrap: wrap; gap: 8px; }
+  }
+  @media (max-width: 640px) {
+    .wrap { padding: 28px 16px 48px; }
+    h1.headline { font-size: 28px !important; }
+    .dek { font-size: 16.5px; }
+    .meta-grid { grid-template-columns: 1fr 1fr; }
+    .body p { font-size: 16px !important; }
+    .pull { font-size: 20px !important; padding: 20px 18px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="topnav-mount"></div>
+
+<article class="wrap">
+  <a class="back" href="reader.html">← BÜLTEN LİSTESİNE DÖN</a>
+
+  <div class="head-meta">
+    <span class="sid">28 MAYIS 2026 · AKŞAM EDİSYONU</span>
+    <span>·</span>
+    <span>Uzun okuma</span>
+    <span class="spacer"></span>
+    <span>~6 DAKİKA</span>
+  </div>
+
+  <h1 class="headline">FDA, ilk yapay zekâ destekli radyoloji akışını onayladı. Yüzeyin altında ne <em>değişti.</em></h1>
+
+  <p class="dek">Onay başlığa çıktı. Asıl değişim üç katman aşağıda: lisanslı veri tedariki, yeni bir denetim emsali, ve şimdi sıraya giren dört dosya. Bugünün akşam brief'inden bir sentez.</p>
+
+  <div class="byline">
+    <span class="by">SOVEREIGN EDİTÖRYAL</span>
+    <span>·</span>
+    <span>YAPAY ZEKÂ TARAFINDAN ÜRETİLDİ</span>
+  </div>
+
+  <div class="meta-grid">
+    <div class="cell"><div class="k">Tarih</div><div class="v">28 May</div></div>
+    <div class="cell"><div class="k">Edisyon</div><div class="v">Akşam</div></div>
+    <div class="cell"><div class="k">Konu</div><div class="v">Regulasyon</div></div>
+    <div class="cell"><div class="k">Üretim</div><div class="v">Otomatik</div></div>
+    <div class="cell"><div class="k">Format</div><div class="v">5 bölüm</div></div>
+  </div>
+
+  <div class="body">
+
+    <p>Onay sınırlı endikasyon ile geldi: toraks tomografisinde küçük nodül triajı, altı milimetreden küçükler filtresiyle. <strong>Bu, başlığın söylediği değil; başlığın söylemediği önemli.</strong> Yıl içinde kapsamın genişleyebileceğini, benzer dosyaların kuyruğa girdiğini gösteren üç ayrı raporu aynı gün içinde okuduk.</p>
+
+    <p>Ön klinik aşamadaki dört rakip benzer mimari aileyi kullanıyor. Asıl fark, eğitim verisinin <strong>lisanslı çoklu-merkez kohort</strong> olması: kişisel sağlık verisinden arındırılmış, geri-izlenebilir, ve önemli olarak yeniden eğitilemeyen bir veri tabanı. Bu, modelin tekrarlanabilirliğini de belirsizleştiriyor.</p>
+
+    <h2 class="section">/ De Novo emsali</h2>
+
+    <p>Bu sefer 510(k) eşdeğeri yerine <strong>De Novo yolu</strong> seçildi. Bu, gelecek dosyalar için referans oluşturuyor; mimari özgüllüğü olmayan modeller için yeni bir denetim kategorisi açıldı. Konvansiyonu değiştiren karar bu.</p>
+
+    <div class="pull">"Bu, yapay zekânın klinik akışa girdiği ilk dosya değil — ilk <em>foundation model</em> dosyası."</div>
+
+    <p><strong>Etki orta-ölçekli görüntüleme entegratörlerinde toplanıyor</strong>: satış döngüsü kısalır, pazarın geleneksel oligopolü sıkışır. Üç ayrı kanal raporu bu yönde.</p>
+
+    <div class="figure">
+      <div class="head">
+        <span>FIG·1</span>
+        <span style="color:var(--ink);">SİNYAL YOĞUNLUĞU · SON 14 GÜN</span>
+        <span style="margin-left:auto;">SOVEREIGN ARŞİV</span>
+      </div>
+      <div class="chart">
+        <svg viewBox="0 0 600 240" preserveAspectRatio="none">
+          <line x1="0" y1="200" x2="600" y2="200" stroke="#E2D9C6"/>
+          <line x1="0" y1="140" x2="600" y2="140" stroke="#E2D9C6" stroke-dasharray="2 4"/>
+          <line x1="0" y1="80" x2="600" y2="80" stroke="#E2D9C6" stroke-dasharray="2 4"/>
+          <polyline points="0,180 40,160 80,170 120,140 160,150 200,120 240,130 280,100 320,90 360,110 400,70 440,80 480,50 520,30 560,40 600,20"
+            fill="none" stroke="#0369A1" stroke-width="2.5"/>
+          <circle cx="600" cy="20" r="5" fill="#0F1419"/>
+        </svg>
+      </div>
+      <div class="cap">Bülten edisyonları başına yayınlanan sinyal sayısı. 28 Mayıs akşam edisyonu zirvede.</div>
+    </div>
+
+    <h2 class="section">/ Çekincenin yeri</h2>
+
+    <p>Pazar sonrası gözlem verisi henüz şeffaf değil. <strong>İki ön klinik dosyada</strong> alt-grup performansında ırk-ilişkili sapma raporlandı; bu rapor mevcut onayda açıklanmadı. Takip eden 12 ay kritik — şeffaflık getirilmezse bir sonraki dosya zorlaşır.</p>
+
+    <ul>
+      <li>Klinik akışta radyolog başına gözden geçirme süresi <strong>−24%</strong> (klinik denemede).</li>
+      <li>Orta-ölçekli görüntüleme entegratörleri için satış döngüsü kısalır.</li>
+      <li>De Novo yolu emsal oluşturdu; foundation-model tabanlı cihazlar için kategori açıldı.</li>
+      <li>Lisanslı PHI-arındırılmış kohort tedariki dar bir oligopol — bu yapı belirsiz.</li>
+    </ul>
+
+    <p>Sovereign editoryal ekibi takip listesinde: bu mimariyi kullanan üç ek başvuru. Bir sonraki edisyonda ilk dosyanın FDA Q-Sub yanıtını özetleyeceğiz.</p>
+
+    <div class="end">
+      <span class="mark"></span>
+      <span>28 MAYIS 2026 · AKŞAM EDİSYONU</span>
+      <span class="spacer"></span>
+      <span>OKUMA SONU</span>
+    </div>
+  </div>
+</article>
+
+
+<script src="i18n.js"></script>
+<script src="nav.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="auth.js"></script>
+</body>
+</html>
