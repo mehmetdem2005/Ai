@@ -1,0 +1,31 @@
+# Sovereign BioTech V3 — Oracle Cloud (veya herhangi systemd VPS) için unit.
+#
+# Kurulum:
+#   1. Repo'yu /opt/sovereign altına klonla:  git clone <repo> /opt/sovereign
+#   2. .env dosyasını /opt/sovereign/.env olarak doldur.
+#   3. Bu dosyayı kopyala:    sudo cp infra/sovereign.service /etc/systemd/system/
+#   4. Etkinleştir + başlat:  sudo systemctl daemon-reload && \
+#                             sudo systemctl enable --now sovereign.service
+#   5. Log:                   sudo journalctl -u sovereign -f
+#                             docker compose -f /opt/sovereign/docker-compose.yml logs -f
+#
+# Not: docker + docker-compose-plugin host'ta kurulu olmalı.
+
+[Unit]
+Description=Sovereign BioTech V3 (Worker + Streamlit Kokpit, Docker Compose)
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/sovereign
+ExecStart=/usr/bin/docker compose up -d --build --remove-orphans
+ExecStop=/usr/bin/docker compose down
+ExecReload=/usr/bin/docker compose up -d --build
+TimeoutStartSec=600
+TimeoutStopSec=120
+
+[Install]
+WantedBy=multi-user.target

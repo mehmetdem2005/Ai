@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#0e9f6e" />
+<title>Sağlık Teknolojisi & Yapay Zeka Sinyali</title>
+<meta name="description" content="Sağlık teknolojisi ve yapay zeka alanındaki sinyalleri filtreleyen otonom Türkçe bülten." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #f4f5f7;
+    --surface: #ffffff;
+    --text: #1a1f29;
+    --muted: #667085;
+    --border: #e7e9ee;
+    --accent: #0e9f6e;
+    --accent-soft: #e8f7f0;
+    --danger: #dc2626;
+    --shadow: 0 1px 3px rgba(16,24,40,.06), 0 6px 20px rgba(16,24,40,.06);
+    --radius: 14px;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased; line-height: 1.62;
+  }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ---------- App bar ---------- */
+  .appbar {
+    position: sticky; top: 0; z-index: 20;
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 16px; padding-top: calc(12px + env(safe-area-inset-top));
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    box-shadow: 0 1px 0 rgba(16,24,40,.02);
+  }
+  .brand { font-size: 22px; line-height: 1; }
+  .appbar .title { font-size: 15.5px; font-weight: 800; letter-spacing: .1px; min-width: 0;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .appbar .spacer { flex: 1; }
+  .iconbtn {
+    appearance: none; border: 1px solid var(--border); background: var(--surface);
+    color: var(--text); border-radius: 10px; padding: 8px 12px; font-size: 13.5px;
+    font-weight: 600; cursor: pointer; font-family: inherit; display: inline-flex;
+    align-items: center; gap: 6px; white-space: nowrap;
+  }
+  .iconbtn:active { transform: scale(.97); }
+  .iconbtn:disabled { opacity: .5; cursor: not-allowed; }
+  .iconbtn.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .iconbtn.ghost { background: transparent; }
+  #backBtn { display: none; }
+  .reader-actions { display: none; gap: 8px; }
+  .auth-actions { display: flex; gap: 8px; align-items: center; }
+  .auth-actions .user-email {
+    font-size: 12px; color: var(--muted); padding-right: 4px;
+    max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+
+  /* Trigger butonu küçük ekranda emoji'ye düşsün */
+  @media (max-width: 640px) {
+    .auth-actions .user-email { display: none; }
+    .auth-actions .iconbtn .label { display: none; }
+  }
+
+  /* ---------- Layout ---------- */
+  .wrap { max-width: 1100px; margin: 0 auto; }
+  .updated { padding: 10px 16px 0; color: var(--muted); font-size: 12.5px; }
+
+  aside { padding: 12px 12px 28px; }
+  .list-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.4px;
+    color: var(--muted); padding: 8px 6px; }
+  .card {
+    display: block; width: 100%; text-align: left; cursor: pointer; font-family: inherit;
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px; margin-bottom: 12px; color: var(--text); box-shadow: var(--shadow);
+    transition: transform .12s, border-color .12s;
+  }
+  .card:active { transform: scale(.99); }
+  .card.active { border-color: var(--accent); }
+  .card .date { font-size: 15.5px; font-weight: 700; }
+  .card .meta { margin-top: 6px; display: flex; align-items: center; gap: 8px; }
+  .badge { background: var(--accent-soft); color: var(--accent); border-radius: 999px;
+    padding: 2px 10px; font-size: 12px; font-weight: 700; }
+  .chev { color: var(--muted); margin-left: auto; font-size: 18px; }
+
+  main { padding: 0 12px 40px; min-width: 0; }
+  .reader {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 22px 20px 30px; box-shadow: var(--shadow);
+  }
+  /* Markdown */
+  .reader h1 { font-size: 22px; line-height: 1.3; margin: 4px 0 6px; font-weight: 800; }
+  .reader h3 { font-size: 17px; margin: 26px 0 6px; font-weight: 700; line-height: 1.35; }
+  .reader p { color: #2b3240; font-size: 16px; }
+  .reader strong { color: #111; }
+  .reader hr { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
+  .reader blockquote {
+    margin: 8px 0 0; padding: 12px 16px; border-left: 4px solid var(--accent);
+    background: var(--accent-soft); border-radius: 0 10px 10px 0; color: #234; font-size: 15.5px;
+  }
+  .empty { text-align: center; color: var(--muted); padding: 64px 18px; }
+  .empty .big { font-size: 38px; margin-bottom: 8px; }
+  footer { text-align: center; color: var(--muted); font-size: 12px; padding: 22px 16px 30px; }
+
+  /* ---------- Mobile (default): tek sütun, liste↔okuma geçişi ---------- */
+  main { display: none; }
+  body.reading aside { display: none; }
+  body.reading main { display: block; }
+  body.reading #backBtn { display: inline-flex; }
+  body.reading .reader-actions { display: flex; }
+  body.reading .appbar .title { display: none; }
+
+  /* ---------- Masaüstü: iki sütun, her zaman görünür ---------- */
+  @media (min-width: 900px) {
+    .wrap.cols { display: grid; grid-template-columns: 340px 1fr; gap: 0; align-items: start; }
+    aside { border-right: 1px solid var(--border); min-height: calc(100vh - 110px); }
+    main { display: block !important; padding: 16px 22px 40px; }
+    #backBtn { display: none !important; }
+    .reader-actions { display: flex !important; }
+    .appbar .title { display: block !important; }
+    body.reading aside { display: block; }
+  }
+
+  @media print {
+    .appbar, aside, footer, .updated { display: none !important; }
+    main { display: block !important; padding: 0; }
+    .reader { border: none; box-shadow: none; padding: 0; }
+    body { background: #fff; }
+  }
+
+  /* ---------- Login modal ---------- */
+  .modal-backdrop {
+    position: fixed; inset: 0; background: rgba(15,18,24,.6);
+    display: none; align-items: center; justify-content: center;
+    z-index: 100; padding: 16px;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: var(--surface); border-radius: 14px; padding: 28px 24px;
+    width: 100%; max-width: 380px; box-shadow: 0 20px 60px rgba(0,0,0,.3);
+  }
+  .modal h2 { margin: 0 0 8px; font-size: 19px; font-weight: 800; }
+  .modal p { margin: 0 0 18px; color: var(--muted); font-size: 13.5px; }
+  .modal label {
+    display: block; font-size: 11.5px; text-transform: uppercase; letter-spacing: 1.2px;
+    color: var(--muted); margin-bottom: 6px; font-weight: 700;
+  }
+  .modal input[type="email"], .modal input[type="password"] {
+    width: 100%; padding: 11px 12px; border: 1px solid var(--border);
+    border-radius: 10px; font-family: inherit; font-size: 14.5px;
+    background: var(--bg); color: var(--text); margin-bottom: 14px;
+    -webkit-appearance: none; appearance: none;
+  }
+  .modal input:focus { outline: none; border-color: var(--accent); background: #fff; }
+  .modal .actions { display: flex; gap: 8px; margin-top: 6px; }
+  .modal .actions button { flex: 1; padding: 11px 14px; }
+  .modal .err {
+    color: var(--danger); font-size: 13px; margin-bottom: 10px;
+    padding: 8px 10px; background: #fef2f2; border: 1px solid #fecaca;
+    border-radius: 8px; display: none;
+  }
+  .modal .err.show { display: block; }
+  .modal .ok-msg {
+    color: var(--accent); font-size: 13px; padding: 10px 12px;
+    background: var(--accent-soft); border: 1px solid #b6e6cf;
+    border-radius: 8px; margin: 4px 0 12px; display: none;
+  }
+  .modal .ok-msg.show { display: block; }
+</style>
+</head>
+<body>
+  <div class="appbar">
+    <button class="iconbtn" id="backBtn" aria-label="Geri">← Geri</button>
+    <span class="brand">🧬</span>
+    <span class="title">Sağlık Teknolojisi &amp; YZ Sinyali</span>
+    <span class="spacer"></span>
+
+    <!-- Bülten okuma ekranı butonları -->
+    <span class="reader-actions">
+      <button class="iconbtn" id="printBtn">🖨️ <span class="label">PDF</span></button>
+      <button class="iconbtn" id="dlBtn">⬇️ <span class="label">İndir</span></button>
+    </span>
+
+    <!-- Auth + admin butonları (auth durumuna göre dinamik) -->
+    <span class="auth-actions" id="authActions">
+      <!-- JS doldurur -->
+    </span>
+  </div>
+
+  <div class="updated" id="updated">yükleniyor…</div>
+
+  <div class="wrap" id="wrap">
+    <aside>
+      <div class="list-label">Bültenler</div>
+      <div id="list"></div>
+    </aside>
+    <main>
+      <article class="reader" id="reader">
+        <div class="empty"><div class="big">📡</div>Bülten yükleniyor…</div>
+      </article>
+    </main>
+  </div>
+
+  <footer>
+    Otonom RSS → benzerlik tekilleştirme → yapay zeka analizi ·
+    <a href="./yonetim.html">⚙️ Kaynak Yönetimi</a> ·
+    <a href="https://github.com/mehmetdem2005/Ai" target="_blank" rel="noopener">GitHub</a>
+  </footer>
+
+  <!-- Login modal -->
+  <div class="modal-backdrop" id="loginModal">
+    <div class="modal">
+      <h2>🔐 Giriş</h2>
+      <p>Yetkili kullanıcılar admin paneline erişebilir ve bülteni manuel tetikleyebilir.</p>
+      <div class="err" id="loginErr"></div>
+      <form id="loginForm">
+        <label for="loginEmail">E-posta</label>
+        <input id="loginEmail" type="email" required autocomplete="email" />
+        <label for="loginPw">Şifre</label>
+        <input id="loginPw" type="password" required autocomplete="current-password" />
+        <div class="actions">
+          <button type="button" class="iconbtn ghost" id="loginCancel">İptal</button>
+          <button type="submit" class="iconbtn primary" id="loginSubmit">Giriş Yap</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Trigger sonucu modal -->
+  <div class="modal-backdrop" id="triggerModal">
+    <div class="modal">
+      <h2>🚀 Bülten Tetikleme</h2>
+      <div class="ok-msg show" id="triggerMsg">
+        Worker tetiklendi. Yeni bülten 3-6 dakika içinde panelde görünecek.
+        <br><br>
+        <a href="https://github.com/mehmetdem2005/Ai/actions" target="_blank" rel="noopener">GitHub Actions'ta izle →</a>
+      </div>
+      <div class="actions">
+        <button type="button" class="iconbtn primary" id="triggerClose" style="flex:1">Tamam</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3/dist/purify.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script>
+    // ---- Konfig (build.py inject eder) ----
+    const SUPABASE_URL = "__SUPABASE_URL__";
+    const SUPABASE_ANON_KEY = "__SUPABASE_ANON_KEY__";
+    const ADMIN_PANEL_URL = "__ADMIN_PANEL_URL__";
+
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { persistSession: true, autoRefreshToken: true, storageKey: "sov-auth" },
+    });
+
+    // ---- Bülten okuyucu ----
+    const TR_MONTHS = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+    const fmtDate = (iso) => {
+      const d = new Date(iso);
+      return `${d.getDate()} ${TR_MONTHS[d.getMonth()]} ${d.getFullYear()}, ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+    };
+    const render = (md) => DOMPurify.sanitize(marked.parse(md || ""));
+    let data = [], current = 0;
+
+    function show(i) {
+      current = i;
+      document.getElementById("reader").innerHTML = render(data[i].content);
+      [...document.querySelectorAll(".card")].forEach((c, idx) => c.classList.toggle("active", idx === i));
+      document.body.classList.add("reading");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+    function back() { document.body.classList.remove("reading"); window.scrollTo({ top: 0 }); }
+    function download() {
+      const nl = data[current];
+      const blob = new Blob([nl.content], { type: "text/markdown;charset=utf-8" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `bulten_${nl.created_at.slice(0,10)}.md`;
+      document.body.appendChild(a); a.click(); a.remove();
+      URL.revokeObjectURL(a.href);
+    }
+
+    document.getElementById("backBtn").onclick = back;
+    document.getElementById("dlBtn").onclick = download;
+    document.getElementById("printBtn").onclick = () => window.print();
+
+    // ---- Auth UI ----
+    const authBox = document.getElementById("authActions");
+    const loginModal = document.getElementById("loginModal");
+    const loginErr = document.getElementById("loginErr");
+    const loginForm = document.getElementById("loginForm");
+    const loginCancel = document.getElementById("loginCancel");
+    const loginSubmit = document.getElementById("loginSubmit");
+    const triggerModal = document.getElementById("triggerModal");
+    const triggerClose = document.getElementById("triggerClose");
+
+    function openLogin() {
+      loginErr.classList.remove("show");
+      loginErr.textContent = "";
+      loginModal.classList.add("open");
+      setTimeout(() => document.getElementById("loginEmail").focus(), 50);
+    }
+    function closeLogin() {
+      loginModal.classList.remove("open");
+    }
+    loginCancel.onclick = closeLogin;
+    loginModal.onclick = (e) => { if (e.target === loginModal) closeLogin(); };
+    triggerClose.onclick = () => triggerModal.classList.remove("open");
+    triggerModal.onclick = (e) => { if (e.target === triggerModal) triggerModal.classList.remove("open"); };
+
+    loginForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("loginEmail").value.trim();
+      const password = document.getElementById("loginPw").value;
+      loginSubmit.disabled = true;
+      loginSubmit.textContent = "Giriş yapılıyor…";
+      const { data: out, error } = await sb.auth.signInWithPassword({ email, password });
+      loginSubmit.disabled = false;
+      loginSubmit.textContent = "Giriş Yap";
+      if (error) {
+        loginErr.textContent = error.message || "Giriş başarısız.";
+        loginErr.classList.add("show");
+        return;
+      }
+      closeLogin();
+      await renderAuthUI();
+    };
+
+    async function logout() {
+      await sb.auth.signOut();
+      await renderAuthUI();
+    }
+
+    async function triggerWorkflow(btn) {
+      const { data: sess } = await sb.auth.getSession();
+      const token = sess && sess.session && sess.session.access_token;
+      if (!token) { openLogin(); return; }
+      btn.disabled = true;
+      const orig = btn.innerHTML;
+      btn.innerHTML = '⏳ <span class="label">Tetikleniyor…</span>';
+      try {
+        const r = await fetch("/api/trigger", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const out = await r.json().catch(() => ({}));
+        if (!r.ok) {
+          alert("Tetikleme başarısız: " + (out.error || r.status) + (out.detail ? "\n" + out.detail : ""));
+          return;
+        }
+        triggerModal.classList.add("open");
+      } catch (exc) {
+        alert("Ağ hatası: " + exc);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = orig;
+      }
+    }
+
+    async function renderAuthUI() {
+      const { data: sess } = await sb.auth.getSession();
+      const session = sess && sess.session;
+      authBox.innerHTML = "";
+      if (!session) {
+        const btn = document.createElement("button");
+        btn.className = "iconbtn";
+        btn.innerHTML = "🔐 <span class=\"label\">Giriş</span>";
+        btn.onclick = openLogin;
+        authBox.appendChild(btn);
+        return;
+      }
+      const u = session.user;
+      const role = (u && u.app_metadata && u.app_metadata.role) || "user";
+
+      if (role === "admin") {
+        const triggerBtn = document.createElement("button");
+        triggerBtn.className = "iconbtn primary";
+        triggerBtn.innerHTML = "🚀 <span class=\"label\">Bülten Tetikle</span>";
+        triggerBtn.title = "Worker'ı manuel çalıştır — yeni haberler çekilir ve onaya gelir";
+        triggerBtn.onclick = () => triggerWorkflow(triggerBtn);
+        authBox.appendChild(triggerBtn);
+
+        const adminBtn = document.createElement("a");
+        adminBtn.className = "iconbtn";
+        adminBtn.href = ADMIN_PANEL_URL;
+        adminBtn.target = "_blank";
+        adminBtn.rel = "noopener";
+        adminBtn.innerHTML = "⚙️ <span class=\"label\">Admin</span>";
+        authBox.appendChild(adminBtn);
+      }
+
+      const emailSpan = document.createElement("span");
+      emailSpan.className = "user-email";
+      emailSpan.textContent = u.email;
+      authBox.appendChild(emailSpan);
+
+      const logoutBtn = document.createElement("button");
+      logoutBtn.className = "iconbtn ghost";
+      logoutBtn.innerHTML = "⎋ <span class=\"label\">Çıkış</span>";
+      logoutBtn.title = "Çıkış yap";
+      logoutBtn.onclick = logout;
+      authBox.appendChild(logoutBtn);
+    }
+
+    sb.auth.onAuthStateChange(() => renderAuthUI());
+    renderAuthUI();
+
+    // ---- Bülten listesi ----
+    async function load() {
+      try {
+        const res = await fetch("./data.json", { cache: "no-store" });
+        data = await res.json();
+      } catch (e) {
+        document.getElementById("reader").innerHTML = '<div class="empty"><div class="big">⚠️</div>Veri yüklenemedi.</div>';
+        return;
+      }
+      const list = document.getElementById("list");
+      const updated = document.getElementById("updated");
+
+      if (!data.length) {
+        updated.textContent = "henüz bülten yok";
+        document.getElementById("reader").innerHTML = '<div class="empty"><div class="big">🗓️</div>Henüz bülten üretilmedi.</div>';
+        return;
+      }
+      updated.textContent = "Son güncelleme: " + fmtDate(data[0].created_at);
+      document.getElementById("wrap").classList.add("cols");
+
+      data.forEach((nl, i) => {
+        const btn = document.createElement("button");
+        btn.className = "card";
+        btn.innerHTML =
+          `<div class="date">${fmtDate(nl.created_at)}</div>` +
+          `<div class="meta"><span class="badge">${nl.article_count ?? "?"} sinyal</span><span class="chev">›</span></div>`;
+        btn.onclick = () => show(i);
+        list.appendChild(btn);
+      });
+
+      // Masaüstünde ilk bülteni otomatik aç (mobilde liste önce görünsün)
+      if (window.matchMedia("(min-width: 900px)").matches) show(0);
+    }
+    load();
+  </script>
+</body>
+</html>

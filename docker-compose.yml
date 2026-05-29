@@ -1,0 +1,40 @@
+# Sovereign BioTech V3 — Worker (crawler/scorer) + Web (Streamlit kokpit).
+# İkisi de aynı Supabase'i kullanır (state machine orada). SQLite sadece
+# yerel dedup fallback için worker volume'ünde tutulur.
+#
+# Kullanım:
+#   cp .env.example .env  &&  $EDITOR .env   # anahtarları doldur
+#   docker compose up -d --build
+#   # panel: http://VPS_IP:8501  (ADMIN_PASSWORD ile giriş)
+
+services:
+  worker:
+    build: .
+    container_name: sovereign-worker
+    restart: unless-stopped
+    env_file: .env
+    # main.py içindeki schedule döngüsü 08:00 ve 18:00'da pipeline'ı çalıştırır.
+    # RUN_MODE=once ile tek-sefer batch da çalıştırabilirsin (cron için).
+    command: ["python", "-u", "main.py"]
+    volumes:
+      - ./db:/app/db
+      - ./logs:/app/logs
+      - ./outputs:/app/outputs
+
+  web:
+    build: .
+    container_name: sovereign-web
+    restart: unless-stopped
+    env_file: .env
+    command: >
+      streamlit run admin_panel.py
+      --server.port=8501
+      --server.address=0.0.0.0
+      --server.headless=true
+      --browser.gatherUsageStats=false
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./logs:/app/logs
+    depends_on:
+      - worker

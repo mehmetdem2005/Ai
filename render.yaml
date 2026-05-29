@@ -1,40 +1,63 @@
-# Render Blueprint — Sovereign Bülten Motoru (Cron Job)
-# Günde 2 kez çalışır: 05:00 ve 15:00 UTC = 08:00 ve 18:00 (İstanbul, UTC+3).
-# Secret'lar (sync: false) Render Dashboard'da elle girilir; bu dosyaya yazılmaz.
+# Render Blueprint — Sovereign BioTech "Patron Paneli" (Streamlit kokpiti).
+#
+# Mimari (Oracle'sız):
+#   • Frontend (halka açık site) → Vercel
+#   • Veritabanı → Supabase
+#   • Backend / onay paneli → Render (BU dosya)
+#   • Haber toplayan worker (crawler) → ÜCRETSİZ GitHub Actions cron
+#       (.github/workflows/bulletin.yml). Render cron'u ücretli plan ister ve
+#       GitHub Actions ile çakışıp çifte tarama yapardı; o yüzden burada YOK.
+#
+# Kurulum:
+#   1. Render Dashboard → New → Blueprint → bu repo'yu seç.
+#   2. sync:false env'leri Render panelinden doldur (ADMIN_PASSWORD, SUPABASE_*, anahtarlar).
+#   3. Deploy. Panel: https://sovereign-cockpit.onrender.com
+#
+# Not: Free plan'da servis ~15dk hareketsizlikte uyur; panele girince birkaç
+#      saniyede uyanır. Onay paneli için yeterli (sürekli açık kalması gerekmez).
+
 services:
-  - type: cron
-    name: sovereign-bulletin
+  - type: web
+    name: sovereign-cockpit
     runtime: python
-    region: frankfurt
-    schedule: "0 5,15 * * *"
+    plan: free
+    region: frankfurt          # İstanbul'a en yakın bölge
     buildCommand: pip install -r requirements.txt
-    startCommand: python main.py once
+    # Render $PORT enjekte eder; Streamlit ona bağlanmak ZORUNDA.
+    startCommand: >-
+      streamlit run admin_panel.py
+      --server.port $PORT
+      --server.address 0.0.0.0
+      --server.headless true
+      --browser.gatherUsageStats false
     envVars:
       - key: PYTHON_VERSION
         value: "3.11.15"
-      - key: RUN_MODE
-        value: once
-      - key: LLM_PROVIDER
-        value: deepseek
-      - key: DEEPSEEK_MODEL
-        value: deepseek-reasoner
-      - key: GEMINI_MODEL
-        value: gemini-2.5-flash
-      - key: EMBEDDING_PROVIDER
-        value: gemini
-      - key: EMBEDDING_MODEL
-        value: gemini-embedding-001
-      - key: DEDUP_THRESHOLD
-        value: "0.86"
-      - key: MAX_ENTRIES_PER_FEED
-        value: "10"
-      - key: DEEPSEEK_API_KEY
-        sync: false
-      - key: GEMINI_API_KEY
-        sync: false
-      - key: OPENAI_API_KEY
+      # --- Render panelinden girilir (sync:false = repo'ya yazılmaz) ---
+      - key: ADMIN_PASSWORD          # panel giriş şifresi (zorunlu)
         sync: false
       - key: SUPABASE_URL
         sync: false
-      - key: SUPABASE_KEY
+      - key: SUPABASE_KEY            # service_role
+        sync: false
+      - key: LLM_PROVIDER
+        value: deepseek
+      - key: DEEPSEEK_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY          # kümeleme + sosyal post
+        sync: false
+      - key: OPENAI_API_KEY          # embedding (dedup)
+        sync: false
+      - key: EMBEDDING_PROVIDER
+        value: openai
+      - key: EMBEDDING_MODEL
+        value: text-embedding-3-small
+      - key: AUTO_PUBLISH_AFTER_HOURS
+        value: "24"
+      # --- opsiyonel (boş bırakılabilir; kod graceful davranır) ---
+      - key: BEEHIIV_API_KEY
+        sync: false
+      - key: BEEHIIV_PUB_ID
+        sync: false
+      - key: VERCEL_DEPLOY_HOOK_URL  # yayın sonrası halka açık siteyi otomatik tazeler
         sync: false

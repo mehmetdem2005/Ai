@@ -11,7 +11,9 @@ Sağlayıcılar .env üzerinden seçilir:
 Yasal: sadece public RSS, sıfır cold mail.
 """
 
+import contextlib
 import os
+import re
 import sys
 import json
 import time
@@ -19,14 +21,21 @@ import logging
 import sqlite3
 import hashlib
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 import requests
 import feedparser
 from bs4 import BeautifulSoup
 import schedule
 from dotenv import load_dotenv
-from openai import OpenAI
-from tenacity import retry, wait_exponential, stop_after_attempt
+from openai import (
+    OpenAI,
+    APIConnectionError,
+    APITimeoutError,
+    InternalServerError,
+    RateLimitError,
+)
+from tenacity import retry, wait_exponential, stop_after_attempt, retry_if_exception_type
 
 # ==========================================
 # 1. ORTAM VE LOGLAMA
@@ -54,15 +63,44 @@ logging.basicConfig(
 )
 logger = logging.getLogger("SovereignBio")
 
+
+def _env_int(name: str, default: int) -> int:
+    """os.getenv + int — boş/geçersiz değerde (GitHub Actions tanımsız var'ı '' geçirir)
+    sessizce default'a düşer. Aksi halde int('') ValueError ile çökerdi."""
+    raw = (os.getenv(name) or "").strip()
+    if not raw:
+        return default
+    try:
+        return int(float(raw))  # "7", "7.0", "7" hepsi çalışsın
+    except (ValueError, TypeError):
+        logger.warning(f"{name}='{raw}' sayıya çevrilemedi — varsayılan {default} kullanılıyor.")
+        return default
+
+
+def _env_float(name: str, default: float) -> float:
+    """_env_int'in float karşılığı (boş/geçersiz → default)."""
+    raw = (os.getenv(name) or "").strip()
+    if not raw:
+        return default
+    try:
+        return float(raw)
+    except (ValueError, TypeError):
+        logger.warning(f"{name}='{raw}' sayıya çevrilemedi — varsayılan {default} kullanılıyor.")
+        return default
+
+
 GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
+
+# Sadece geçici hatalarda yeniden dene; 401/400/404 gibi kalıcı hatalarda anında bırak.
+TRANSIENT_LLM_ERRORS = (RateLimitError, APITimeoutError, APIConnectionError, InternalServerError)
 
 # Metin üretimi sağlayıcıları (hepsi OpenAI-uyumlu endpoint)
 LLM_PROVIDERS = {
     "deepseek": {
         "base_url": "https://api.deepseek.com",
         "key_env": "DEEPSEEK_API_KEY",
-        # deepseek-v4-pro (frontier) | deepseek-reasoner (R1/düşünme) | deepseek-chat
-        "default_model": "deepseek-reasoner",
+        # deepseek-v4-pro (frontier — Türkçe için en iyi) | deepseek-reasoner (R1) | deepseek-chat
+        "default_model": "deepseek-v4-pro",
     },
     "gemini": {
         "base_url": GEMINI_BASE_URL,
@@ -89,22 +127,85 @@ DEFAULT_SOURCES = [
     {"name": "Nature Digital Medicine", "url": "https://www.nature.com/npjdigitalmed.rss"},
     {"name": "MIT Tech Review (Biotech)", "url": "https://www.technologyreview.com/topic/biotechnology/feed"},
     {"name": "MobiHealthNews", "url": "https://www.mobihealthnews.com/feed"},
-    {"name": "Fierce Healthcare", "url": "https://www.fiercehealthcare.com/rss/medtech"},
-    {"name": "TechCrunch Health", "url": "https://techcrunch.com/category/health/feed/"},
+    {"name": "Fierce Healthcare", "url": "https://www.fiercehealthcare.com/rss/xml"},
+    {"name": "TechCrunch Health", "url": "https://techcrunch.com/tag/health/feed/"},
 ]
 
-DEFAULT_SYSTEM_PROMPT = """Sen, sağlık teknolojileri (MedTech) ve Biyoteknoloji alanında uzmanlaşmış kıdemli bir yatırım analisti ve yapay zeka stratejistisin.
-Okuyucuların: Sağlık sektörüne yatırım yapan melek yatırımcılar (VC'ler), hastane CIO'ları ve sağlık odaklı AI geliştiren mühendisler.
-Görev: Verilen haberi oku ve okuyucu kitlesi için NEDEN ÖNEMLİ olduğunu maksimum 3 cümle ile analiz et.
-- Sadece "ne oldu" deme, "bunun ticari veya teknolojik etkisi ne olacak" (Impact) kısmına odaklan.
-- Eğer haberde çoklu ajan sistemleri (multi-agent), otomasyon, giyilebilir teknoloji veya yeni bir algoritmik yaklaşım varsa, mutlaka vurgula.
-- Dil: Resmi, veri odaklı, net ve profesyonel (Türkçe)."""
+DEFAULT_SYSTEM_PROMPT = """Sen, sağlık teknolojileri (MedTech) ve biyoteknolojide uzmanlaşmış kıdemli bir analistsin. Okuyucun: sağlık VC'leri, hastane CIO'ları, dijital sağlık girişimcileri ve sağlık AI mühendisleri. Onlar 60 saniyede konuyu kavramak istiyor — boş laf, klişe ve klavye tıkırtısı kaldırmaz.
+
+Görevlerin:
+1. Haberi sindir, hedef kitle için teknolojik/ticari etkiyi 1-10 arası bir IMPACT SCORE ile değerlendir.
+2. Başlığı akıcı, doğal Türkçe'ye çevir — okurken garip durmasın, gazete manşeti gibi olsun.
+3. Haberin gerçek anlamını anlatan bir "insight" yaz. "Ne oldu" değil — "BU NEDEN ÖNEMLİ, KİME DOKUNUYOR, NE DEĞİŞECEK" anlat. İnsan gibi konuş.
+
+DİL KURALLARI (en kritik):
+- Türkçe karakterleri MUTLAKA doğru kullan: ı ş ğ ü ö ç İ Ş Ğ Ü Ö Ç. ASCII transliterasyon (örn. "saglik", "calisma", "isleme", "ozet") KESİNLİKLE YASAK — bu, çıktıyı çöpe çevirir.
+- Akıcı, sade, doğal Türkçe yaz. Bir arkadaşına anlatır gibi — ama yüzeysel değil, bilgi yoğun.
+- Yapay/şişirme sektör jargonu yok. ("Paradigma değişimi", "ekosistem", "disrupsiyon" gibi klişeler yasak.) Teknik terim gerekiyorsa kısaca açıkla, parantezde İngilizce orijinalini ver.
+- "Bu haber gösteriyor ki…", "Sonuç olarak…", "Özetle…" gibi içi boş bağlaçlarla başlama. Direkt değere git.
+
+UZUNLUK:
+- Sınır yok ama gevezelik de yok. Haberin ağırlığı kadar yaz: bazen 2 cümle, bazen 6 cümle. Doldurma yapma; söyleyecek şeyin bittiğinde dur.
+
+İÇERİK YAKLAŞIMI:
+- Somut rakam, oyuncu, kıyas ver. ("X şirketi", "$Y milyon yatırım", "Z'ye benzer ama farkı şu…")
+- Riski/fırsatı isimle: kime tehdit, kime kazanç?
+- Spekülatif değilsin — gözlemleyen analiztsin. Verisi olmayan iddiada bulunma.
+
+ÇIKTI:
+- SADECE geçerli JSON. Açıklama, kod çiti (```), önsöz yok.
+- Şema: {"score": <1-10 tamsayı>, "title_tr": "<Türkçe başlık>", "insight": "<insanca yazılmış analiz>"}"""
 
 SYSTEM_PROMPT = os.getenv("SYSTEM_PROMPT") or DEFAULT_SYSTEM_PROMPT
-NEWSLETTER_TITLE = os.getenv("NEWSLETTER_TITLE", "🧬 MedTech & AI Signal")
+NEWSLETTER_TITLE = os.getenv("NEWSLETTER_TITLE", "🧬 Sağlık Teknolojisi & Yapay Zeka Sinyali")
+
+# V2/V3 ayarları — "hardcode prangası yok" prensibi:
+#   0 = sınırsız (LLM/skor karar verir); pozitif değer = sert üst sınır.
+MAX_NEW_PER_SOURCE = _env_int("MAX_NEW_PER_SOURCE", 0)  # kaynak başına taze haber kotası (0=sınırsız)
+MIN_IMPACT_SCORE = _env_int("MIN_IMPACT_SCORE", 7)      # bu puanın altı bültene girmez
+MAX_PUBLISHED = _env_int("MAX_PUBLISHED", 0)            # bültene giren maksimum (0=sınırsız)
+
+# Analizi başarısız olan maddeler kalıcılaştırılmaz; sonraki turda yeniden denenir.
+ANALYSIS_FAILED = "__ANALYSIS_FAILED__"
+
+# Runner'lar UTC; bülten İstanbul saatine göre tarihlensin.
+ISTANBUL_TZ = ZoneInfo("Europe/Istanbul")
+TR_MONTHS = {
+    1: "Ocak", 2: "Şubat", 3: "Mart", 4: "Nisan", 5: "Mayıs", 6: "Haziran",
+    7: "Temmuz", 8: "Ağustos", 9: "Eylül", 10: "Ekim", 11: "Kasım", 12: "Aralık",
+}
+
+
+def now_ist() -> datetime:
+    return datetime.now(ISTANBUL_TZ)
+
+
+def _feeds_from_supabase() -> list[dict] | None:
+    """Yönetim arayüzünden eklenen kaynaklar Supabase 'feeds' tablosunda tutulur."""
+    url = os.getenv("SUPABASE_URL", "").rstrip("/")
+    key = os.getenv("SUPABASE_KEY", "")
+    if not (url and key):
+        return None
+    try:
+        resp = requests.get(
+            f"{url}/rest/v1/feeds?select=name,url&active=eq.true&order=created_at",
+            headers={"apikey": key, "Authorization": f"Bearer {key}"},
+            timeout=20,
+        )
+        if resp.status_code < 300:
+            rows = [{"name": r["name"], "url": r["url"]} for r in resp.json() if r.get("url")]
+            return rows or None
+        logger.warning(f"Supabase feeds okunamadı ({resp.status_code}) — feeds.json'a düşülüyor.")
+    except requests.RequestException as exc:
+        logger.warning(f"Supabase feeds bağlantı hatası ({exc}) — feeds.json'a düşülüyor.")
+    return None
 
 
 def load_feeds() -> list[dict]:
+    # Öncelik: Supabase (arayüzden yönetilir) → feeds.json → yerleşik varsayılanlar.
+    supabase_feeds = _feeds_from_supabase()
+    if supabase_feeds:
+        return supabase_feeds
     path = os.path.join(BASE_DIR, "feeds.json")
     if os.path.exists(path):
         try:
@@ -119,12 +220,49 @@ def load_feeds() -> list[dict]:
 
 
 def cosine_similarity(a: list[float], b: list[float]) -> float:
-    dot = sum(x * y for x, y in zip(a, b))
+    # Farklı boyut = farklı embedding modeli; kıyaslama anlamsız, benzer sayma.
+    if len(a) != len(b):
+        return 0.0
+    dot = sum(x * y for x, y in zip(a, b, strict=True))
     norm_a = sum(x * x for x in a) ** 0.5
     norm_b = sum(y * y for y in b) ** 0.5
     if norm_a == 0 or norm_b == 0:
         return 0.0
     return dot / (norm_a * norm_b)
+
+
+def apply_source_quota(items: list[dict], limit: int) -> list[dict]:
+    """Her kaynaktan en fazla `limit` öğe tut (giriş sırası = tazelik korunur).
+
+    Amaç: çok haber basan kaynakların (TechCrunch, Fierce) az ama öz basan
+    kaynakları (Nature) havuzdan dışlamasını engellemek.
+    """
+    if limit <= 0:
+        return items
+    counts: dict[str, int] = {}
+    out: list[dict] = []
+    for item in items:
+        src = item.get("source", "")
+        if counts.get(src, 0) >= limit:
+            continue
+        counts[src] = counts.get(src, 0) + 1
+        out.append(item)
+    return out
+
+
+def select_for_publication(items: list[dict], min_score: int, limit: int) -> list[dict]:
+    """Skoru >= min_score olanları büyükten küçüğe sırala; en yüksek `limit` öğeyi döndür.
+
+    limit <= 0 → sınırsız (skor barajını geçen herkes). Hardcode prangası kaldırma kuralı.
+    """
+    qualified = [
+        i for i in items
+        if isinstance(i.get("impact_score"), (int, float)) and i["impact_score"] >= min_score
+    ]
+    qualified.sort(key=lambda i: i["impact_score"], reverse=True)
+    if limit <= 0:
+        return qualified
+    return qualified[:limit]
 
 
 # ==========================================
@@ -142,6 +280,7 @@ class DatabaseManager:
                     link TEXT,
                     source TEXT,
                     embedding TEXT,
+                    impact_score REAL,
                     processed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
                 """
@@ -149,14 +288,17 @@ class DatabaseManager:
             cols = {row[1] for row in conn.execute("PRAGMA table_info(processed_items)")}
             if "embedding" not in cols:
                 conn.execute("ALTER TABLE processed_items ADD COLUMN embedding TEXT")
+            if "impact_score" not in cols:
+                conn.execute("ALTER TABLE processed_items ADD COLUMN impact_score REAL")
 
     def filter_new_hashes(self, hash_list: list[str]) -> set[str]:
         if not hash_list:
             return set()
+        # placeholders yalnızca "?,?,..."; değerler parametreyle geçer (enjeksiyon yok).
         placeholders = ",".join("?" for _ in hash_list)
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.execute(
-                f"SELECT id_hash FROM processed_items WHERE id_hash IN ({placeholders})",
+                f"SELECT id_hash FROM processed_items WHERE id_hash IN ({placeholders})",  # noqa: S608  # nosec B608
                 tuple(hash_list),
             )
             existing = {row[0] for row in cursor.fetchall()}
@@ -187,13 +329,14 @@ class DatabaseManager:
                 i["link"],
                 i["source"],
                 json.dumps(i["embedding"]) if i.get("embedding") else None,
+                i.get("impact_score"),
             )
             for i in items
         ]
         with sqlite3.connect(self.db_path) as conn:
             cursor = conn.executemany(
                 "INSERT OR IGNORE INTO processed_items "
-                "(id_hash, title, link, source, embedding) VALUES (?, ?, ?, ?, ?)",
+                "(id_hash, title, link, source, embedding, impact_score) VALUES (?, ?, ?, ?, ?, ?)",
                 tuples,
             )
             return cursor.rowcount
@@ -202,7 +345,7 @@ class DatabaseManager:
 class DataFetcher:
     def __init__(self, sources: list[dict]) -> None:
         self.sources = sources
-        self.max_entries = int(os.getenv("MAX_ENTRIES_PER_FEED", "10"))
+        self.max_entries = _env_int("MAX_ENTRIES_PER_FEED", 10)
         self.logger = logging.getLogger("Fetcher")
 
     def clean_html(self, html: str) -> str:
@@ -217,7 +360,17 @@ class DataFetcher:
         for src in self.sources:
             self.logger.info(f"📡 Tarama: {src['name']}")
             try:
-                feed = feedparser.parse(src["url"])
+                # feedparser'ın kendi fetch'i timeout'suz; requests ile sınırla + gerçek UA
+                # (bazı feed'ler python-urllib UA'sını 403'ler).
+                resp = requests.get(
+                    src["url"],
+                    timeout=20,
+                    headers={"User-Agent": "Mozilla/5.0 (compatible; SovereignBio/1.0; +RSS)"},
+                )
+                if resp.status_code >= 400:
+                    self.logger.error(f"RSS HTTP {resp.status_code} ({src['name']}) — atlandı.")
+                    continue
+                feed = feedparser.parse(resp.content)
                 if feed.bozo:
                     self.logger.warning(f"{src['name']} feed uyarısı: {feed.bozo_exception}")
                 for entry in feed.entries[: self.max_entries]:
@@ -255,7 +408,7 @@ class SemanticDeduper:
     def __init__(self) -> None:
         self.logger = logging.getLogger("Deduper")
         self.provider = os.getenv("EMBEDDING_PROVIDER", "gemini").lower()
-        self.threshold = float(os.getenv("DEDUP_THRESHOLD", "0.86"))
+        self.threshold = _env_float("DEDUP_THRESHOLD", 0.86)
         cfg = EMBED_PROVIDERS.get(self.provider)
         self.is_active = False
         if cfg is None:
@@ -300,7 +453,7 @@ class SemanticDeduper:
         kept: list[dict] = []
         dropped: list[dict] = []
         reference_vectors = list(history_vectors)
-        for item, vec in zip(items, vectors):
+        for item, vec in zip(items, vectors, strict=True):
             if vec is None:
                 kept.append(item)  # embedding alınamadıysa elemeyelim
                 continue
@@ -333,54 +486,236 @@ class AIProcessor:
         if not self.is_active:
             self.logger.warning(f"⚠️ {cfg['key_env']} yok — mock modunda.")
 
-    @retry(wait=wait_exponential(multiplier=2, min=2, max=10), stop=stop_after_attempt(3))
+    @retry(
+        retry=retry_if_exception_type(TRANSIENT_LLM_ERRORS),
+        wait=wait_exponential(multiplier=2, min=2, max=10),
+        stop=stop_after_attempt(3),
+    )
     def _call_llm(self, prompt: str) -> str:
         if not self.is_active:
-            return "[MOCK] API key yok. Bu bir taslak (mock) analist notudur."
+            return '{"score": 8, "title_tr": "", "insight": "[MOCK] API anahtarı yok. Bu bir taslak analist notudur."}'
         response = self.client.chat.completions.create(
             model=self.model,
             messages=[
                 {"role": "system", "content": SYSTEM_PROMPT},
                 {"role": "user", "content": prompt},
             ],
-            temperature=0.4,
+            temperature=0.3,
         )
         return (response.choices[0].message.content or "").strip()
+
+    # En az 6 harflik bir Türkçe metinde aksanlı karakter görünmüyorsa,
+    # neredeyse kesinlikle LLM ASCII transliterasyon yapmıştır.
+    _TR_CHARS = set("ışğüöçİŞĞÜÖÇ")
+
+    # İngilizce metinde GÖRÜNMEYECEK kadar Türkçe'ye özgü ASCII kalıpları.
+    # Sadece bir tanesi bile yüksek güvenle "ASCII translit" işaretidir.
+    _ASCII_TR_HINTS = (
+        # Türkçe işlevsel kelimeler (İngilizce'de geçmez):
+        " icin ", " olarak ", " olan ", " icinde ", " uzerine ", " uzerinden ",
+        " arasinda ", " yonelik ", " hakkinda ", " gibi ", " kadar ",
+        " ancak ", " ayrica ", " ayni ", " kendi ", " ozellikle ",
+        # Türkçe kelime kökleri (aksansız hali):
+        " sirket", " saglik", " gelis", " calisma", " orneg", " yenil",
+        " yatir", " kullan", " bilgi", " yasak", " onem", " etki",
+        " gosterg", " sektor", " urun", " hizmet", " surec", " yaklas",
+        " akilli", " ozellig", " buyuk", " kucuk", " kiritik", " hiz",
+        " temel", " baslang", " sonr", " once", " gunl", " yeni ",
+        " arastir", " gelistir", " girisim",
+        " olus", " merkez", " kapsam", " saglay", " uretim", " uretiyor",
+        " kayit", " kayd", " degis", " degerl", " olcek", " genis",
+        " toplam", " sundu", " yaratti", " duyur", " baski",
+        # Türkçe fiil ekleri (kelime sonu, İngilizce'de görünmez):
+        "iyor.", "iyor ", "iyor,", "uyor.", "uyor ", "uyor,",
+        "miyor", "muyor", "tirir", "tirma", "tirler", "lardir",
+        "lerdir", "dirler", "diler", "miydi", "muydu", "musunuz",
+        " ki ", " yapt", " etti", " oldu", " gelmis", " gitmis",
+    )
+
+    @classmethod
+    def _looks_ascii_transliterated(cls, text: str) -> bool:
+        """LLM'in Türkçe metni ASCII'ye düşürüp düşürmediğini sezgisel tespit eder.
+
+        Bir Türkçe paragrafta normalde en az birkaç aksanlı harf olur. Yoksa ya
+        düz İngilizce ya da ASCII translit — content/insight'ta ikisi de bug.
+
+        Strateji: Aksanlı karakter yoksa VE Türkçe'ye özgü herhangi bir desen
+        görünüyorsa → translit. İpuçları İngilizce'de görünmeyecek kadar
+        belirgindir, bu yüzden 1 eşleşme yeterli."""
+        if not text or len(text) < 30:
+            return False
+        if any(c in cls._TR_CHARS for c in text):
+            return False
+        low = f" {text.lower()} "
+        return any(h in low for h in cls._ASCII_TR_HINTS)
+
+    @staticmethod
+    def _parse_analysis(raw: str, fallback_title: str) -> dict | None:
+        """LLM'in JSON çıktısından {score, title_tr, insight} ayıkla.
+
+        Çevredeki metni/kod çitlerini yok sayıp ilk JSON objesini alır.
+        Geçersiz JSON veya eksik/bozuk alan → None (madde analiz başarısız sayılır).
+        """
+        match = re.search(r"\{.*\}", raw, re.DOTALL)
+        if not match:
+            return None
+        try:
+            data = json.loads(match.group(0))
+        except (json.JSONDecodeError, TypeError):
+            return None
+        if not isinstance(data, dict):
+            return None
+        score = data.get("score")
+        insight = data.get("insight")
+        if not isinstance(score, (int, float)) or isinstance(score, bool):
+            return None
+        if not isinstance(insight, str) or not insight.strip():
+            return None
+        score = max(1, min(10, int(round(score))))
+        title_tr = str(data.get("title_tr") or "").strip() or fallback_title
+        return {"score": score, "title_tr": title_tr, "insight": insight.strip()}
+
+    def _analyze_one(self, item: dict, *, retry_for_ascii: bool = True) -> dict | None:
+        """Tek bir haberin LLM analizi. ASCII transliterasyon tespit edilirse bir kez
+        daha 'Türkçe karakter zorunlu' uyarısıyla yeniden dener."""
+        prompt = (
+            f"Haber başlığı: {item['title']}\n"
+            f"Özet: {item['summary']}\n\n"
+            "Yukarıdaki kurallara göre SADECE bir JSON objesi döndür."
+        )
+        raw = self._call_llm(prompt)
+        parsed = self._parse_analysis(raw, item["title"])
+        if parsed is None:
+            return None
+        # ASCII translit tespit edildiyse (LLM Türkçe karakterleri yedi) — bir kez daha
+        # net bir uyarıyla iste; ikinci denemede de aynıysa kabul et (sonsuz döngü olmasın).
+        if retry_for_ascii and (
+            self._looks_ascii_transliterated(parsed["title_tr"])
+            or self._looks_ascii_transliterated(parsed["insight"])
+        ):
+            self.logger.warning(
+                f"⚠️ LLM çıktısı ASCII translit ({item['title'][:50]}) — Türkçe karakter zorunlu uyarısıyla yeniden istiyorum."
+            )
+            warn_prompt = (
+                prompt
+                + "\n\nÖNEMLİ UYARI: Önceki cevabında Türkçe karakterleri (ı ş ğ ü ö ç) "
+                "ASCII'ye düşürdün — bu YASAK. Bu sefer mutlaka doğru Türkçe karakterlerle yaz."
+            )
+            raw2 = self._call_llm(warn_prompt)
+            parsed2 = self._parse_analysis(raw2, item["title"])
+            if parsed2 is not None and not (
+                self._looks_ascii_transliterated(parsed2["title_tr"])
+                or self._looks_ascii_transliterated(parsed2["insight"])
+            ):
+                return parsed2
+            # İkinci deneme de başarısız — yine de ilk çıktıyı kullan, log düş.
+            self.logger.error(
+                f"❌ İkinci denemede de ASCII translit kaldı ({item['title'][:50]}) — yine de kaydediliyor."
+            )
+        return parsed
 
     def process(self, items: list[dict]) -> list[dict]:
         if not items:
             return []
         mode = f"{self.provider}/{self.model}" if self.is_active else "mock"
-        self.logger.info(f"🧠 {len(items)} makale {mode} ile analiz ediliyor...")
+        self.logger.info(f"🧠 {len(items)} makale {mode} ile analiz + skorlanıyor...")
         for item in items:
-            prompt = f"Başlık: {item['title']}\nÖzet: {item['summary']}"
             try:
-                item["ai_insight"] = self._call_llm(prompt)
+                parsed = self._analyze_one(item)
+                if parsed is None:
+                    self.logger.warning(f"JSON çözümlenemedi ({item['title'][:40]}) — atlandı.")
+                    item["ai_insight"] = ANALYSIS_FAILED
+                    continue
+                item["impact_score"] = parsed["score"]
+                item["title_tr"] = parsed["title_tr"]
+                item["ai_insight"] = parsed["insight"]
             except Exception as exc:
                 self.logger.error(f"Analiz hatası ({item['title'][:40]}): {exc}")
-                item["ai_insight"] = "Analiz yapılamadı."
+                item["ai_insight"] = ANALYSIS_FAILED
         return items
 
 
 class Publisher:
+    _INTRO_SYSTEM_PROMPT = """Sen sağlık teknolojileri & biyoteknoloji bülteninin başyazarısın. Sana bu sayının haberleri verilecek. Bültenin ilk paragrafını yazacaksın: okuyucu (VC, hastane CIO, sağlık AI mühendisi) "tamam bu sayıda neler var, neden açayım" diye anlasın.
+
+KURALLAR:
+- 2-4 cümle. Akıcı, doğal Türkçe. Bir arkadaşına "bu hafta sektörde şunlar oldu" der gibi.
+- Klişe başlama yasak: "Bu hafta...", "Bültenimizde...", "Sevgili okuyucular..." — KESİNLİKLE HAYIR.
+- Direkt en güçlü temayı/oyuncuyu söyleyerek başla. Eğer iki net tema varsa ikisini bağla. Tek mega-haber varsa onu vurgula.
+- Türkçe karakterleri (ı ş ğ ü ö ç) MUTLAKA doğru kullan. ASCII transliterasyon YASAK.
+- Hiçbir madde imi, başlık, alıntı yok — sadece düz paragraf metin.
+- Çıktı: SADECE paragraf metni. Tırnak, kod çiti, "İşte intro:" gibi önsöz yok."""
+
     def __init__(self) -> None:
         self.logger = logging.getLogger("Publisher")
 
+    def _generate_intro(self, items: list[dict]) -> str:
+        """Bültenin başına gidecek 2-4 cümlelik akıcı giriş paragrafını LLM ile üret.
+
+        LLM yapılandırması yoksa veya hata olursa boş string döner (intro atlanır)."""
+        if not items:
+            return ""
+        provider = os.getenv("LLM_PROVIDER", "deepseek").lower()
+        cfg = LLM_PROVIDERS.get(provider) or LLM_PROVIDERS["deepseek"]
+        api_key = os.getenv(cfg["key_env"])
+        if not api_key:
+            return ""
+        model = os.getenv(f"{provider.upper()}_MODEL") or cfg["default_model"]
+
+        # Top 6 haber özetinden LLM'e bağlam ver; daha fazlasını tokensız tutmaya gerek yok.
+        top = sorted(items, key=lambda i: i.get("impact_score") or 0, reverse=True)[:6]
+        digest = "\n".join(
+            f"- ({int(i.get('impact_score') or 0)}/10) {i.get('title_tr') or i['title']}"
+            for i in top
+        )
+        user_msg = (
+            f"Bu sayıda toplam {len(items)} haber var. En etkili {len(top)} tanesinin "
+            f"başlıkları (Türkçe):\n{digest}\n\nBu sayının açılış paragrafını yaz."
+        )
+        try:
+            client = OpenAI(api_key=api_key, base_url=cfg["base_url"])
+            resp = client.chat.completions.create(
+                model=model,
+                messages=[
+                    {"role": "system", "content": self._INTRO_SYSTEM_PROMPT},
+                    {"role": "user", "content": user_msg},
+                ],
+                temperature=0.7,
+            )
+            intro = (resp.choices[0].message.content or "").strip()
+            # Markdown başlığı ya da kod çiti gelirse temizle.
+            intro = re.sub(r"^```.*?\n|\n```$", "", intro, flags=re.DOTALL).strip()
+            intro = re.sub(r"^#{1,6}\s.*\n", "", intro).strip()
+            # Tek satıra indir — markdown'da paragraf zaten tek blok.
+            return " ".join(intro.split())
+        except Exception as exc:
+            self.logger.warning(f"Intro üretimi başarısız: {exc}")
+            return ""
+
     def render(self, items: list[dict]) -> str:
-        readable = datetime.now().strftime("%d %B %Y")
+        dt = now_ist()
+        readable = f"{dt.day} {TR_MONTHS[dt.month]} {dt.year}"
+        intro = self._generate_intro(items) or (
+            "Sektördeki gürültüyü filtreliyor, otonom yapay zeka mimarimizle "
+            "sadece sinyali veriyoruz."
+        )
         lines = [
             f"# {NEWSLETTER_TITLE}",
             f"**Tarih:** {readable}",
             "",
-            "Sektördeki gürültüyü filtreliyor, otonom yapay zeka mimarimizle "
-            "sadece sinyali veriyoruz:",
+            intro,
             "",
             "---",
             "",
         ]
         for idx, item in enumerate(items, 1):
-            lines.append(f"### {idx}. [{item['title']}]({item['link']})")
-            lines.append(f"**Kaynak:** {item['source']}")
+            heading = item.get("title_tr") or item["title"]
+            lines.append(f"### {idx}. [{heading}]({item['link']})")
+            meta = f"**Kaynak:** {item['source']}"
+            score = item.get("impact_score")
+            if score is not None:
+                meta += f"  ·  📊 **Sinyal Gücü:** {int(score)}/10"
+            lines.append(meta)
             lines.append("")
             lines.append(f"💡 **Analist Sinyali:**\n> {item['ai_insight']}")
             lines.append("")
@@ -392,7 +727,7 @@ class Publisher:
         if not items:
             return None, ""
         content = self.render(items)
-        timestamp = datetime.now().strftime("%Y-%m-%d_%H%M")
+        timestamp = now_ist().strftime("%Y-%m-%d_%H%M")
         path = os.path.join(OUTPUT_DIR, f"newsletter_{timestamp}.md")
         try:
             with open(path, "w", encoding="utf-8") as f:
@@ -465,21 +800,48 @@ class SupabaseStore:
             self.logger.error(f"Supabase recent_embeddings bağlantı hatası: {exc}")
         return []
 
-    def save_articles(self, items: list[dict]) -> None:
-        if not self.is_active or not items:
-            return
+    def save_articles(self, items: list[dict]) -> bool:
+        """Başarılıysa True döner; bülten kaydı bu sonuca göre koşullanır."""
+        if not self.is_active:
+            return False
+        if not items:
+            return True
         rows = [
             {
                 "id_hash": i["hash"],
                 "title": i["title"],
+                "title_tr": i.get("title_tr"),
                 "link": i["link"],
                 "source": i["source"],
                 "summary": i.get("summary"),
                 "ai_insight": i.get("ai_insight"),
+                "impact_score": i.get("impact_score"),
+                "category": i.get("category"),
+                "status": i.get("status", "pending"),
                 "embedding": i.get("embedding"),
             }
             for i in items
         ]
+        result = self._upsert_articles(rows)
+        if result is True:
+            return True
+        # V3 sütunları (impact_score/status/category/title_tr) eksikse — sütunları atıp tekrar dene.
+        # Migration çalıştırılmadan da pipeline durmasın; site/bülten newsletters.content'ten gösterir.
+        if result == "missing_v3_column":
+            self.logger.warning(
+                "Supabase 'articles' tablosunda V3 sütunları eksik — V3 alanları atılarak "
+                "kaydediliyor. Tam HITL/kategori işlevi için supabase_schema.sql migration'ını çalıştır."
+            )
+            for row in rows:
+                for k in ("impact_score", "status", "category", "title_tr"):
+                    row.pop(k, None)
+            return self._upsert_articles(rows) is True
+        return False
+
+    _V3_COLUMNS = ("impact_score", "title_tr", "category", "status")
+
+    def _upsert_articles(self, rows: list[dict]):
+        """True=başarılı; 'missing_v3_column'=V3 sütunlarından biri yok; False=diğer hata."""
         try:
             resp = requests.post(
                 f"{self.url}/rest/v1/articles?on_conflict=id_hash",
@@ -487,27 +849,142 @@ class SupabaseStore:
                 json=rows,
                 timeout=30,
             )
-            if resp.status_code >= 300:
-                self.logger.error(f"Supabase articles hatası {resp.status_code}: {resp.text[:200]}")
-            else:
+            if resp.status_code < 300:
                 self.logger.info(f"☁️ Supabase: {len(rows)} makale yazıldı.")
+                return True
+            body = resp.text[:300]
+            if any(col in body for col in self._V3_COLUMNS):
+                return "missing_v3_column"
+            self.logger.error(f"Supabase articles hatası {resp.status_code}: {body}")
+            return False
         except requests.RequestException as exc:
             self.logger.error(f"Supabase articles bağlantı hatası: {exc}")
+            return False
 
-    def save_newsletter(self, filename: str | None, content: str, article_count: int) -> None:
+    def save_newsletter(
+        self,
+        filename: str | None,
+        content: str,
+        article_count: int,
+        *,
+        social_posts: dict | None = None,
+    ) -> None:
         if not self.is_active:
             return
+        body: dict = {
+            "filename": filename,
+            "content": content,
+            "article_count": article_count,
+        }
+        if social_posts is not None:
+            body["social_posts"] = social_posts
         try:
             resp = requests.post(
                 f"{self.url}/rest/v1/newsletters",
                 headers=self._headers(),
-                json={"filename": filename, "content": content, "article_count": article_count},
+                json=body,
                 timeout=30,
             )
             if resp.status_code >= 300:
-                self.logger.error(f"Supabase newsletters hatası {resp.status_code}: {resp.text[:200]}")
+                # social_posts sütunu eksikse atıp tekrar dene (migration yapılmadıysa)
+                if social_posts is not None and "social_posts" in resp.text:
+                    self.logger.warning(
+                        "newsletters.social_posts sütunu yok — social atılarak kaydediliyor."
+                    )
+                    body.pop("social_posts", None)
+                    resp2 = requests.post(
+                        f"{self.url}/rest/v1/newsletters",
+                        headers=self._headers(),
+                        json=body,
+                        timeout=30,
+                    )
+                    if resp2.status_code >= 300:
+                        self.logger.error(
+                            f"Supabase newsletters retry hatası {resp2.status_code}: {resp2.text[:200]}"
+                        )
+                    return
+                self.logger.error(
+                    f"Supabase newsletters hatası {resp.status_code}: {resp.text[:200]}"
+                )
         except requests.RequestException as exc:
             self.logger.error(f"Supabase newsletters bağlantı hatası: {exc}")
+
+    # === V3 HITL/Auto-publish destekleri ===
+
+    def get_pending_items(self) -> list[dict]:
+        """Streamlit kokpiti: status='pending' makaleler (yüksek skor önde)."""
+        if not self.is_active:
+            return []
+        try:
+            resp = requests.get(
+                f"{self.url}/rest/v1/articles"
+                "?status=eq.pending"
+                "&select=id_hash,title,title_tr,link,source,summary,ai_insight,"
+                "impact_score,category,processed_at"
+                "&order=impact_score.desc.nullslast,processed_at.desc",
+                headers=self._headers(),
+                timeout=30,
+            )
+            if resp.status_code < 300:
+                return resp.json()
+            self.logger.error(f"get_pending_items {resp.status_code}: {resp.text[:200]}")
+        except requests.RequestException as exc:
+            self.logger.error(f"get_pending_items bağlantı hatası: {exc}")
+        return []
+
+    def update_articles_status(self, hashes: list[str], status: str) -> bool:
+        """Verilen hash'lerin status'unu toplu günceller (pending → published/rejected).
+
+        URL uzunluk sınırı için 100'lük gruplar halinde PATCH atar (auto-publish'te
+        yüzlerce pending birikebilir; tek in.() çağrısı URL'i taşırırdı)."""
+        if not self.is_active or not hashes:
+            return True
+        all_ok = True
+        for i in range(0, len(hashes), 100):
+            chunk = hashes[i : i + 100]
+            in_list = ",".join(chunk)
+            try:
+                resp = requests.patch(
+                    f"{self.url}/rest/v1/articles?id_hash=in.({in_list})",
+                    headers=self._headers(),
+                    json={"status": status},
+                    timeout=30,
+                )
+                if resp.status_code >= 300:
+                    self.logger.error(
+                        f"update_articles_status {resp.status_code}: {resp.text[:200]}"
+                    )
+                    all_ok = False
+            except requests.RequestException as exc:
+                self.logger.error(f"update_articles_status bağlantı hatası: {exc}")
+                all_ok = False
+        if all_ok:
+            self.logger.info(f"Status -> '{status}': {len(hashes)} makale güncellendi.")
+        return all_ok
+
+    def oldest_pending_age_hours(self) -> float | None:
+        """En eski pending makalenin yaşı (saat). Pending yoksa None."""
+        if not self.is_active:
+            return None
+        try:
+            resp = requests.get(
+                f"{self.url}/rest/v1/articles"
+                "?status=eq.pending&select=processed_at&order=processed_at.asc&limit=1",
+                headers=self._headers(),
+                timeout=20,
+            )
+            if resp.status_code < 300:
+                rows = resp.json()
+                if not rows:
+                    return None
+                from datetime import UTC, datetime as _dt
+                ts = rows[0]["processed_at"].replace("Z", "+00:00")
+                oldest = _dt.fromisoformat(ts)
+                return (_dt.now(UTC) - oldest).total_seconds() / 3600
+            self.logger.error(f"oldest_pending_age {resp.status_code}: {resp.text[:200]}")
+        except (requests.RequestException, ValueError, KeyError) as exc:
+            self.logger.error(f"oldest_pending_age hatası: {exc}")
+        return None
 
 
 # ==========================================
@@ -545,19 +1022,108 @@ def run_pipeline() -> None:
         logger.info("ℹ️ Yeni sinyal bulunamadı.")
         return
 
+    # V2 — Kaynak kotası: her kaynaktan en fazla MAX_NEW_PER_SOURCE taze haber (havuzu dengele).
+    # MAX_NEW_PER_SOURCE=0 → sınırsız (eleme işini AI skoru yapar).
+    new_data = apply_source_quota(new_data, MAX_NEW_PER_SOURCE)
+    quota_desc = f"kaynak başına ≤{MAX_NEW_PER_SOURCE}" if MAX_NEW_PER_SOURCE > 0 else "sınırsız"
+    logger.info(f"⚖️ Kaynak kotası ({quota_desc}): {len(new_data)} aday kaldı.")
+
     kept, dropped = deduper.deduplicate(new_data, history)
+    for item in dropped:
+        item["status"] = "duplicate"
     if not kept:
-        logger.info("ℹ️ Tüm yeni içerikler mevcutlara benzer — bülten üretilmedi.")
+        logger.info("ℹ️ Tüm yeni içerikler mevcutlara benzer — pending'e bir şey eklenmedi.")
         db.save_items_batch(dropped)  # tekrar taranmasınlar
         store.save_articles(dropped)
         return
 
     analyzed = processor.process(kept)
-    path, content = publisher.publish(analyzed)
-    store.save_articles(analyzed + dropped)
-    store.save_newsletter(os.path.basename(path) if path else None, content, len(analyzed))
-    saved = db.save_items_batch(analyzed + dropped)
-    logger.info(f"✅ Döngü tamamlandı. {saved} kayıt yerel DB'ye, {len(analyzed + dropped)} makale Supabase'e ({len(dropped)} tekrar eleme).")
+    # Analizi başarısız olanları yayınlama/kalıcılaştırma — sonraki turda yeniden denensin.
+    ok = [i for i in analyzed if i.get("ai_insight") != ANALYSIS_FAILED]
+    failed = len(analyzed) - len(ok)
+    if failed:
+        logger.warning(f"⚠️ {failed} makale analiz edilemedi — kalıcılaştırılmadı, sonraki turda denenecek.")
+
+    if not ok:
+        logger.error("Hiçbir analiz başarılı olmadı — pending'e bir şey eklenmedi.")
+        db.save_items_batch(dropped)
+        store.save_articles(dropped)
+        return
+
+    # V3 — Skorla sırala, eşik üstünü pending'e ekleyecek aday set olarak al.
+    cap_part = f", cap={MAX_PUBLISHED}" if MAX_PUBLISHED > 0 else ""
+    published = select_for_publication(ok, MIN_IMPACT_SCORE, MAX_PUBLISHED)
+    logger.info(
+        f"🎯 {len(ok)} skorlanan makaleden {len(published)} tanesi pending'e ekleniyor "
+        f"(eşik ≥{MIN_IMPACT_SCORE}{cap_part})."
+    )
+
+    # V3 — Semantik kümeleme (sınırsız kategori; LLM verinin doğasına göre karar verir).
+    if published:
+        from clustering import cluster_topics
+        hash_to_cat = cluster_topics(published)
+        for item in published:
+            item["category"] = hash_to_cat.get(item["hash"], "Genel")
+
+    # Status etiketleri: eşik üstü → pending (HITL bekler); eşik altı ok'lar da → pending
+    # (Streamlit'te görsün), istersen reddedersin. Sadece dropped (semantik tekrar) duplicate.
+    for item in published:
+        item["status"] = "pending"
+
+    # Eşik altı ok'ları da DB'ye 'rejected' olarak yaz (skor saklansın, pending'te görünmesin).
+    # Hash-set ile ayır (dict '==' karşılaştırması yerine — O(n) ve sağlam).
+    published_hashes = {i["hash"] for i in published}
+    below_threshold = [i for i in ok if i["hash"] not in published_hashes]
+    for item in below_threshold:
+        item["status"] = "rejected"
+
+    persisted = published + below_threshold + dropped
+    if persisted:
+        store.save_articles(persisted)
+        db.save_items_batch(persisted)
+
+    # V3 — Auto-publish emniyet sübabı: en eski pending yeterince yaşlıysa yayınla.
+    auto_hours = _env_float("AUTO_PUBLISH_AFTER_HOURS", 24)
+    auto_count = 0
+    if auto_hours > 0 and store.is_active:
+        oldest_age = store.oldest_pending_age_hours()
+        if oldest_age is not None and oldest_age >= auto_hours:
+            pending_rows = store.get_pending_items()
+            if pending_rows:
+                logger.info(
+                    f"⏰ Otomasyon tetiklendi: en eski pending {oldest_age:.1f}h "
+                    f"(>= {auto_hours}h) — {len(pending_rows)} haber yayınlanıyor."
+                )
+                items_to_publish = [
+                    {
+                        "hash": r["id_hash"],
+                        "title": r["title"],
+                        "title_tr": r.get("title_tr"),
+                        "link": r["link"],
+                        "source": r["source"],
+                        "ai_insight": r.get("ai_insight"),
+                        "impact_score": r.get("impact_score"),
+                        "category": r.get("category"),
+                    }
+                    for r in pending_rows
+                ]
+                from publish_workflow import publish_newsletter
+                result = publish_newsletter(
+                    items_to_publish, store, publisher, trigger="auto"
+                )
+                auto_count = result.get("count", 0)
+
+    # Healthcheck heartbeat (UptimeRobot / healthchecks.io vb. — opsiyonel).
+    hc = os.getenv("HEALTHCHECK_URL")
+    if hc:
+        with contextlib.suppress(requests.RequestException):
+            requests.get(hc, timeout=10)
+
+    auto_suffix = f", {auto_count} auto-yayınlandı" if auto_count else ""
+    logger.info(
+        f"✅ Döngü tamam. {len(published)} yeni pending, {len(below_threshold)} eşik-altı, "
+        f"{len(dropped)} duplicate, {failed} analiz hatası{auto_suffix}."
+    )
 
 
 def main() -> None:
