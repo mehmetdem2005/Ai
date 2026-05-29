@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Sovereign · Ayarlar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="tokens.css" />
+<link rel="stylesheet" href="mobile.css" />
+<style>
+  .settings-grid {
+    display: grid; grid-template-columns: 220px 1fr; gap: 48px;
+    max-width: 1100px; margin: 0 auto;
+    padding: 24px 32px 80px;
+  }
+  aside.settings-toc {
+    position: sticky; top: 24px; align-self: start;
+    padding-top: 12px;
+  }
+  aside.settings-toc .label {
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 0.04em; text-transform: uppercase; color: var(--mid);
+    margin-bottom: 12px;
+  }
+  aside.settings-toc a {
+    display: block;
+    padding: 7px 12px;
+    border-radius: 6px;
+    color: var(--ink-2); text-decoration: none;
+    font-size: 13.5px; font-weight: 500;
+    transition: all .12s;
+  }
+  aside.settings-toc a:hover { background: var(--tint); color: var(--ink); }
+  aside.settings-toc a.active { background: var(--cyan-soft); color: var(--cyan-ink); }
+
+  main.settings-main { min-width: 0; }
+  section.setting-block {
+    padding: 24px 0 28px;
+    border-bottom: 1px solid var(--line);
+    scroll-margin-top: 16px;
+  }
+  section.setting-block:last-of-type { border-bottom: none; }
+  section.setting-block h2 {
+    margin: 0 0 6px;
+    font-size: 20px; font-weight: 600; letter-spacing: -0.015em;
+  }
+  section.setting-block .desc {
+    margin: 0 0 18px;
+    font-size: 14px; color: var(--mid); line-height: 1.5;
+  }
+
+  .setting-row {
+    display: grid; grid-template-columns: 1fr auto;
+    gap: 16px; align-items: center;
+    padding: 12px 0;
+    border-top: 1px solid var(--line-2);
+  }
+  .setting-row:first-of-type { border-top: none; }
+  .setting-row .lbl {
+    font-size: 13.5px; font-weight: 500; color: var(--ink);
+  }
+  .setting-row .hint {
+    margin-top: 2px;
+    font-size: 12.5px; color: var(--mid);
+  }
+
+  /* Toggle switch */
+  .toggle {
+    position: relative; width: 38px; height: 22px;
+    background: var(--line); border-radius: 999px;
+    cursor: pointer; transition: background .15s; border: none;
+  }
+  .toggle::after {
+    content: ""; position: absolute; top: 2px; left: 2px;
+    width: 18px; height: 18px; border-radius: 999px;
+    background: #fff;
+    transition: transform .18s;
+    box-shadow: 0 1px 2px rgba(0,0,0,.18);
+  }
+  .toggle.on { background: var(--cyan); }
+  .toggle.on::after { transform: translateX(16px); }
+
+  /* Radio chips */
+  .seg {
+    display: inline-flex; gap: 0;
+    background: var(--bg-2); border: 1px solid var(--line); border-radius: 6px;
+    padding: 2px;
+  }
+  .seg button {
+    padding: 5px 12px;
+    background: transparent; border: none; border-radius: 4px;
+    font-family: var(--font-sans); font-size: 12.5px; font-weight: 500;
+    color: var(--mid); cursor: pointer;
+  }
+  .seg button.active { background: var(--surface); color: var(--ink); box-shadow: var(--shadow-sm); }
+  .seg button:hover:not(.active) { color: var(--ink); }
+
+  /* Lang grid in settings */
+  .lang-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    margin-top: 8px;
+  }
+  .lang-pick {
+    display: grid; grid-template-columns: 32px 1fr auto; gap: 12px;
+    align-items: center;
+    padding: 12px 14px;
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: 8px; cursor: pointer;
+    transition: border-color .12s, background .12s;
+    text-decoration: none; color: var(--ink);
+  }
+  .lang-pick:hover { border-color: #B8C0CB; background: var(--bg-2); text-decoration: none; color: var(--ink); }
+  .lang-pick.active { border-color: var(--cyan); background: var(--cyan-soft); }
+  .lang-pick .lf { font-size: 22px; }
+  .lang-pick .lname { font-size: 14px; font-weight: 600; color: var(--ink); }
+  .lang-pick .lstatus { font-size: 12px; color: var(--mid); }
+  .lang-pick.active .lname { color: var(--cyan-ink); }
+  .lang-pick .lcheck { display: none; color: var(--cyan); }
+  .lang-pick.active .lcheck { display: inline; }
+
+  /* Danger zone */
+  .danger {
+    margin-top: 8px; padding: 14px 16px;
+    background: var(--alert-soft); border: 1px solid #FAD4D2; border-radius: 8px;
+  }
+  .danger .lbl { color: var(--alert); }
+  .danger .hint { color: var(--alert); opacity: 0.85; }
+
+  @media (max-width: 900px) {
+    .settings-grid { grid-template-columns: 1fr; gap: 16px; padding: 20px 20px 60px; }
+    aside.settings-toc {
+      position: static; padding-top: 0;
+      display: flex; gap: 4px; overflow-x: auto;
+      padding-bottom: 8px; border-bottom: 1px solid var(--line);
+    }
+    aside.settings-toc .label { display: none; }
+    aside.settings-toc a { white-space: nowrap; flex-shrink: 0; padding: 8px 12px; font-size: 13px; }
+    .lang-grid { grid-template-columns: 1fr; }
+    .setting-row { grid-template-columns: 1fr; gap: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<div id="topnav-mount"></div>
+
+<div class="page-wrap" style="padding-bottom: 0;">
+  <div class="page-head">
+    <div class="crumb" data-i18n="ayarlar.title">/ Ayarlar</div>
+    <h1 data-i18n="ayarlar.title">Ayarlar</h1>
+    <p class="dek" data-i18n="ayarlar.dek">Görünüm, dil, bildirimler ve hesap tercihleri.</p>
+  </div>
+</div>
+
+<div class="settings-grid">
+
+  <aside class="settings-toc">
+    <div class="label" data-i18n="settings.toc">Bölümler</div>
+    <a href="#dil" class="active">Dil</a>
+    <a href="#gorunum">Görünüm</a>
+    <a href="#bildirim">Bildirimler</a>
+    <a href="#abonelik">Abonelik</a>
+    <a href="#hesap">Hesap</a>
+  </aside>
+
+  <main class="settings-main">
+
+    <section class="setting-block" id="dil">
+      <h2 data-i18n="ayarlar.sec_lang">Dil</h2>
+      <p class="desc" data-i18n="ayarlar.sec_lang_desc">Arayüz ve brief dili. Şu anda yalnızca Türkçe yayında; diğerleri yol haritasında.</p>
+      <div class="lang-grid">
+        <a href="#" class="lang-pick active" data-lang-pick="tr">
+          <span class="lf">🇹🇷</span>
+          <div>
+            <div class="lname">Türkçe</div>
+            <div class="lstatus">Ana dil · yayında</div>
+          </div>
+          <span class="lcheck">✓</span>
+        </a>
+        <a href="#" class="lang-pick" data-lang-pick="en">
+          <span class="lf">🇬🇧</span>
+          <div>
+            <div class="lname">English</div>
+            <div class="lstatus">Coming soon</div>
+          </div>
+          <span class="lcheck">✓</span>
+        </a>
+        <a href="#" class="lang-pick" data-lang-pick="es">
+          <span class="lf">🇪🇸</span>
+          <div>
+            <div class="lname">Español</div>
+            <div class="lstatus">Próximamente</div>
+          </div>
+          <span class="lcheck">✓</span>
+        </a>
+        <a href="#" class="lang-pick" data-lang-pick="de">
+          <span class="lf">🇩🇪</span>
+          <div>
+            <div class="lname">Deutsch</div>
+            <div class="lstatus">Demnächst</div>
+          </div>
+          <span class="lcheck">✓</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="setting-block" id="gorunum">
+      <h2 data-i18n="ayarlar.sec_view">Görünüm</h2>
+      <p class="desc" data-i18n="ayarlar.sec_view_desc">Tema, yoğunluk ve aksan rengi.</p>
+
+      <div class="setting-row">
+        <div>
+          <div class="lbl" data-i18n="settings.theme">Tema</div>
+          <div class="hint" data-i18n="settings.theme_desc">Aydınlık, koyu veya sistem tercihi.</div>
+        </div>
+        <div class="seg" data-key="theme">
+          <button class="active" data-val="light" data-i18n="settings.light">Aydınlık</button>
+          <button data-val="dark" data-i18n="settings.dark">Koyu</button>
+          <button data-val="system" data-i18n="settings.system">Sistem</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="lbl" data-i18n="settings.density">Yoğunluk</div>
+          <div class="hint" data-i18n="settings.density_desc">Sayfa boşlukları ve metin sıkışıklığı.</div>
+        </div>
+        <div class="seg" data-key="density">
+          <button data-val="compact" data-i18n="settings.compact">Sıkı</button>
+          <button class="active" data-val="standard" data-i18n="settings.standard">Standart</button>
+          <button data-val="comfy" data-i18n="settings.comfy">Ferah</button>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="lbl" data-i18n="settings.accent">Aksan rengi</div>
+          <div class="hint" data-i18n="settings.accent_desc">Link, vurgu ve düğme renkleri.</div>
+        </div>
+        <div class="seg" data-key="accent">
+          <button class="active" data-val="blue" data-i18n="settings.blue">Mavi</button>
+          <button data-val="indigo" data-i18n="settings.indigo">İndigo</button>
+          <button data-val="forest" data-i18n="settings.forest">Yeşil</button>
+          <button data-val="red" data-i18n="settings.red">Kırmızı</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="setting-block" id="bildirim">
+      <h2 data-i18n="ayarlar.sec_notif">Bildirimler</h2>
+      <p class="desc" data-i18n="ayarlar.sec_notif_desc">Yeni brief geldiğinde nasıl haber almak istersiniz.</p>
+
+      <div class="setting-row">
+        <div>
+          <div class="lbl" data-i18n="settings.morning_n">Sabah edisyonu</div>
+          <div class="hint" data-i18n="settings.evening_n_desc">Yayınlandığında e-posta gönderilsin.</div>
+        </div>
+        <button class="toggle on" aria-pressed="true"></button>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="lbl" data-i18n="settings.evening_n">Akşam edisyonu</div>
+          <div class="hint" data-i18n="settings.evening_n_desc">Yayınlandığında e-posta gönderilsin.</div>
+        </div>
+        <button class="toggle on" aria-pressed="true"></button>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="lbl" data-i18n="settings.long_n">Uzun okuma</div>
+          <div class="hint" data-i18n="settings.long_n_desc">Haftalık derinlemesine analiz yayınlandığında.</div>
+        </div>
+        <button class="toggle on" aria-pressed="true"></button>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="lbl" data-i18n="settings.product_n">Ürün duyuruları</div>
+          <div class="hint" data-i18n="settings.product_n_desc">Yeni özellik ve önemli değişiklikler.</div>
+        </div>
+        <button class="toggle" aria-pressed="false"></button>
+      </div>
+    </section>
+
+    <section class="setting-block" id="abonelik">
+      <h2 data-i18n="ayarlar.sec_sub">Abonelik</h2>
+      <p class="desc" data-i18n="ayarlar.sec_sub_desc">Mevcut plan ve faturalama bilgileriniz.</p>
+
+      <div class="setting-row">
+        <div>
+          <div class="lbl" data-i18n="settings.current_plan">Mevcut plan</div>
+          <div class="hint" data-i18n="settings.current_plan_v">Brief — Ücretsiz</div>
+        </div>
+        <a href="abonelik.html" class="btn sm" data-i18n="settings.upgrade">Yükselt</a>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="lbl" data-i18n="settings.payment">Ödeme yöntemi</div>
+          <div class="hint" data-i18n="settings.payment_v">Henüz eklenmedi</div>
+        </div>
+        <button class="btn sm" data-i18n="settings.add">Ekle</button>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="lbl" data-i18n="settings.billing">Fatura geçmişi</div>
+          <div class="hint" data-i18n="settings.billing_v">Aktif fatura yok.</div>
+        </div>
+        <button class="btn sm" disabled style="opacity:.5;" data-i18n="settings.view">Görüntüle</button>
+      </div>
+    </section>
+
+    <section class="setting-block" id="hesap">
+      <h2 data-i18n="ayarlar.sec_acc">Hesap</h2>
+      <p class="desc" data-i18n="ayarlar.sec_acc_desc">Profil bilgileri ve güvenlik.</p>
+
+      <div class="setting-row">
+        <div>
+          <div class="lbl" data-i18n="settings.email">E-posta</div>
+          <div class="hint">hello@sovereign.tr</div>
+        </div>
+        <button class="btn sm" data-i18n="settings.change">Değiştir</button>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="lbl" data-i18n="settings.password">Şifre</div>
+          <div class="hint" data-i18n="settings.password_v">Son güncelleme bilinmiyor</div>
+        </div>
+        <button class="btn sm" data-i18n="settings.reset">Sıfırla</button>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="lbl" data-i18n="settings.export">Veri dışa aktarma</div>
+          <div class="hint" data-i18n="settings.export_desc">Okuma geçmişi, ayarlar, abonelik verisi.</div>
+        </div>
+        <button class="btn sm" data-i18n="settings.download">İndir (JSON)</button>
+      </div>
+
+      <div class="danger">
+        <div class="setting-row" style="border-top: none; padding: 0;">
+          <div>
+            <div class="lbl" data-i18n="settings.delete">Hesabı sil</div>
+            <div class="hint" data-i18n="settings.delete_desc">Tüm veriler kalıcı olarak silinir.</div>
+          </div>
+          <button class="btn sm" style="background: var(--alert); color: #fff; border-color: var(--alert);" data-i18n="settings.delete_btn">Sil</button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div id="footer-mount"></div>
+
+<script src="i18n.js"></script>
+<script src="nav.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="auth.js"></script>
+
+<script>
+  // Settings page interactions
+  document.querySelectorAll('.seg').forEach(seg => {
+    seg.addEventListener('click', e => {
+      if (e.target.tagName !== 'BUTTON') return;
+      seg.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      e.target.classList.add('active');
+    });
+  });
+  document.querySelectorAll('.toggle').forEach(t => {
+    t.addEventListener('click', () => {
+      t.classList.toggle('on');
+      t.setAttribute('aria-pressed', t.classList.contains('on'));
+    });
+  });
+  document.querySelectorAll('.lang-pick').forEach(p => {
+    p.addEventListener('click', e => {
+      e.preventDefault();
+      document.querySelectorAll('.lang-pick').forEach(x => x.classList.remove('active'));
+      p.classList.add('active');
+      const code = p.dataset.langPick;
+      localStorage.setItem('sov_lang', code);
+      // Trigger nav lang update
+      document.querySelector(`.lang-option[data-lang="${code}"]`)?.click();
+    });
+  });
+
+  // Scroll-spy
+  const tocLinks = document.querySelectorAll('aside.settings-toc a');
+  const sections = [...document.querySelectorAll('section.setting-block')];
+  const update = () => {
+    let active = sections[0];
+    const y = window.scrollY + 60;
+    for (const s of sections) if (s.offsetTop <= y) active = s;
+    tocLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + active.id));
+  };
+  window.addEventListener('scroll', update, { passive: true });
+  update();
+</script>
+
+</body>
+</html>

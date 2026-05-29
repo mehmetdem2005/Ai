@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Sovereign · Hakkında</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;500;600;700&family=Newsreader:ital,wght@0,400;0,500;0,600;1,400&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=DM+Serif+Display&family=Source+Serif+4:wght@400;500;600&family=Lora:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="tokens.css" />
+<link rel="stylesheet" href="mobile.css" />
+<style>
+  .page-grid {
+    display: grid; grid-template-columns: 220px 1fr; gap: 56px;
+    max-width: 1100px; margin: 0 auto;
+    padding: 32px 32px 80px;
+  }
+  aside.toc {
+    position: sticky; top: 24px; align-self: start;
+    padding-top: 18px;
+  }
+  aside.toc .label {
+    font-family: var(--font-mono); font-size: 10.5px;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--mid);
+    margin-bottom: 14px;
+  }
+  aside.toc a {
+    display: block;
+    padding: 8px 0 8px 14px;
+    border-left: 2px solid var(--line);
+    color: var(--ink-2); text-decoration: none;
+    font-size: 14px; transition: all .15s;
+  }
+  aside.toc a:hover { color: var(--ink); border-left-color: var(--mid); }
+  aside.toc a.active {
+    color: var(--cyan-ink); border-left-color: var(--cyan); font-weight: 500;
+  }
+
+  main.page-main { min-width: 0; }
+  section.layer {
+    padding: 32px 0 48px;
+    border-bottom: 1px solid var(--line);
+    scroll-margin-top: 24px;
+  }
+  section.layer:last-child { border-bottom: none; }
+  section.layer .crumb {
+    font-family: var(--font-mono); font-size: 10.5px;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--cyan-ink);
+    margin-bottom: 12px;
+  }
+  section.layer h2 {
+    margin: 0 0 14px;
+    font-family: var(--font-display); font-weight: 500;
+    font-size: 30px; line-height: 1.1; letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+  section.layer p {
+    font-family: var(--font-display); font-size: 17px;
+    line-height: 1.65; color: var(--ink-2);
+    max-width: 640px;
+    margin: 0 0 14px;
+  }
+  section.layer p strong { color: var(--ink); font-weight: 500; }
+
+  .team {
+    margin-top: 24px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    max-width: 720px;
+  }
+  .team .person {
+    padding: 18px; border: 1px solid var(--line); background: var(--surface);
+  }
+  .team .name {
+    font-family: var(--font-display); font-size: 18px; font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  .team .role {
+    margin-top: 2px;
+    font-family: var(--font-mono); font-size: 10.5px;
+    letter-spacing: 0.06em; text-transform: uppercase; color: var(--cyan-ink);
+  }
+  .team .bio {
+    margin-top: 10px;
+    font-family: var(--font-display); font-size: 14px;
+    color: var(--ink-2); line-height: 1.5;
+  }
+
+  .method-grid {
+    margin-top: 24px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 18px;
+    max-width: 760px;
+  }
+  .method-step {
+    padding: 18px 20px; border: 1px solid var(--line); background: var(--surface);
+  }
+  .method-step .n {
+    font-family: var(--font-display); font-size: 32px; color: var(--cyan-ink); letter-spacing: -0.03em;
+    line-height: 1;
+  }
+  .method-step h4 {
+    margin: 10px 0 6px;
+    font-family: var(--font-display); font-size: 17px; font-weight: 500;
+    letter-spacing: -0.005em;
+  }
+  .method-step p {
+    margin: 0; font-family: var(--font-sans); font-size: 13.5px;
+    color: var(--mid); line-height: 1.55;
+  }
+
+  .source-cats {
+    margin-top: 24px;
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px;
+    max-width: 760px;
+  }
+  .source-cat {
+    padding: 16px; border: 1px solid var(--line); background: var(--surface);
+  }
+  .source-cat h5 {
+    margin: 0 0 8px;
+    font-family: var(--font-mono); font-size: 10.5px;
+    letter-spacing: 0.12em; text-transform: uppercase; color: var(--cyan-ink);
+    font-weight: 500;
+  }
+  .source-cat .count {
+    font-family: var(--font-display); font-size: 28px; font-weight: 500;
+    letter-spacing: -0.025em; line-height: 1;
+  }
+  .source-cat ul {
+    margin: 10px 0 0; padding: 0; list-style: none;
+    font-size: 13px; color: var(--ink-2);
+  }
+  .source-cat li { padding: 3px 0; font-family: var(--font-mono); font-size: 11.5px; }
+
+  .faq { margin-top: 24px; max-width: 760px; }
+  .faq details {
+    padding: 18px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .faq details summary {
+    cursor: pointer;
+    font-family: var(--font-display); font-size: 17px; font-weight: 500;
+    letter-spacing: -0.005em; color: var(--ink);
+    list-style: none;
+    display: flex; justify-content: space-between; align-items: center;
+    padding-right: 8px;
+  }
+  .faq details summary::-webkit-details-marker { display: none; }
+  .faq details summary::after {
+    content: "+"; font-family: var(--font-mono); font-size: 22px;
+    color: var(--cyan); transition: transform .15s;
+    font-weight: 300;
+  }
+  .faq details[open] summary::after { content: "−"; }
+  .faq details p {
+    margin: 12px 0 0;
+    font-family: var(--font-display); font-size: 16px; color: var(--ink-2);
+    line-height: 1.65;
+  }
+
+  .contact-grid {
+    margin-top: 24px;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    max-width: 720px;
+  }
+  .contact-card {
+    padding: 20px; border: 1px solid var(--line); background: var(--surface);
+  }
+  .contact-card h4 {
+    margin: 0 0 8px;
+    font-family: var(--font-display); font-size: 18px; font-weight: 500;
+    letter-spacing: -0.005em;
+  }
+  .contact-card p {
+    margin: 0 0 12px !important;
+    font-size: 14px !important; color: var(--mid) !important;
+    font-family: var(--font-sans) !important;
+  }
+  .contact-card a {
+    font-family: var(--font-mono); font-size: 13px; color: var(--cyan-ink);
+    border: none;
+  }
+
+  @media (max-width: 900px) {
+    .page-grid { grid-template-columns: 1fr; gap: 24px; padding: 28px 20px 60px; }
+    aside.toc { position: static; padding-top: 0; display: flex; gap: 4px; overflow-x: auto; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+    aside.toc .label { display: none; }
+    aside.toc a { white-space: nowrap; padding: 8px 12px; border-left: none; border-bottom: 2px solid transparent; flex-shrink: 0; font-size: 13px; }
+    aside.toc a.active { border-left-color: transparent; border-bottom-color: var(--cyan); }
+    section.layer h2 { font-size: 24px !important; }
+    .team, .method-grid, .contact-grid, .source-cats { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div id="topnav-mount"></div>
+
+<div class="page-wrap" style="padding-bottom: 0;">
+  <div class="page-head">
+    <div class="crumb">/ Hakkımızda</div>
+    <h1>Bir <em>yayın ekibi.</em> Bir motor değil.</h1>
+    <p class="dek">Sovereign'i kim hazırlıyor, sinyali nasıl seçiyoruz, hangi kaynakları izliyoruz. Editorial standartlarımız ve sıkça sorulan sorular.</p>
+  </div>
+</div>
+
+<div class="page-grid">
+
+  <aside class="toc">
+    <div class="label">İçindekiler</div>
+    <a href="#misyon" class="active">Misyon</a>
+    <a href="#kunye">Künye</a>
+    <a href="#metodoloji">Metodoloji</a>
+    <a href="#kaynaklar">Kaynaklar</a>
+    <a href="#sss">SSS</a>
+    <a href="#iletisim">İletişim</a>
+  </aside>
+
+  <main class="page-main">
+
+    <section class="layer" id="misyon">
+      <div class="crumb">01 / Misyon</div>
+      <h2>Gürültüyü <em>azaltmak.</em></h2>
+      <p>Biyoteknoloji ve yapay zekâ kesişiminde her gün yüzlerce makale yayınlanıyor. Büyük çoğunluğu yeniden yazılmış başlıklar, klikbait ve yüzeysel sentezler. Bir profesyonelin haftasını şekillendirecek <strong>gerçek bilgi</strong> bu hacmin altında kalıyor.</p>
+      <p>Sovereign bu hacmi tarayan, tekrarları eleyen ve geriye kalanı Türkçe bir brief'e dönüştüren bir motor. Amaç hız değil; <strong>okunabilir sadelik</strong>. Beş dakikanız karşılığında neyi okumanız gerektiğini göstermek.</p>
+    </section>
+
+    <section class="layer" id="kunye">
+      <div class="crumb">02 / Künye</div>
+      <h2>Yapı.</h2>
+      <p>Sovereign tek kişilik bir yayın. Tarama, eleme, yazım ve yayın yapay zekâ tarafından yürütülür; çerçeve ve kaynak listesi insan tarafından belirlenir ve sürdürülür.</p>
+      <p>İçerik tek başına karar referansı olarak kullanılmamalı. Her brief'in sonundaki kaynak listesine geri dönülmesi önerilir.</p>
+    </section>
+
+    <section class="layer" id="metodoloji">
+      <div class="crumb">03 / Metodoloji</div>
+      <h2>Süreç.</h2>
+      <p>Her edisyon altı adımdan geçer. Tüm süreç yapay zekâ tarafından yürütülür; çerçeve ve kaynak listesi insan tarafından belirlenir.</p>
+      <div class="method-grid">
+        <div class="method-step">
+          <div class="n">01</div>
+          <h4>Tarama</h4>
+          <p>Belirlenen yayınlar gece-gündüz takip edilir. Akademik dergiler, regulasyon kaynakları, sektör analizleri, klinik veritabanları.</p>
+        </div>
+        <div class="method-step">
+          <div class="n">02</div>
+          <h4>Eleme</h4>
+          <p>Yapay zekâ aynı haberin farklı versiyonlarını ve yüzeysel kopyaları birleştirir.</p>
+        </div>
+        <div class="method-step">
+          <div class="n">03</div>
+          <h4>Bağlamlama</h4>
+          <p>Kalan her hikaye, ilişkili önceki materyallerle birlikte değerlendirilir.</p>
+        </div>
+        <div class="method-step">
+          <div class="n">04</div>
+          <h4>Yazım</h4>
+          <p>Beş bölümlü standart yapı: sinyal, bağlam, etki, çekince, takip. Yapay zekâ tarafından yazılır.</p>
+        </div>
+        <div class="method-step">
+          <div class="n">05</div>
+          <h4>Yayın</h4>
+          <p>Brief sabah ve akşam edisyonu olarak otomatik yayınlanır.</p>
+        </div>
+        <div class="method-step">
+          <div class="n">06</div>
+          <h4>Geri bildirim</h4>
+          <p>Okuyucu hata bildirimleri kaynak listesinin güncellenmesinde dikkate alınır.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="layer" id="kaynaklar">
+      <div class="crumb">04 / İzlenen kaynaklar</div>
+      <h2>Kategori bazında.</h2>
+      <p>İzlenen kaynaklar aşağıdaki kategorilere ayrılır. Tam liste <code class="mono" style="font-size:12.5px; background:var(--tint); padding:2px 6px; border-radius:4px;">feeds.json</code> dosyasında — herkese açık.</p>
+      <div class="source-cats">
+        <div class="source-cat">
+          <h5>Bilimsel dergiler</h5>
+          <ul>
+            <li>Nature, Cell, Lancet</li>
+            <li>NEJM, JAMA, BMJ</li>
+            <li>arXiv, bioRxiv pre-print</li>
+          </ul>
+        </div>
+        <div class="source-cat">
+          <h5>Regulasyon</h5>
+          <ul>
+            <li>FDA, EMA, MHRA</li>
+            <li>WHO, ICH duyuruları</li>
+          </ul>
+        </div>
+        <div class="source-cat">
+          <h5>Sektör analizleri</h5>
+          <ul>
+            <li>STAT, Endpoints, FierceBiotech</li>
+            <li>BioPharma Dive, FT Health</li>
+          </ul>
+        </div>
+        <div class="source-cat">
+          <h5>Klinik araştırma</h5>
+          <ul>
+            <li>ClinicalTrials.gov</li>
+            <li>EU Clinical Trials</li>
+          </ul>
+        </div>
+        <div class="source-cat">
+          <h5>Yapay zekâ / ML</h5>
+          <ul>
+            <li>arXiv · ilgili kategoriler</li>
+            <li>Anthropic / OpenAI labs</li>
+          </ul>
+        </div>
+        <div class="source-cat">
+          <h5>Şirket duyuruları</h5>
+          <ul>
+            <li>Halka açık dosyalar</li>
+            <li>Resmî basın duyuruları</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="layer" id="sss">
+      <div class="crumb">05 / Sıkça sorulan</div>
+      <h2>Sorular.</h2>
+      <div class="faq">
+        <details open>
+          <summary>İçeriği kim yazıyor?</summary>
+          <p>Tarama, yazım ve yayın yapay zekâ tarafından yürütülür. Format şablonu ve kaynak listesi tek bir kişi tarafından sürdürülür.</p>
+        </details>
+        <details>
+          <summary>Brief'i karar referansı olarak kullanabilir miyim?</summary>
+          <p>Hayır. Brief tarama amaçlıdır; ürün, klinik veya yatırım kararı için tek başına referans değildir. Her zaman brief sonundaki kaynak listesindeki yayınlara geri dönün.</p>
+        </details>
+        <details>
+          <summary>Neden yine de okunur?</summary>
+          <p>Sektörün nereye baktığını ve neyin gündem olduğunu görmek için bir tarama aracı olarak çalışır. Yüzlerce başlığa göz atmaktan zaman tasarrufu sağlar; ama hiçbirinin yerine geçmez.</p>
+        </details>
+        <details>
+          <summary>Hata var, ne yapayım?</summary>
+          <p>İletişim bölümündeki adresten ulaşın. Yapısal hatalar bildirilince kaynak listesi güncellenir ve sonraki edisyonlar etkilenir.</p>
+        </details>
+        <details>
+          <summary>Kaynakları nereden görebilirim?</summary>
+          <p>Her brief'in altında kaynak listesi yer alır. Taranan tüm yayınlar açık kaynak şeklinde <code class="mono" style="font-size:12.5px;">feeds.json</code> dosyasındadır.</p>
+        </details>
+        </div>
+    </section>
+
+    <section class="layer" id="iletisim">
+      <div class="crumb">06 / İletişim</div>
+      <h2>Bana yaz.</h2>
+      <p>Soru, geri bildirim, hata bildirimi için tek bir adres. Tek kişilik bir yayın — her mesajı ben okuyorum.</p>
+      <div class="contact-grid">
+        <div class="contact-card">
+          <h4>E-posta</h4>
+          <p>Her türlü soru, geri bildirim, hata bildirimi.</p>
+          <a href="mailto:hello@sovereign.tr">hello@sovereign.tr</a>
+        </div>
+        <div class="contact-card">
+          <h4>GitHub</h4>
+          <p>Kaynak listesini görmek, sorun açmak, kod incelemek.</p>
+          <a href="https://github.com/mehmetdem2005/Ai" target="_blank" rel="noopener">github.com/mehmetdem2005/Ai</a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div id="footer-mount"></div>
+
+<script src="i18n.js"></script>
+<script src="nav.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="auth.js"></script>
+
+<!-- Scroll-spy for TOC -->
+<script>
+  const links = document.querySelectorAll('aside.toc a');
+  const sections = [...document.querySelectorAll('section.layer')];
+  const update = () => {
+    let active = sections[0];
+    const y = window.scrollY + 60;
+    for (const s of sections) {
+      if (s.offsetTop <= y) active = s;
+    }
+    links.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + active.id));
+  };
+  window.addEventListener('scroll', update, { passive: true });
+  update();
+</script>
+
+</body>
+</html>
