@@ -299,37 +299,59 @@
       <h2 data-i18n="landing.latest_h2">Son edisyonlar</h2>
       <a href="reader.html" data-i18n="common.allarchive">Tüm arşiv →</a>
     </div>
-    <div class="latest-list">
-      <a class="latest-item" href="reader.html">
-        <span class="when">28 May · Akşam</span>
-        <span class="t">FDA, ilk yapay zekâ destekli radyoloji akışını onayladı</span>
-        <span class="meta-r" data-i18n="common.open">Aç →</span>
-      </a>
-      <a class="latest-item" href="reader.html">
-        <span class="when">28 May · Sabah</span>
-        <span class="t">Onkolojide çok-modal yapay zekâ: bir Nature makalesinin getirdikleri</span>
-        <span class="meta-r" data-i18n="common.open">Aç →</span>
-      </a>
-      <a class="latest-item" href="reader.html">
-        <span class="when">27 May · Akşam</span>
-        <span class="t">CRISPR taşıma teknolojileri lipid nanopartikül etrafında kümeleniyor</span>
-        <span class="meta-r" data-i18n="common.open">Aç →</span>
-      </a>
-      <a class="latest-item" href="reader.html">
-        <span class="when">27 May · Sabah</span>
-        <span class="t">Klinik yapay zekânın hastane konuşlanmasında üç vaka çalışması</span>
-        <span class="meta-r" data-i18n="common.open">Aç →</span>
-      </a>
-      <a class="latest-item" href="reader.html">
-        <span class="when">26 May · Akşam</span>
-        <span class="t">Giyilebilirden kardiyak biyobelirteçler FDA inceleme listesinde</span>
-        <span class="meta-r" data-i18n="common.open">Aç →</span>
-      </a>
+    <div class="latest-list" id="latestList">
+      <!-- data.json'dan dinamik doldurulur (en son 6 bülten) -->
     </div>
   </div>
 </section>
 
 <div id="footer-mount"></div>
+
+<script>
+// Today bar + Latest list: data.json'dan dinamik render.
+(function () {
+  const TR_MONTHS_SHORT = ["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"];
+  const ED = { sabah: "Sabah", aksam: "Akşam" };
+  function ed(d) { return d.getHours() < 12 ? "sabah" : "aksam"; }
+  function shortTitle(content) {
+    const m = (content || "").match(/^#\s+(.+)$/m);
+    let t = m ? m[1] : "Bülten";
+    t = t.replace(/^[🧬🚀📊💡⚡🔬]\s*/, "");
+    return t.length > 86 ? t.slice(0, 84) + "…" : t;
+  }
+  function shortDate(d) { return `${d.getDate()} ${TR_MONTHS_SHORT[d.getMonth()]}`; }
+  async function load() {
+    let data = [];
+    try { data = await (await fetch("./data.json", { cache: "no-store" })).json(); }
+    catch { return; }
+    if (!data.length) return;
+    // Today bar — en güncel bülten
+    const top = data[0];
+    const td = new Date(top.created_at);
+    const tStamp = document.querySelector(".today-bar .stamp");
+    const tTitle = document.querySelector(".today-bar .title");
+    const tLink = document.querySelector(".today-bar .read-link");
+    if (tStamp) tStamp.textContent = `${td.getDate()} ${TR_MONTHS_SHORT[td.getMonth()]} · ${ED[ed(td)]} edisyonu`;
+    if (tTitle) tTitle.textContent = shortTitle(top.content);
+    if (tLink) tLink.href = `reader.html?bulten=${encodeURIComponent(top.id)}`;
+    // Latest list — son 6 bülten
+    const wrap = document.getElementById("latestList");
+    wrap.innerHTML = "";
+    data.slice(0, 6).forEach(nl => {
+      const d = new Date(nl.created_at);
+      const a = document.createElement("a");
+      a.className = "latest-item";
+      a.href = `reader.html?bulten=${encodeURIComponent(nl.id)}`;
+      a.innerHTML =
+        `<span class="when">${shortDate(d)} · ${ED[ed(d)]}</span>` +
+        `<span class="t">${shortTitle(nl.content).replace(/</g,"&lt;")}</span>` +
+        `<span class="meta-r" data-i18n="common.open">Aç →</span>`;
+      wrap.appendChild(a);
+    });
+  }
+  load();
+})();
+</script>
 
 <script src="i18n.js"></script>
 <script src="nav.js"></script>
