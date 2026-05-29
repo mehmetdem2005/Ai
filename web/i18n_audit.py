@@ -25,13 +25,13 @@ URL_RX = re.compile(r"^https?://|\.com$|\.org$|@.+\..+", re.I)
 
 def parse_visible_text(html: str) -> list[tuple[str, str]]:
     """Çok hafif HTML parser — text node'lara, hangi tag'de + içinde data-i18n
-    var mı bilgisiyle ulaşmak için.
+    veya i18n-ignore var mı bilgisiyle ulaşmak için.
 
     Sadece bizim sayfalarımız için işe yarar; full HTML5 parser değil."""
     out: list[tuple[str, str]] = []  # (text, surrounding_tag_context)
     pos = 0
-    tag_stack: list[tuple[str, bool]] = []  # (tag_name, has_data_i18n_in_ancestors)
-    # ancestor_has_i18n track: any ancestor has data-i18n?
+    # Stack element: (tag_name, has_data_i18n, has_i18n_ignore_class)
+    tag_stack: list[tuple[str, bool, bool]] = []
     while pos < len(html):
         lt = html.find("<", pos)
         if lt < 0:
@@ -60,7 +60,6 @@ def parse_visible_text(html: str) -> list[tuple[str, str]]:
         # Closing tag?
         if tag_content.startswith("/"):
             tname = tag_content[1:].split()[0].lower() if tag_content[1:].split() else ""
-            # En son aynı tag açılışını pop et
             for i in range(len(tag_stack) - 1, -1, -1):
                 if tag_stack[i][0] == tname:
                     tag_stack.pop(i)
@@ -71,24 +70,27 @@ def parse_visible_text(html: str) -> list[tuple[str, str]]:
         tname = parts[0].lower().rstrip("/")
         attrs = parts[1] if len(parts) > 1 else ""
         has_i18n = "data-i18n" in attrs
+        # class içinde i18n-ignore var mı?
+        class_match = re.search(r'class="([^"]*)"', attrs)
+        has_ignore = bool(class_match and "i18n-ignore" in class_match.group(1).split())
         # Self-closing — stack'e ekleme
         if tag_content.rstrip().endswith("/"):
             continue
         # Void elements
         if tname in {"br", "hr", "img", "input", "meta", "link"}:
             continue
-        tag_stack.append((tname, has_i18n))
+        tag_stack.append((tname, has_i18n, has_ignore))
     return out
 
 
-def _ancestor_context(stack: list[tuple[str, bool]]) -> str:
+def _ancestor_context(stack: list[tuple[str, bool, bool]]) -> str:
     """Atalar zinciri: 'body > main > .h1' gibi + i18n flag"""
-    has_i18n = any(s[1] for s in stack)
-    if has_i18n:
+    if any(s[1] for s in stack):
         return "HAS_I18N"
+    if any(s[2] for s in stack):
+        return "SKIP"  # i18n-ignore class — skip et
     if any(s[0] in SKIP_TAGS for s in stack):
         return "SKIP"
-    # Son 3 atayı path olarak ver
     return " > ".join(s[0] for s in stack[-3:])
 
 

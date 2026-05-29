@@ -231,12 +231,12 @@
       <div class="delta">▲ +4.2%</div>
     </div>
     <div class="stat-tile">
-      <div class="label">Bülten · 30g</div>
+      <div class="label" data-i18n="dashboard.newsletter_30g">Bülten · 30g</div>
       <div class="value">42</div>
       <div class="delta">2 missed · recovered</div>
     </div>
     <div class="stat-tile">
-      <div class="label">Dedup oranı</div>
+      <div class="label" data-i18n="dashboard.dedup_rate">Dedup oranı</div>
       <div class="value">0.86</div>
       <div class="delta">▲ +0.02</div>
     </div>
@@ -255,7 +255,7 @@
   <div class="twocol">
     <div class="card chart-card">
       <div class="card-header">
-        <h3>Sinyal yoğunluğu · son 14 gün</h3>
+        <h3 data-i18n="dashboard.signal_density_14d">Sinyal yoğunluğu · son 14 gün</h3>
         <span class="mono" style="margin-left:auto; color:var(--mid); font-size:11px;">y: signals · x: batch</span>
       </div>
       <div class="chart-wrap">
@@ -275,7 +275,7 @@
     </div>
 
     <div class="card">
-      <div class="card-header"><h3>Dedup oranı</h3></div>
+      <div class="card-header"><h3 data-i18n="dashboard.dedup_rate">Dedup oranı</h3></div>
       <div class="gauge">
         <div class="gauge-vis">
           <svg viewBox="0 0 100 100">
@@ -286,7 +286,7 @@
           <div class="gauge-text">0.86</div>
         </div>
         <div class="gauge-info">
-          <div class="row"><div class="k">Eşik</div><div class="v">cosine ≥ 0.86</div></div>
+          <div class="row"><div class="k" data-i18n="dashboard.threshold">Eşik</div><div class="v">cosine ≥ 0.86</div></div>
           <div class="row"><div class="k">Embedding</div><div class="v">gemini-embedding-001</div></div>
           <div class="row"><div class="k">Eleme</div><div class="v">418 → 62 (85%)</div></div>
         </div>
@@ -297,7 +297,7 @@
   <div class="twocol">
     <div class="card">
       <div class="card-header">
-        <h3>Kaynak sağlığı · 142 toplam</h3>
+        <h3 data-i18n="dashboard.source_health_142">Kaynak sağlığı · 142 toplam</h3>
         <span class="pill ok" style="margin-left:auto;"><span class="dot"></span>136 OK</span>
         <span class="pill neutral">4 SLOW</span>
         <span class="pill alert">2 DOWN</span>
@@ -318,7 +318,7 @@
     </div>
 
     <div class="card">
-      <div class="card-header"><h3>LLM sağlayıcı</h3></div>
+      <div class="card-header"><h3 data-i18n="dashboard.llm_provider">LLM sağlayıcı</h3></div>
       <div class="card-body">
         <div class="prov-grid">
           <div class="prov active">
@@ -337,7 +337,7 @@
           </div>
         </div>
         <div class="deprec-note">
-          <b>⚠ Deprecation</b> · deepseek-reasoner / deepseek-chat 2026-07-24'te kaldırılacak. Kalıcı seçim: <span class="mono">deepseek-v4-pro</span>.
+          <b>⚠ Deprecation</b> <span data-i18n="dashboard.deepseek_removal">· deepseek-reasoner / deepseek-chat 2026-07-24'te kaldırılacak. Kalıcı seçim:</span> <span class="mono">deepseek-v4-pro</span>.
         </div>
         <div style="margin-top:18px;">
           <div class="label">Embedding</div>
