@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { logout } from "@/lib/auth";
+import { createClient } from "@/utils/supabase/server";
 
 export async function POST(req: Request) {
-  await logout();
+  const sb = await createClient();
+  await sb.auth.signOut();
   return NextResponse.redirect(`${new URL(req.url).origin}/`, { status: 303 });
 }

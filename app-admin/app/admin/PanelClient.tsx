@@ -7,9 +7,10 @@ type Props = {
   pending: PendingItem[];
   oldestAgeHours: number | null;
   autoHours: number;
+  userEmail: string;
 };
 
-export default function PanelClient({ pending, oldestAgeHours, autoHours }: Props) {
+export default function PanelClient({ pending, oldestAgeHours, autoHours, userEmail }: Props) {
   const router = useRouter();
   const [rejected, setRejected] = useState<Set<string>>(new Set());
   const [edits, setEdits] = useState<Record<string, string>>({});
@@ -114,6 +115,18 @@ export default function PanelClient({ pending, oldestAgeHours, autoHours }: Prop
               Çıkış
             </button>
           </form>
+          {userEmail && (
+            <div
+              style={{
+                fontSize: 11,
+                color: "var(--text-dim)",
+                marginTop: 6,
+                wordBreak: "break-all",
+              }}
+            >
+              👤 {userEmail}
+            </div>
+          )}
         </div>
       </aside>
 

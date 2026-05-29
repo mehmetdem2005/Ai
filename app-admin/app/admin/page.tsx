@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { isLoggedIn } from "@/lib/auth";
+import { getCurrentUser } from "@/lib/auth";
 import {
   getPendingItems,
   oldestPendingAgeHours,
@@ -10,7 +10,24 @@ import PanelClient from "./PanelClient";
 export const dynamic = "force-dynamic";
 
 export default async function AdminPage() {
-  if (!(await isLoggedIn())) redirect("/");
+  const user = await getCurrentUser();
+  if (!user) redirect("/");
+  if (user.role !== "admin") {
+    return (
+      <div className="layout">
+        <div className="main">
+          <h2>⛔ Erişim engellendi</h2>
+          <p className="subtitle">
+            <code>{user.email}</code> hesabının admin yetkisi yok. Yetki almak için
+            sistem yöneticisiyle iletişime geç.
+          </p>
+          <form method="POST" action="/api/logout">
+            <button type="submit">Çıkış yap</button>
+          </form>
+        </div>
+      </div>
+    );
+  }
 
   if (!supabaseConfigured()) {
     return (
@@ -38,6 +55,7 @@ export default async function AdminPage() {
       pending={pending}
       oldestAgeHours={oldestAge}
       autoHours={autoHours}
+      userEmail={user.email ?? ""}
     />
   );
 }

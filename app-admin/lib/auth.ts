@@ -1,57 +1,26 @@
-import { cookies } from "next/headers";
-import { createHash, timingSafeEqual } from "crypto";
+import { createClient } from "@/utils/supabase/server";
 
-const COOKIE_NAME = "sovereign_admin";
-const MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
+export type AuthedUser = {
+  id: string;
+  email: string | undefined;
+  role: string;
+};
 
-function token(): string {
-  const pw = process.env.ADMIN_PASSWORD ?? "";
-  const secret = process.env.SESSION_SECRET ?? "";
-  if (!pw || !secret) {
-    throw new Error("ADMIN_PASSWORD and SESSION_SECRET must be set");
-  }
-  return createHash("sha256").update(`${pw}::${secret}`).digest("hex");
+export async function getCurrentUser(): Promise<AuthedUser | null> {
+  const sb = await createClient();
+  const { data, error } = await sb.auth.getUser();
+  if (error || !data.user) return null;
+  const role =
+    (data.user.app_metadata && (data.user.app_metadata as Record<string, unknown>).role) ||
+    "user";
+  return {
+    id: data.user.id,
+    email: data.user.email,
+    role: String(role),
+  };
 }
 
-function safeEq(a: string, b: string): boolean {
-  const ba = Buffer.from(a);
-  const bb = Buffer.from(b);
-  if (ba.length !== bb.length) return false;
-  return timingSafeEqual(ba, bb);
-}
-
-export async function isLoggedIn(): Promise<boolean> {
-  if (!process.env.ADMIN_PASSWORD || !process.env.SESSION_SECRET) return false;
-  const c = await cookies();
-  const v = c.get(COOKIE_NAME)?.value;
-  if (!v) return false;
-  try {
-    return safeEq(v, token());
-  } catch {
-    return false;
-  }
-}
-
-export function checkPassword(input: string): boolean {
-  const pw = process.env.ADMIN_PASSWORD ?? "";
-  if (!pw) return false;
-  return safeEq(input, pw);
-}
-
-export async function login(): Promise<void> {
-  const c = await cookies();
-  c.set({
-    name: COOKIE_NAME,
-    value: token(),
-    httpOnly: true,
-    secure: true,
-    sameSite: "lax",
-    path: "/",
-    maxAge: MAX_AGE_SECONDS,
-  });
-}
-
-export async function logout(): Promise<void> {
-  const c = await cookies();
-  c.delete(COOKIE_NAME);
+export async function isAdmin(): Promise<boolean> {
+  const u = await getCurrentUser();
+  return u !== null && u.role === "admin";
 }
