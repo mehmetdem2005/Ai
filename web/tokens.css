@@ -531,3 +531,34 @@ footer.foot-pro {
 [data-accent="red"] {
   --cyan: #cf222e; --cyan-bright: #fa4549; --cyan-ink: #a40e26; --cyan-soft: #ffebe9;
 }
+
+/* ===== Mobile UX iyileştirmeleri (Faz 4) ===== */
+/* 1. Horizontal overflow defense (clip yerine hidden, sticky korunur) */
+html, body { overflow-x: clip; }
+
+/* 2. iOS safe area (notched ekranlarda alt boşluk) */
+.appbar { padding-bottom: env(safe-area-inset-bottom); }
+.footer { padding-bottom: calc(24px + env(safe-area-inset-bottom)); }
+
+/* 3. Tap highlight (görsel tıklama feedback) */
+a, button, .iconbtn { -webkit-tap-highlight-color: rgba(31, 111, 235, 0.1); }
+
+/* 4. Touch action (300ms tap delay'i kaldırır) */
+.dd-trigger, .iconbtn, button { touch-action: manipulation; }
+
+/* 5. Smooth scroll (TOC anchor linkleri) */
+html { scroll-behavior: smooth; }
+
+/* 6. Focus visible (klavye accessibility) */
+*:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
+
+/* 7. Selection color */
+::selection { background: var(--cyan-soft); color: var(--cyan-ink); }
+
+/* 8. Mobile-only / desktop-only utility classes */
+@media (min-width: 641px) {
+  .mobile-only { display: none !important; }
+}
+@media (max-width: 640px) {
+  .desktop-only { display: none !important; }
+}
