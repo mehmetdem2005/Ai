@@ -6,18 +6,31 @@ Akış:
   Supabase newsletters'a kayıt (social_posts ile) → status='published' güncellemesi →
   growth agent ile sosyal post üretimi (UI'da göster / DB'ye yaz).
 """
+import contextlib
 import logging
 import os
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
 import markdown as md_lib
+import requests
 
 import beehiiv_publisher
 import growth_agent
 
 ISTANBUL_TZ = ZoneInfo("Europe/Istanbul")
 logger = logging.getLogger("PublishWorkflow")
+
+
+def _trigger_site_rebuild() -> None:
+    """Yayın sonrası Vercel deploy hook'unu tetikler → halka açık site taze veriyle
+    yeniden derlenir. VERCEL_DEPLOY_HOOK_URL yoksa sessizce atlar."""
+    hook = os.getenv("VERCEL_DEPLOY_HOOK_URL")
+    if not hook:
+        return
+    with contextlib.suppress(requests.RequestException):
+        requests.post(hook, timeout=15)
+        logger.info("🔁 Vercel deploy hook tetiklendi — site tazeleniyor.")
 
 
 def render_html(markdown_content: str) -> str:
@@ -82,6 +95,9 @@ def publish_newsletter(
     # 7. Articles status: pending -> published
     hashes = [i["hash"] for i in items_sorted]
     store.update_articles_status(hashes, "published")
+
+    # 8. Halka açık siteyi (Vercel) tazele
+    _trigger_site_rebuild()
 
     logger.info(
         f"🚀 [{trigger}] Yayın tamam: {len(items_sorted)} haber. "

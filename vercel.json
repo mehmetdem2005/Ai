@@ -1,0 +1,8 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "pip3 install requests==2.32.3 && python3 web/build.py",
+  "outputDirectory": "web/dist",
+  "framework": null,
+  "cleanUrls": true,
+  "trailingSlash": false
+}
