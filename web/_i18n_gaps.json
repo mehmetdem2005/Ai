@@ -1,0 +1,688 @@
+{
+  "landing.html": [],
+  "reader.html": [],
+  "admin.html": [
+    {
+      "text": "yönetimi",
+      "context": "div > h1 > em"
+    },
+    {
+      "text": "Sovereign'in taradığı RSS/Atom kaynakları. Eklemeler bir sonraki batch çalışmasında etkin olur. Bu sayfa arama motorlarına kapalıdır.",
+      "context": "div > div > p"
+    },
+    {
+      "text": "Sağlıklı",
+      "context": "div > div > div"
+    },
+    {
+      "text": "Yavaş",
+      "context": "div > div > div"
+    },
+    {
+      "text": "Çevrim dışı",
+      "context": "div > div > div"
+    },
+    {
+      "text": "−1 dün",
+      "context": "div > div > div"
+    },
+    {
+      "text": "Kaynak adı",
+      "context": "div > div > label"
+    },
+    {
+      "text": "+ Ekle &amp; doğrula",
+      "context": "div > div > button"
+    },
+    {
+      "text": "öncelikli kaynak (×2)",
+      "context": "div > div > label"
+    },
+    {
+      "text": "önce doğrula",
+      "context": "div > div > label"
+    },
+    {
+      "text": "Tümü",
+      "context": "div > div > button"
+    },
+    {
+      "text": "Son çekim",
+      "context": "thead > tr > th"
+    },
+    {
+      "text": "Ağırlık",
+      "context": "thead > tr > th"
+    },
+    {
+      "text": "🔑 Yönetim anahtarı",
+      "context": "div > div > h3"
+    },
+    {
+      "text": "· Anahtar yalnızca bu cihazın tarayıcısında (localStorage) saklanır; siteye veya repoya gönderilmez. Ortak bilgisayarda kullanma; işin bitince \"Sil\"e bas.",
+      "context": "div > div > div"
+    }
+  ],
+  "editorial.html": [
+    {
+      "text": "← BÜLTEN LİSTESİNE DÖN",
+      "context": "body > article > a"
+    },
+    {
+      "text": "28 MAYIS 2026 · AKŞAM EDİSYONU",
+      "context": "article > div > span"
+    },
+    {
+      "text": "~6 DAKİKA",
+      "context": "article > div > span"
+    },
+    {
+      "text": "FDA, ilk yapay zekâ destekli radyoloji akışını onayladı. Yüzeyin altında ne",
+      "context": "body > article > h1"
+    },
+    {
+      "text": "değişti.",
+      "context": "article > h1 > em"
+    },
+    {
+      "text": "Onay başlığa çıktı. Asıl değişim üç katman aşağıda: lisanslı veri tedariki, yeni bir denetim emsali, ve şimdi sıraya giren dört dosya. Bugünün akşam brief'inden bir sentez.",
+      "context": "body > article > p"
+    },
+    {
+      "text": "SOVEREIGN EDİTÖRYAL",
+      "context": "article > div > span"
+    },
+    {
+      "text": "YAPAY ZEKÂ TARAFINDAN ÜRETİLDİ",
+      "context": "article > div > span"
+    },
+    {
+      "text": "Akşam",
+      "context": "div > div > div"
+    },
+    {
+      "text": "Üretim",
+      "context": "div > div > div"
+    },
+    {
+      "text": "5 bölüm",
+      "context": "div > div > div"
+    },
+    {
+      "text": "Onay sınırlı endikasyon ile geldi: toraks tomografisinde küçük nodül triajı, altı milimetreden küçükler filtresiyle.",
+      "context": "article > div > p"
+    },
+    {
+      "text": "Bu, başlığın söylediği değil; başlığın söylemediği önemli.",
+      "context": "div > p > strong"
+    },
+    {
+      "text": "Yıl içinde kapsamın genişleyebileceğini, benzer dosyaların kuyruğa girdiğini gösteren üç ayrı raporu aynı gün içinde okuduk.",
+      "context": "article > div > p"
+    },
+    {
+      "text": "Ön klinik aşamadaki dört rakip benzer mimari aileyi kullanıyor. Asıl fark, eğitim verisinin",
+      "context": "article > div > p"
+    },
+    {
+      "text": "lisanslı çoklu-merkez kohort",
+      "context": "div > p > strong"
+    },
+    {
+      "text": "olması: kişisel sağlık verisinden arındırılmış, geri-izlenebilir, ve önemli olarak yeniden eğitilemeyen bir veri tabanı. Bu, modelin tekrarlanabilirliğini de belirsizleştiriyor.",
+      "context": "article > div > p"
+    },
+    {
+      "text": "Bu sefer 510(k) eşdeğeri yerine",
+      "context": "article > div > p"
+    },
+    {
+      "text": "seçildi. Bu, gelecek dosyalar için referans oluşturuyor; mimari özgüllüğü olmayan modeller için yeni bir denetim kategorisi açıldı. Konvansiyonu değiştiren karar bu.",
+      "context": "article > div > p"
+    },
+    {
+      "text": "\"Bu, yapay zekânın klinik akışa girdiği ilk dosya değil — ilk",
+      "context": "article > div > div"
+    },
+    {
+      "text": "dosyası.\"",
+      "context": "article > div > div"
+    },
+    {
+      "text": "Etki orta-ölçekli görüntüleme entegratörlerinde toplanıyor",
+      "context": "div > p > strong"
+    },
+    {
+      "text": ": satış döngüsü kısalır, pazarın geleneksel oligopolü sıkışır. Üç ayrı kanal raporu bu yönde.",
+      "context": "article > div > p"
+    },
+    {
+      "text": "SİNYAL YOĞUNLUĞU · SON 14 GÜN",
+      "context": "div > div > span"
+    },
+    {
+      "text": "SOVEREIGN ARŞİV",
+      "context": "div > div > span"
+    },
+    {
+      "text": "Bülten edisyonları başına yayınlanan sinyal sayısı. 28 Mayıs akşam edisyonu zirvede.",
+      "context": "div > div > div"
+    },
+    {
+      "text": "/ Çekincenin yeri",
+      "context": "article > div > h2"
+    },
+    {
+      "text": "Pazar sonrası gözlem verisi henüz şeffaf değil.",
+      "context": "article > div > p"
+    },
+    {
+      "text": "İki ön klinik dosyada",
+      "context": "div > p > strong"
+    },
+    {
+      "text": "alt-grup performansında ırk-ilişkili sapma raporlandı; bu rapor mevcut onayda açıklanmadı. Takip eden 12 ay kritik — şeffaflık getirilmezse bir sonraki dosya zorlaşır.",
+      "context": "article > div > p"
+    },
+    {
+      "text": "Klinik akışta radyolog başına gözden geçirme süresi",
+      "context": "div > ul > li"
+    },
+    {
+      "text": "Orta-ölçekli görüntüleme entegratörleri için satış döngüsü kısalır.",
+      "context": "div > ul > li"
+    },
+    {
+      "text": "De Novo yolu emsal oluşturdu; foundation-model tabanlı cihazlar için kategori açıldı.",
+      "context": "div > ul > li"
+    },
+    {
+      "text": "Lisanslı PHI-arındırılmış kohort tedariki dar bir oligopol — bu yapı belirsiz.",
+      "context": "div > ul > li"
+    },
+    {
+      "text": "Sovereign editoryal ekibi takip listesinde: bu mimariyi kullanan üç ek başvuru. Bir sonraki edisyonda ilk dosyanın FDA Q-Sub yanıtını özetleyeceğiz.",
+      "context": "article > div > p"
+    },
+    {
+      "text": "28 MAYIS 2026 · AKŞAM EDİSYONU",
+      "context": "div > div > span"
+    }
+  ],
+  "dashboard.html": [
+    {
+      "text": "Bülten · 30g",
+      "context": "div > div > div"
+    },
+    {
+      "text": "Dedup oranı",
+      "context": "div > div > div"
+    },
+    {
+      "text": "Sinyal yoğunluğu · son 14 gün",
+      "context": "div > div > h3"
+    },
+    {
+      "text": "Dedup oranı",
+      "context": "div > div > h3"
+    },
+    {
+      "text": "Eşik",
+      "context": "div > div > div"
+    },
+    {
+      "text": "Kaynak sağlığı · 142 toplam",
+      "context": "div > div > h3"
+    },
+    {
+      "text": "LLM sağlayıcı",
+      "context": "div > div > h3"
+    },
+    {
+      "text": "· deepseek-reasoner / deepseek-chat 2026-07-24'te kaldırılacak. Kalıcı seçim:",
+      "context": "div > div > div"
+    }
+  ],
+  "abonelik.html": [
+    {
+      "text": "Üç plan.",
+      "context": "div > div > h1"
+    },
+    {
+      "text": "Hep aynı brief.",
+      "context": "div > h1 > em"
+    },
+    {
+      "text": "Sovereign'in editoryal kalitesi her planda aynı. Plan farkı erişim derinliği ve ekibinizin yararlanabileceği özellikler.",
+      "context": "div > div > p"
+    },
+    {
+      "text": "Ücretsiz",
+      "context": "div > div > div"
+    },
+    {
+      "text": "Sektörü uzaktan takip etmek için temel paket.",
+      "context": "div > div > p"
+    },
+    {
+      "text": "Bedavadan başla",
+      "context": "div > div > button"
+    },
+    {
+      "text": "Günde 2 brief (sabah &amp; akşam)",
+      "context": "div > ul > li"
+    },
+    {
+      "text": "Son 30 gün arşivi",
+      "context": "div > ul > li"
+    },
+    {
+      "text": "Tam arşiv erişimi",
+      "context": "div > ul > li"
+    },
+    {
+      "text": "Konu kümeleri filtresi",
+      "context": "div > ul > li"
+    },
+    {
+      "text": "Ekip lisansı",
+      "context": "div > ul > li"
+    },
+    {
+      "text": "Önerilen",
+      "context": "div > div > div"
+    },
+    {
+      "text": "Bireysel profesyoneller için tam erişim.",
+      "context": "div > div > p"
+    },
+    {
+      "text": "Pro'ya geç →",
+      "context": "div > div > button"
+    },
+    {
+      "text": "Günde 2 brief + haftalık uzun okuma",
+      "context": "div > ul > li"
+    },
+    {
+      "text": "Tam arşiv erişimi (sınırsız)",
+      "context": "div > ul > li"
+    },
+    {
+      "text": "Konu kümeleri ve özel filtreler",
+      "context": "div > ul > li"
+    },
+    {
+      "text": "Sabah özet podcast'i",
+      "context": "div > ul > li"
+    },
+    {
+      "text": "Bağımsız bültenler (regulasyon, klinik)",
+      "context": "div > ul > li"
+    },
+    {
+      "text": "Soru sormak için doğrudan editör erişimi",
+      "context": "div > ul > li"
+    },
+    {
+      "text": "Ekip lisansı",
+      "context": "div > ul > li"
+    },
+    {
+      "text": "Görüşelim",
+      "context": "div > div > span"
+    },
+    {
+      "text": "5+ kişilik ekipler, kurumlar ve eğitim için.",
+      "context": "div > div > p"
+    },
+    {
+      "text": "İletişime geç",
+      "context": "div > div > a"
+    },
+    {
+      "text": "Tüm Pro özellikleri",
+      "context": "div > ul > li"
+    },
+    {
+      "text": "Ekip lisansı (sınırsız kullanıcı)",
+      "context": "div > ul > li"
+    },
+    {
+      "text": "Özel raporlar ve sektör derlemeleri",
+      "context": "div > ul > li"
+    },
+    {
+      "text": "Önceliklendirilmiş yazışma",
+      "context": "div > ul > li"
+    },
+    {
+      "text": "Eğitim oturumları (3 ayda bir)",
+      "context": "div > ul > li"
+    },
+    {
+      "text": "Aylık sektör paneli",
+      "context": "div > ul > li"
+    },
+    {
+      "text": "Plan karşılaştırması",
+      "context": "body > section > h2"
+    },
+    {
+      "text": "Özellik",
+      "context": "thead > tr > th"
+    },
+    {
+      "text": "Günlük brief (2×)",
+      "context": "tbody > tr > td"
+    },
+    {
+      "text": "Arşiv erişimi",
+      "context": "tbody > tr > td"
+    },
+    {
+      "text": "30 gün",
+      "context": "tbody > tr > td"
+    },
+    {
+      "text": "Haftalık uzun okuma",
+      "context": "tbody > tr > td"
+    },
+    {
+      "text": "Konu kümeleri",
+      "context": "tbody > tr > td"
+    },
+    {
+      "text": "Editör erişimi",
+      "context": "tbody > tr > td"
+    },
+    {
+      "text": "Öncelikli",
+      "context": "tbody > tr > td"
+    },
+    {
+      "text": "Ekip lisansı",
+      "context": "tbody > tr > td"
+    },
+    {
+      "text": "Sınırsız",
+      "context": "tbody > tr > td"
+    },
+    {
+      "text": "Özel raporlar",
+      "context": "tbody > tr > td"
+    },
+    {
+      "text": "Aylık sektör paneli",
+      "context": "tbody > tr > td"
+    },
+    {
+      "text": "Sıkça sorulan",
+      "context": "body > section > h2"
+    },
+    {
+      "text": "İstediğim zaman iptal edebilir miyim?",
+      "context": "section > details > summary"
+    },
+    {
+      "text": "Evet. Pro abonelikler aylık otomatik yenilenir, panelinizden tek tıkla iptal edersiniz. İptal sonrası dönem sonuna kadar erişiminiz devam eder.",
+      "context": "section > details > p"
+    },
+    {
+      "text": "Ücretsiz plan ne zamana kadar geçerli?",
+      "context": "section > details > summary"
+    },
+    {
+      "text": "Sürekli. Ücretsiz plan zaman sınırlı bir deneme değil; kalıcı bir plan. Sadece bazı özelliklere erişim sınırlı.",
+      "context": "section > details > p"
+    },
+    {
+      "text": "Pro plan fiyatlandırmasına KDV dahil mi?",
+      "context": "section > details > summary"
+    },
+    {
+      "text": "Evet, ₺149 fiyatı KDV dahil son tutardır. Fatura kesim talebinde bulunursanız kurumsal faturalandırma yapılır.",
+      "context": "section > details > p"
+    },
+    {
+      "text": "Birden çok kişiyle aboneliği paylaşabilir miyim?",
+      "context": "section > details > summary"
+    },
+    {
+      "text": "Bireysel Pro abonelikler tek kullanıcılıdır. 3 veya daha fazla kullanıcıya ihtiyacınız varsa Team planı maliyet açısından daha avantajlı.",
+      "context": "section > details > p"
+    },
+    {
+      "text": "Hangi ödeme yöntemlerini kabul ediyorsunuz?",
+      "context": "section > details > summary"
+    },
+    {
+      "text": "Bireysel: Kredi/banka kartı (Visa, Mastercard, Troy), Apple Pay, Google Pay. Kurumsal: havale/EFT ile yıllık ödeme.",
+      "context": "section > details > p"
+    }
+  ],
+  "ayarlar.html": [
+    {
+      "text": "Türkçe",
+      "context": "a > div > div"
+    },
+    {
+      "text": "Ana dil · yayında",
+      "context": "a > div > div"
+    }
+  ],
+  "hakkinda.html": [
+    {
+      "text": "/ Hakkımızda",
+      "context": "div > div > div"
+    },
+    {
+      "text": "yayın ekibi.",
+      "context": "div > h1 > em"
+    },
+    {
+      "text": "Bir motor değil.",
+      "context": "div > div > h1"
+    },
+    {
+      "text": "Sovereign'i kim hazırlıyor, sinyali nasıl seçiyoruz, hangi kaynakları izliyoruz. Editorial standartlarımız ve sıkça sorulan sorular.",
+      "context": "div > div > p"
+    },
+    {
+      "text": "İçindekiler",
+      "context": "div > aside > div"
+    },
+    {
+      "text": "Künye",
+      "context": "div > aside > a"
+    },
+    {
+      "text": "İletişim",
+      "context": "div > aside > a"
+    },
+    {
+      "text": "Gürültüyü",
+      "context": "main > section > h2"
+    },
+    {
+      "text": "Biyoteknoloji ve yapay zekâ kesişiminde her gün yüzlerce makale yayınlanıyor. Büyük çoğunluğu yeniden yazılmış başlıklar, klikbait ve yüzeysel sentezler. Bir profesyonelin haftasını şekillendirecek",
+      "context": "main > section > p"
+    },
+    {
+      "text": "gerçek bilgi",
+      "context": "section > p > strong"
+    },
+    {
+      "text": "bu hacmin altında kalıyor.",
+      "context": "main > section > p"
+    },
+    {
+      "text": "Sovereign bu hacmi tarayan, tekrarları eleyen ve geriye kalanı Türkçe bir brief'e dönüştüren bir motor. Amaç hız değil;",
+      "context": "main > section > p"
+    },
+    {
+      "text": ". Beş dakikanız karşılığında neyi okumanız gerektiğini göstermek.",
+      "context": "main > section > p"
+    },
+    {
+      "text": "02 / Künye",
+      "context": "main > section > div"
+    },
+    {
+      "text": "Yapı.",
+      "context": "main > section > h2"
+    },
+    {
+      "text": "Sovereign tek kişilik bir yayın. Tarama, eleme, yazım ve yayın yapay zekâ tarafından yürütülür; çerçeve ve kaynak listesi insan tarafından belirlenir ve sürdürülür.",
+      "context": "main > section > p"
+    },
+    {
+      "text": "İçerik tek başına karar referansı olarak kullanılmamalı. Her brief'in sonundaki kaynak listesine geri dönülmesi önerilir.",
+      "context": "main > section > p"
+    },
+    {
+      "text": "Süreç.",
+      "context": "main > section > h2"
+    },
+    {
+      "text": "Her edisyon altı adımdan geçer. Tüm süreç yapay zekâ tarafından yürütülür; çerçeve ve kaynak listesi insan tarafından belirlenir.",
+      "context": "main > section > p"
+    },
+    {
+      "text": "Belirlenen yayınlar gece-gündüz takip edilir. Akademik dergiler, regulasyon kaynakları, sektör analizleri, klinik veritabanları.",
+      "context": "div > div > p"
+    },
+    {
+      "text": "Yapay zekâ aynı haberin farklı versiyonlarını ve yüzeysel kopyaları birleştirir.",
+      "context": "div > div > p"
+    },
+    {
+      "text": "Bağlamlama",
+      "context": "div > div > h4"
+    },
+    {
+      "text": "Kalan her hikaye, ilişkili önceki materyallerle birlikte değerlendirilir.",
+      "context": "div > div > p"
+    },
+    {
+      "text": "Yazım",
+      "context": "div > div > h4"
+    },
+    {
+      "text": "Beş bölümlü standart yapı: sinyal, bağlam, etki, çekince, takip. Yapay zekâ tarafından yazılır.",
+      "context": "div > div > p"
+    },
+    {
+      "text": "Yayın",
+      "context": "div > div > h4"
+    },
+    {
+      "text": "Brief sabah ve akşam edisyonu olarak otomatik yayınlanır.",
+      "context": "div > div > p"
+    },
+    {
+      "text": "Okuyucu hata bildirimleri kaynak listesinin güncellenmesinde dikkate alınır.",
+      "context": "div > div > p"
+    },
+    {
+      "text": "04 / İzlenen kaynaklar",
+      "context": "main > section > div"
+    },
+    {
+      "text": "Kategori bazında.",
+      "context": "main > section > h2"
+    },
+    {
+      "text": "İzlenen kaynaklar aşağıdaki kategorilere ayrılır. Tam liste",
+      "context": "main > section > p"
+    },
+    {
+      "text": "dosyasında — herkese açık.",
+      "context": "main > section > p"
+    },
+    {
+      "text": "WHO, ICH duyuruları",
+      "context": "div > ul > li"
+    },
+    {
+      "text": "Sektör analizleri",
+      "context": "div > div > h5"
+    },
+    {
+      "text": "Klinik araştırma",
+      "context": "div > div > h5"
+    },
+    {
+      "text": "Şirket duyuruları",
+      "context": "div > div > h5"
+    },
+    {
+      "text": "Halka açık dosyalar",
+      "context": "div > ul > li"
+    },
+    {
+      "text": "Resmî basın duyuruları",
+      "context": "div > ul > li"
+    },
+    {
+      "text": "05 / Sıkça sorulan",
+      "context": "main > section > div"
+    },
+    {
+      "text": "İçeriği kim yazıyor?",
+      "context": "div > details > summary"
+    },
+    {
+      "text": "Tarama, yazım ve yayın yapay zekâ tarafından yürütülür. Format şablonu ve kaynak listesi tek bir kişi tarafından sürdürülür.",
+      "context": "div > details > p"
+    },
+    {
+      "text": "Brief'i karar referansı olarak kullanabilir miyim?",
+      "context": "div > details > summary"
+    },
+    {
+      "text": "Hayır. Brief tarama amaçlıdır; ürün, klinik veya yatırım kararı için tek başına referans değildir. Her zaman brief sonundaki kaynak listesindeki yayınlara geri dönün.",
+      "context": "div > details > p"
+    },
+    {
+      "text": "Sektörün nereye baktığını ve neyin gündem olduğunu görmek için bir tarama aracı olarak çalışır. Yüzlerce başlığa göz atmaktan zaman tasarrufu sağlar; ama hiçbirinin yerine geçmez.",
+      "context": "div > details > p"
+    },
+    {
+      "text": "Hata var, ne yapayım?",
+      "context": "div > details > summary"
+    },
+    {
+      "text": "İletişim bölümündeki adresten ulaşın. Yapısal hatalar bildirilince kaynak listesi güncellenir ve sonraki edisyonlar etkilenir.",
+      "context": "div > details > p"
+    },
+    {
+      "text": "Kaynakları nereden görebilirim?",
+      "context": "div > details > summary"
+    },
+    {
+      "text": "Her brief'in altında kaynak listesi yer alır. Taranan tüm yayınlar açık kaynak şeklinde",
+      "context": "div > details > p"
+    },
+    {
+      "text": "dosyasındadır.",
+      "context": "div > details > p"
+    },
+    {
+      "text": "06 / İletişim",
+      "context": "main > section > div"
+    },
+    {
+      "text": "Soru, geri bildirim, hata bildirimi için tek bir adres. Tek kişilik bir yayın — her mesajı ben okuyorum.",
+      "context": "main > section > p"
+    },
+    {
+      "text": "Her türlü soru, geri bildirim, hata bildirimi.",
+      "context": "div > div > p"
+    },
+    {
+      "text": "Kaynak listesini görmek, sorun açmak, kod incelemek.",
+      "context": "div > div > p"
+    }
+  ]
+}

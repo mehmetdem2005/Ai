@@ -226,15 +226,15 @@
 
   <aside class="list-col">
     <div class="list-head">
-      <h2>Bülten arşivi</h2>
-      <div class="meta">GÜNDE 2× · SABAH &amp; AKŞAM EDİSYONLARI</div>
+      <h2 data-i18n="reader.archive_title">Bülten arşivi</h2>
+      <div class="meta" data-i18n="reader.archive_meta">GÜNDE 2× · SABAH &amp; AKŞAM EDİSYONLARI</div>
       <div class="filt">
-        <span class="chip active">Tümü</span>
-        <span class="chip">7 gün</span>
-        <span class="chip">30 gün</span>
-        <span class="chip">Regulasyon</span>
-        <span class="chip">Klinik AI</span>
-        <span class="chip">CRISPR</span>
+        <span class="chip active" data-i18n="reader.chip_all">Tümü</span>
+        <span class="chip" data-i18n="reader.chip_7d">7 gün</span>
+        <span class="chip" data-i18n="reader.chip_30d">30 gün</span>
+        <span class="chip" data-i18n="reader.chip_regulation">Regülasyon</span>
+        <span class="chip" data-i18n="reader.chip_clinical_ai">Klinik AI</span>
+        <span class="chip" data-i18n="reader.chip_crispr">CRISPR</span>
       </div>
     </div>
 
@@ -243,10 +243,10 @@
 
   <main class="reader-col">
     <div class="reader-head" id="readerHead">
-      <span class="sid" id="rhSid">YÜKLENİYOR…</span>
+      <span class="sid" id="rhSid" data-i18n="reader.loading">Bültenler yükleniyor…</span>
     </div>
     <article class="reader-body" id="readerBody">
-      <p style="color: var(--mid); padding: 40px 0;">Bültenler yükleniyor…</p>
+      <p style="color: var(--mid); padding: 40px 0;" data-i18n="reader.loading">Bültenler yükleniyor…</p>
     </article>
   </main>
 </div>
@@ -348,12 +348,12 @@
       const r = await fetch("./data.json", { cache: "no-store" });
       data = await r.json();
     } catch {
-      document.getElementById("readerBody").innerHTML = '<p style="color:var(--alert);padding:40px 0;">Veri yüklenemedi.</p>';
+      document.getElementById("readerBody").innerHTML = '<p style="color:var(--alert);padding:40px 0;" data-i18n="reader.load_error">Veri yüklenemedi.</p>';
       return;
     }
     if (!data.length) {
-      document.getElementById("rhSid").textContent = "BÜLTEN YOK";
-      document.getElementById("readerBody").innerHTML = '<p style="color:var(--mid);padding:40px 0;">Henüz bülten üretilmedi.</p>';
+      document.getElementById("rhSid").textContent = "";
+      document.getElementById("readerBody").innerHTML = '<p style="color:var(--mid);padding:40px 0;" data-i18n="reader.empty_title">Henüz bülten üretilmedi.</p>';
       return;
     }
     renderList();

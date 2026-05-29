@@ -135,6 +135,22 @@
         sec_acc: "Hesap",
         sec_acc_desc: "Profil bilgileri ve güvenlik.",
       },
+      reader: {
+        archive_title: "Bülten arşivi",
+        archive_meta: "GÜNDE 2× · SABAH & AKŞAM EDİSYONLARI",
+        chip_all: "Tümü",
+        chip_7d: "7 gün",
+        chip_30d: "30 gün",
+        chip_regulation: "Regülasyon",
+        chip_clinical_ai: "Klinik AI",
+        chip_crispr: "CRISPR",
+        empty_title: "Henüz bülten üretilmedi.",
+        loading: "Bültenler yükleniyor…",
+        load_error: "Veri yüklenemedi.",
+        share_btn: "⤴ Paylaş",
+        download_btn: "⤓ İndir",
+        in_publication: "YAYINDA",
+      },
       footer: {
         col_brief: "Bülten",
         col_about: "Hakkında",
@@ -254,6 +270,22 @@
         sec_acc: "Account",
         sec_acc_desc: "Profile information and security.",
       },
+      reader: {
+        archive_title: "Brief archive",
+        archive_meta: "TWICE DAILY · MORNING & EVENING EDITIONS",
+        chip_all: "All",
+        chip_7d: "7 days",
+        chip_30d: "30 days",
+        chip_regulation: "Regulation",
+        chip_clinical_ai: "Clinical AI",
+        chip_crispr: "CRISPR",
+        empty_title: "No briefs published yet.",
+        loading: "Loading briefs…",
+        load_error: "Could not load data.",
+        share_btn: "⤴ Share",
+        download_btn: "⤓ Download",
+        in_publication: "PUBLISHED",
+      },
       footer: {
         col_brief: "Briefs", col_about: "About", col_sub: "Subscribe",
         link_brief_today: "Today's brief", link_brief_archive: "Archive",
@@ -362,6 +394,22 @@
         sec_sub_desc: "Tu plan actual e información de facturación.",
         sec_acc: "Cuenta",
         sec_acc_desc: "Información de perfil y seguridad.",
+      },
+      reader: {
+        archive_title: "Archivo de boletines",
+        archive_meta: "DOS VECES AL DÍA · EDICIONES MAÑANA Y NOCHE",
+        chip_all: "Todos",
+        chip_7d: "7 días",
+        chip_30d: "30 días",
+        chip_regulation: "Regulación",
+        chip_clinical_ai: "IA Clínica",
+        chip_crispr: "CRISPR",
+        empty_title: "Aún no hay boletines publicados.",
+        loading: "Cargando boletines…",
+        load_error: "No se pudieron cargar los datos.",
+        share_btn: "⤴ Compartir",
+        download_btn: "⤓ Descargar",
+        in_publication: "PUBLICADO",
       },
       footer: {
         col_brief: "Boletines", col_about: "Acerca", col_sub: "Suscripción",
@@ -472,6 +520,22 @@
         sec_acc: "Konto",
         sec_acc_desc: "Profilinformationen und Sicherheit.",
       },
+      reader: {
+        archive_title: "Briefing-Archiv",
+        archive_meta: "2× TÄGLICH · MORGEN- & ABENDAUSGABEN",
+        chip_all: "Alle",
+        chip_7d: "7 Tage",
+        chip_30d: "30 Tage",
+        chip_regulation: "Regulierung",
+        chip_clinical_ai: "Klinische KI",
+        chip_crispr: "CRISPR",
+        empty_title: "Noch keine Briefings veröffentlicht.",
+        loading: "Briefings werden geladen…",
+        load_error: "Daten konnten nicht geladen werden.",
+        share_btn: "⤴ Teilen",
+        download_btn: "⤓ Herunterladen",
+        in_publication: "VERÖFFENTLICHT",
+      },
       footer: {
         col_brief: "Briefings", col_about: "Über", col_sub: "Abonnement",
         link_brief_today: "Heutiges Briefing", link_brief_archive: "Archiv",
@@ -493,26 +557,94 @@
     return path.split('.').reduce((o, k) => (o && o[k] != null ? o[k] : undefined), obj);
   }
 
+  // Eksik anahtarları bir kez logla, spam etmesin
+  const _warnedMissing = new Set();
+
+  function warnMissing(key, lang) {
+    const id = `${lang}::${key}`;
+    if (_warnedMissing.has(id)) return;
+    _warnedMissing.add(id);
+    console.warn(`[i18n] eksik anahtar (${lang}): "${key}"`);
+  }
+
+  function resolveValue(key, lang) {
+    // 1) Hedef dilde dene
+    const target = get(T[lang] || {}, key);
+    if (typeof target === 'string') return { value: target, lang };
+    // 2) TR'ye fallback (kaynak dil)
+    if (lang !== 'tr') {
+      const tr = get(T.tr || {}, key);
+      if (typeof tr === 'string') {
+        warnMissing(key, lang);
+        return { value: tr, lang: 'tr', fallback: true };
+      }
+    }
+    // 3) Hiçbiri yok — anahtarı kendisini döndür ki en azından bir şey görünsün
+    warnMissing(key, lang);
+    return { value: null, lang: 'tr', missing: true };
+  }
+
+  function isDebug() {
+    return location.search.indexOf('i18n=debug') >= 0;
+  }
+
+  function applyTo(el, key, lang) {
+    const res = resolveValue(key, lang);
+    if (res.value != null) {
+      el.textContent = res.value;
+    }
+    el.classList.remove('i18n-fallback', 'i18n-missing');
+    if (isDebug()) {
+      if (res.missing) el.classList.add('i18n-missing');
+      else if (res.fallback) el.classList.add('i18n-fallback');
+    }
+  }
+
+  function applyAttr(el, attr, key, lang) {
+    const res = resolveValue(key, lang);
+    if (res.value != null) {
+      el.setAttribute(attr, res.value);
+    }
+  }
+
+  function injectDebugStyle() {
+    if (document.getElementById('i18n-debug-style')) return;
+    const s = document.createElement('style');
+    s.id = 'i18n-debug-style';
+    s.textContent = `
+.i18n-fallback { outline: 2px dashed #fbbf24 !important; outline-offset: 1px; }
+.i18n-missing  { outline: 2px solid  #ef4444 !important; outline-offset: 1px; background: rgba(239,68,68,.08) !important; }
+.i18n-untagged { outline: 2px dotted #ec4899 !important; outline-offset: 1px; }
+.i18n-debug-banner {
+  position: fixed; bottom: 16px; right: 16px; z-index: 99999;
+  background: #1f2328; color: #fff; padding: 10px 14px; border-radius: 8px;
+  font: 12px ui-monospace,monospace; max-width: 360px; line-height: 1.4;
+  box-shadow: 0 8px 24px rgba(0,0,0,.3);
+}
+`;
+    document.head.appendChild(s);
+  }
+
   function translateAll(lang) {
-    const dict = T[lang] || T.tr;
-    document.documentElement.lang = lang;
+    if (isDebug()) injectDebugStyle();
+    const safeLang = T[lang] ? lang : 'tr';
+    document.documentElement.lang = safeLang;
 
     document.querySelectorAll('[data-i18n]').forEach(el => {
       const key = el.getAttribute('data-i18n');
-      const val = get(dict, key);
-      if (typeof val === 'string') el.textContent = val;
+      applyTo(el, key, safeLang);
     });
 
     document.querySelectorAll('[data-i18n-attr]').forEach(el => {
       const spec = el.getAttribute('data-i18n-attr');
       spec.split(',').forEach(pair => {
         const [attr, key] = pair.split(':').map(s => s.trim());
-        const val = get(dict, key);
-        if (typeof val === 'string') el.setAttribute(attr, val);
+        if (attr && key) applyAttr(el, attr, key, safeLang);
       });
     });
 
-    // Language picker labels
+    // Dil seçici label'ları
+    const dict = T[safeLang] || T.tr;
     document.querySelectorAll('.lang-option[data-lang], .lang-pick[data-lang-pick]').forEach(el => {
       const code = el.dataset.lang || el.dataset.langPick;
       const info = dict.lang?.[code];
@@ -523,7 +655,100 @@
         if (sEl) sEl.textContent = info.status;
       }
     });
+
+    if (isDebug()) {
+      auditUntagged();
+      updateDebugBanner();
+    }
+
+    // Custom event — diğer scriptler dinleyip dinamik içeriği güncelleyebilir
+    document.dispatchEvent(new CustomEvent('i18n:applied', { detail: { lang: safeLang } }));
   }
 
-  window.sovereignI18n = { T, translateAll, get };
+  // ── Otomatik dinamik içerik çevirisi ─────────────────────────────────────
+  // JS ile sonradan eklenen [data-i18n] node'ları yakalayıp çevirir.
+  let _observer = null;
+  function startObserver() {
+    if (_observer) return;
+    _observer = new MutationObserver((mutations) => {
+      const lang = localStorage.getItem('sov_lang') || 'tr';
+      for (const m of mutations) {
+        m.addedNodes.forEach(node => {
+          if (node.nodeType !== 1) return;
+          if (node.hasAttribute && node.hasAttribute('data-i18n')) {
+            applyTo(node, node.getAttribute('data-i18n'), lang);
+          }
+          if (node.querySelectorAll) {
+            node.querySelectorAll('[data-i18n]').forEach(el => {
+              applyTo(el, el.getAttribute('data-i18n'), lang);
+            });
+            node.querySelectorAll('[data-i18n-attr]').forEach(el => {
+              const spec = el.getAttribute('data-i18n-attr');
+              spec.split(',').forEach(pair => {
+                const [attr, key] = pair.split(':').map(s => s.trim());
+                if (attr && key) applyAttr(el, attr, key, lang);
+              });
+            });
+            if (isDebug()) auditUntagged();
+          }
+        });
+      }
+      if (isDebug()) updateDebugBanner();
+    });
+    _observer.observe(document.body, { childList: true, subtree: true });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', startObserver);
+  } else {
+    startObserver();
+  }
+
+  // ── Debug: data-i18n'siz görünür Türkçe text node'ları işaretle ────────
+  const TR_CHAR_RX = /[ığüşöçİĞÜŞÖÇ]/;
+  function auditUntagged() {
+    const walker = document.createTreeWalker(
+      document.body, NodeFilter.SHOW_TEXT,
+      {
+        acceptNode(n) {
+          const t = (n.nodeValue || '').trim();
+          if (t.length < 2) return NodeFilter.FILTER_REJECT;
+          if (!TR_CHAR_RX.test(t)) return NodeFilter.FILTER_REJECT;
+          let p = n.parentElement;
+          while (p) {
+            const tag = p.tagName;
+            if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'NOSCRIPT') return NodeFilter.FILTER_REJECT;
+            if (p.hasAttribute('data-i18n')) return NodeFilter.FILTER_REJECT;
+            if (p.classList && p.classList.contains('i18n-ignore')) return NodeFilter.FILTER_REJECT;
+            p = p.parentElement;
+          }
+          return NodeFilter.FILTER_ACCEPT;
+        }
+      }
+    );
+    let n, count = 0;
+    while ((n = walker.nextNode())) {
+      const p = n.parentElement;
+      if (p) p.classList.add('i18n-untagged');
+      count++;
+    }
+    window._i18nUntagged = count;
+  }
+  function updateDebugBanner() {
+    let b = document.getElementById('i18n-debug-banner');
+    if (!b) {
+      b = document.createElement('div');
+      b.id = 'i18n-debug-banner';
+      b.className = 'i18n-debug-banner';
+      document.body.appendChild(b);
+    }
+    const missing = _warnedMissing.size;
+    const untagged = window._i18nUntagged || 0;
+    b.innerHTML =
+      `<b>i18n debug</b><br>` +
+      `kırmızı: eksik anahtar (${missing})<br>` +
+      `sarı: TR fallback<br>` +
+      `pembe: data-i18n yok (${untagged})`;
+  }
+
+  window.sovereignI18n = { T, translateAll, get, resolveValue };
 })();

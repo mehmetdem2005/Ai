@@ -97,3 +97,11 @@ if (HERE / "admin.js").exists():
 print(f"✓ {len(rows)} bülten + {len(PAGE_MAP)} sayfa + {len(ASSETS)} asset → dist/")
 if not ANON_KEY:
     print("⚠️  SUPABASE_ANON_KEY env yok — login akışı çalışmaz.")
+
+# i18n audit: data-i18n olmayan görünür Türkçe metni listele (build'i kırmaz)
+try:
+    import subprocess
+    print()
+    subprocess.run(["python3", str(HERE / "i18n_audit.py")], check=False)
+except Exception as exc:
+    print(f"⚠️ i18n audit çalışamadı: {exc}")
