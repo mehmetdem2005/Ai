@@ -6,5 +6,42 @@
   "dashboard.html": [],
   "abonelik.html": [],
   "ayarlar.html": [],
-  "hakkinda.html": []
+  "hakkinda.html": [
+    {
+      "text": "Gürültüyü",
+      "context": "main > section > h2"
+    },
+    {
+      "text": "Biyoteknoloji ve yapay zekâ kesişiminde her gün yüzlerce makale yayınlanıyor. Büyük çoğunluğu yeniden yazılmış başlıklar, klikbait ve yüzeysel sentezler. Bir profesyonelin haftasını şekillendirecek",
+      "context": "main > section > p"
+    },
+    {
+      "text": "bu hacmin altında kalıyor.",
+      "context": "main > section > p"
+    },
+    {
+      "text": "Sovereign bu hacmi tarayan, tekrarları eleyen ve geriye kalanı Türkçe bir brief'e dönüştüren bir motor. Amaç hız değil;",
+      "context": "main > section > p"
+    },
+    {
+      "text": ". Beş dakikanız karşılığında neyi okumanız gerektiğini göstermek.",
+      "context": "main > section > p"
+    },
+    {
+      "text": "İzlenen kaynaklar aşağıdaki kategorilere ayrılır. Tam liste",
+      "context": "main > section > p"
+    },
+    {
+      "text": "dosyasında — herkese açık.",
+      "context": "main > section > p"
+    },
+    {
+      "text": "Her brief'in altında kaynak listesi yer alır. Taranan tüm yayınlar açık kaynak şeklinde",
+      "context": "div > details > p"
+    },
+    {
+      "text": "dosyasındadır.",
+      "context": "div > details > p"
+    }
+  ]
 }
