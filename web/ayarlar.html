@@ -498,7 +498,11 @@
   }, 500);
 
   document.getElementById('signInBtn')?.addEventListener('click', () => {
-    document.getElementById('sovBackdrop')?.classList.add('open');
+    if (typeof window.sovOpenLogin === 'function') {
+      window.sovOpenLogin();
+    } else {
+      document.getElementById('sovBackdrop')?.classList.add('open');
+    }
   });
 
   document.getElementById('changeEmailBtn')?.addEventListener('click', async () => {

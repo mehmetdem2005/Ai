@@ -161,9 +161,22 @@
   }
 
   function openLogin() {
-    document.getElementById("sovBackdrop").classList.add("open");
-    setTimeout(() => document.getElementById("sovEmail").focus(), 50);
+    const backdrop = document.getElementById("sovBackdrop");
+    if (!backdrop) {
+      // Modal henüz inject olmadı — bir sonraki frame'de tekrar dene
+      setTimeout(openLogin, 100);
+      return;
+    }
+    backdrop.classList.add("open");
+    setTimeout(() => {
+      const em = document.getElementById("sovEmail");
+      if (em) em.focus();
+    }, 50);
   }
+
+  // Sayfa içi gate butonları (admin/dashboard/ayarlar #gateSignIn, #signInBtn)
+  // global olarak openLogin'i çağırabilsin
+  window.sovOpenLogin = openLogin;
 
   async function logout() {
     await window.sovSb.auth.signOut();
@@ -249,20 +262,31 @@
     const oldBar = actions.querySelector(".sov-admin-bar");
     if (oldBar) oldBar.remove();
 
-    // nav.js'in koyduğu varsayılan "Giriş" linki — auth durumuna göre yöneteceğiz
+    // nav.js'in koyduğu TÜM "Giriş" linkleri — masthead + drawer + sayfa içi gate'ler
+    // (querySelectorAll, sadece masthead değil tüm sayfa)
+    const allLoginLinks = document.querySelectorAll(".login-link");
     const loginLink = actions.querySelector(".login-link");
 
     if (!session) {
-      // Anon: "Giriş" linkini aktif et
-      if (loginLink) {
-        loginLink.onclick = (e) => { e.preventDefault(); openLogin(); };
-        loginLink.style.display = "";
-      }
+      // Anon: TÜM .login-link tıklamalarını modal'a bağla
+      allLoginLinks.forEach((link) => {
+        link.onclick = (e) => {
+          e.preventDefault();
+          // Drawer açıksa önce kapat (modal drawer'ın üstüne çıksın, görsel temiz olsun)
+          const drawer = document.getElementById("navDrawer");
+          if (drawer && drawer.classList.contains("open")) {
+            drawer.classList.remove("open");
+            document.body.style.overflow = "";
+          }
+          openLogin();
+        };
+        link.style.display = "";
+      });
       return;
     }
 
-    // Login olmuş: "Giriş" linkini gizle, admin bar ekle
-    if (loginLink) loginLink.style.display = "none";
+    // Login olmuş: TÜM "Giriş" linklerini gizle, admin bar ekle
+    allLoginLinks.forEach((link) => { link.style.display = "none"; });
 
     const u = session.user;
     const role = (u && u.app_metadata && u.app_metadata.role) || "user";
