@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="/tokens.css" />
 <link rel="stylesheet" href="/admin/shell.css" />
+<link rel="stylesheet" href="/admin/lib/lib.css" />
 </head>
 <body class="admin-body" hidden>
 
@@ -191,6 +192,21 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<!-- Shared lib (dependency-free, sırayla yüklensin) -->
+<script src="/admin/lib/state.js"></script>
+<script src="/admin/lib/badge.js"></script>
+<script src="/admin/lib/toast.js"></script>
+<script src="/admin/lib/modal.js"></script>
+<script src="/admin/lib/db.js"></script>
+<script src="/admin/lib/table.js"></script>
+<script src="/admin/lib/filter.js"></script>
+<script src="/admin/lib/form.js"></script>
+<script src="/admin/lib/markdown.js"></script>
+<script src="/admin/lib/detailTabs.js"></script>
+<script src="/admin/lib/keys.js"></script>
+<!-- Modüller (self-register via Admin.register) -->
+<script src="/admin/modules/overview.js"></script>
+<!-- Shell EN SONA — Admin.modules dolduktan sonra init() -->
 <script src="/admin/shell.js"></script>
 </body>
 </html>

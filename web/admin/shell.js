@@ -15,11 +15,15 @@
     settings:    { label: "Ayarlar",          parent: "Sistem" },
   };
 
-  let sb = null;
+  const Admin = window.Admin = window.Admin || {};
+  Admin.routes = ROUTES;
+  Admin.modules = {};
+  Admin.register = function (name, mod) { Admin.modules[name] = mod; };
 
-  function bounce() {
-    location.replace("/");
-  }
+  let activeRoute = null;
+  let activeUnmount = null;
+
+  function bounce() { location.replace("/"); }
 
   function parseHash() {
     const raw = (location.hash || "#/overview").replace(/^#\/?/, "");
@@ -27,25 +31,48 @@
     return ROUTES[name] ? name : "overview";
   }
 
-  function setActiveRoute(name) {
-    document.querySelectorAll(".route").forEach(el => {
-      el.hidden = el.dataset.route !== name;
-    });
-    document.querySelectorAll(".sb-item").forEach(el => {
-      el.classList.toggle("active", el.dataset.route === name);
-    });
-    renderCrumbs(name);
-    document.title = `Sovereign · ${ROUTES[name].label}`;
-    document.querySelector(".content")?.scrollTo(0, 0);
-  }
-
   function renderCrumbs(name) {
     const r = ROUTES[name];
     const crumbs = document.getElementById("crumbs");
+    if (!crumbs) return;
     const parts = [`<a href="#/overview">Admin</a>`];
     if (r.parent) parts.push(`<span class="sep">/</span><span>${r.parent}</span>`);
     parts.push(`<span class="sep">/</span><span class="current">${r.label}</span>`);
     crumbs.innerHTML = parts.join(" ");
+  }
+  Admin.setCrumb = function (extra) {
+    const r = ROUTES[activeRoute];
+    if (!r) return;
+    const crumbs = document.getElementById("crumbs");
+    if (!crumbs) return;
+    const parts = [`<a href="#/overview">Admin</a>`];
+    if (r.parent) parts.push(`<span class="sep">/</span><span>${r.parent}</span>`);
+    parts.push(`<span class="sep">/</span><a href="#/${activeRoute}">${r.label}</a>`);
+    if (extra) parts.push(`<span class="sep">/</span><span class="current">${extra}</span>`);
+    crumbs.innerHTML = parts.join(" ");
+  };
+
+  function mountRoute(name) {
+    if (activeUnmount) { try { activeUnmount(); } catch {} activeUnmount = null; }
+    document.querySelectorAll(".route").forEach(el => { el.hidden = el.dataset.route !== name; });
+    document.querySelectorAll(".sb-item").forEach(el => { el.classList.toggle("active", el.dataset.route === name); });
+    activeRoute = name;
+    renderCrumbs(name);
+    document.title = `Sovereign · ${ROUTES[name].label}`;
+
+    const section = document.querySelector(`.route[data-route="${name}"]`);
+    if (!section) return;
+    const mod = Admin.modules[name];
+    if (mod && typeof mod.mount === "function") {
+      try {
+        const ret = mod.mount(section, Admin.ctx);
+        if (typeof ret === "function") activeUnmount = ret;
+        else if (ret && typeof ret.unmount === "function") activeUnmount = ret.unmount.bind(ret);
+      } catch (e) {
+        Admin.state?.render(section, { error: e });
+      }
+    }
+    document.querySelector(".content")?.scrollTo(0, 0);
   }
 
   function bindShellEvents() {
@@ -67,65 +94,65 @@
       if (dd) dd.hidden = true;
     });
     document.getElementById("signOutBtn")?.addEventListener("click", async () => {
-      await sb.auth.signOut();
+      await Admin.db.sb.auth.signOut();
       bounce();
     });
-    window.addEventListener("hashchange", () => setActiveRoute(parseHash()));
+    window.addEventListener("hashchange", () => mountRoute(parseHash()));
     if (localStorage.getItem("admin_sb_collapsed") === "1") {
       document.getElementById("adminApp").classList.add("sb-collapsed");
     }
   }
 
-  async function loadOverview() {
-    if (!sb) return;
-    try {
-      const ops = [
-        sb.from("profiles").select("id", { count: "exact", head: true }),
-        sb.from("niches").select("id", { count: "exact", head: true }).eq("active", true),
-        sb.from("briefs").select("id", { count: "exact", head: true })
-          .gte("created_at", new Date(Date.now() - 7 * 86400e3).toISOString()),
-      ];
-      const [u, n, b] = await Promise.all(ops);
-      document.getElementById("kpiUsers").textContent = u.count ?? "—";
-      document.getElementById("kpiNiches").textContent = n.count ?? "—";
-      document.getElementById("kpiBriefs").textContent = b.count ?? "—";
-      document.getElementById("kpiCron").textContent = "—";
-    } catch (e) {
-      // tablo/RLS yok: sessizce — KPI'lar — kalır
-    }
-  }
-
-  function showApp(session) {
+  function showApp(ctx) {
     document.body.hidden = false;
     document.getElementById("adminApp").hidden = false;
-    const email = session.user.email || "admin";
+    const email = ctx.session.user.email || "admin";
     document.getElementById("userEmail").textContent = email;
     document.getElementById("userAvatar").textContent = (email[0] || "·").toUpperCase();
     bindShellEvents();
-    setActiveRoute(parseHash());
-    loadOverview();
+    mountRoute(parseHash());
   }
 
   async function init() {
-    if (!window.supabase || SUPABASE_URL.indexOf("__") === 0) {
-      bounce();
-      return;
-    }
-    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    if (!window.supabase || SUPABASE_URL.indexOf("__") === 0) { bounce(); return; }
+    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       auth: { persistSession: true, autoRefreshToken: true, storageKey: "sov-auth" },
     });
     const { data: { session } } = await sb.auth.getSession();
-    const role = session?.user?.app_metadata?.role;
-    if (!session || role !== "admin") {
-      bounce();
-      return;
+    if (!session) { bounce(); return; }
+
+    // Gerçek IAM: admin_users tablosundan rol oku.
+    // app_metadata fallback'i geriye uyumluluk için tutulur.
+    let role = null;
+    let capabilities = [];
+    try {
+      const { data, error } = await sb.from("admin_users")
+        .select("role, active")
+        .eq("user_id", session.user.id)
+        .eq("active", true)
+        .maybeSingle();
+      if (error) throw error;
+      role = data?.role || null;
+      if (role) {
+        const { data: r } = await sb.from("admin_roles")
+          .select("capabilities").eq("role", role).maybeSingle();
+        capabilities = r?.capabilities || [];
+      }
+    } catch {}
+
+    if (!role) {
+      const legacy = session.user?.app_metadata?.role;
+      if (legacy === "admin") { role = "admin"; capabilities = ["*"]; }
     }
-    showApp(session);
+
+    if (!role) { bounce(); return; }
+
+    const ctx = { session, role, capabilities };
+    Admin.ctx = ctx;
+    Admin.initDb(sb, ctx);
+    showApp(ctx);
   }
 
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", init);
-  } else {
-    init();
-  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
+  else init();
 })();
