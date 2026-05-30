@@ -142,19 +142,17 @@
   max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   padding: 0 4px;
 }
-/* Mobil: label gizleme YOK — sadece çok dar ekranda email gizle.
-   Butonların durumu emoji'yle değil, RENK + LABEL ile anlatılır. */
+/* Mobil: label HER ZAMAN görünür kalır (Supabase prensibi: net state)
+   Bar wrap eder, butonlar 2 satıra geçebilir. Email gizlenir (yer kazanır). */
 @media (max-width: 720px) {
   .sov-user-email { display: none; }
   .sov-admin-bar { gap: 5px; }
-  .sov-admin-btn { font-size: 11.5px; padding: 6px 9px; gap: 5px; }
+  .sov-admin-btn { font-size: 11.5px; padding: 6px 8px; gap: 4px; min-height: 32px; }
 }
-@media (max-width: 420px) {
-  /* Çok dar ekranda label kısaltma */
-  .sov-admin-btn .label-long { display: none; }
-}
-@media (min-width: 421px) {
-  .sov-admin-btn .label-short { display: none; }
+@media (max-width: 480px) {
+  /* Çok dar ekranda butonlar bir satırda sığsın — Admin link 2. satıra wrap */
+  .sov-admin-btn { font-size: 11px; padding: 5px 7px; }
+  .sov-admin-bar { row-gap: 6px; }
 }
 `;
     document.head.appendChild(style);
@@ -207,6 +205,21 @@
   // global olarak openLogin'i çağırabilsin
   window.sovOpenLogin = openLogin;
 
+  // Document-level event delegation: nerede olursa olsun, .login-link tıklanırsa
+  // login modal açılır. renderAuth'tan önce/sonra fark etmez, race condition yok.
+  document.addEventListener("click", function (e) {
+    const link = e.target.closest && e.target.closest(".login-link");
+    if (!link) return;
+    e.preventDefault();
+    // Drawer açıksa kapat (modal drawer'ın üstüne çıksın, görsel temiz olsun)
+    const drawer = document.getElementById("navDrawer");
+    if (drawer && drawer.classList.contains("open")) {
+      drawer.classList.remove("open");
+      document.body.style.overflow = "";
+    }
+    openLogin();
+  });
+
   async function logout() {
     await window.sovSb.auth.signOut();
     await renderAuth();
@@ -232,18 +245,14 @@
     // Tüm durum sınıflarını temizle
     btn.classList.remove("primary", "ghost", "state-on", "state-off");
     if (state === "active") {
-      btn.innerHTML =
-        '<span class="state-dot"></span>' +
-        '<span class="label"><span class="label-long">Cron AÇIK</span><span class="label-short">AÇIK</span></span>';
+      btn.innerHTML = '<span class="state-dot"></span><span class="label">Cron Açık</span>';
       btn.title = "Otomatik cron çalışıyor (08:00 ve 18:00 İstanbul) — tıkla durdur.";
       btn.classList.add("state-on");
     } else if (state === "unknown") {
-      btn.innerHTML = '⚠️ <span class="label">Cron ?</span>';
+      btn.innerHTML = '<span class="state-dot" style="background:var(--mid,#59636E)"></span><span class="label">Cron ?</span>';
       btn.title = "Cron durumu okunamadı.";
     } else {
-      btn.innerHTML =
-        '<span class="state-dot"></span>' +
-        '<span class="label"><span class="label-long">Cron KAPALI</span><span class="label-short">KAPALI</span></span>';
+      btn.innerHTML = '<span class="state-dot"></span><span class="label">Cron Kapalı</span>';
       btn.title = "Otomatik cron durduruldu — tıkla başlat.";
       btn.classList.add("state-off");
     }
@@ -330,10 +339,7 @@
     bar.className = "sov-admin-bar";
 
     if (role === "admin") {
-      const triggerBtn = makeBtn(
-        '🚀 <span class="label"><span class="label-long">Bülten Tetikle</span><span class="label-short">Tetikle</span></span>',
-        "primary"
-      );
+      const triggerBtn = makeBtn('🚀 <span class="label">Tetikle</span>', "primary");
       triggerBtn.title = "Worker'ı şimdi tetikle — yeni haberler çekilir";
       triggerBtn.onclick = () => triggerWorkflow(triggerBtn);
       bar.appendChild(triggerBtn);
