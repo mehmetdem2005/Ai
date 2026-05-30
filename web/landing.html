@@ -197,27 +197,62 @@
     .today-bar .title { font-size: 14.5px; }
     .today-bar .arrow { font-size: 13px; }
 
-    /* Modüller: KOMPAKT 2-KOLON BENTO GRİD (uzun stack yerine) */
-    .modules { padding: 24px 16px 28px; }
-    .modules-head { margin-bottom: 16px; }
-    .modules-head .label { font-size: 10.5px; margin-bottom: 6px; }
-    .modules-head h2 { font-size: 22px; line-height: 1.2; }
+    /* Modüller: KOMPAKT 2-KOLON BENTO GRİD + tutarlı kart hizası */
+    .modules {
+      padding: 28px 16px 32px;
+      background: var(--bg-2);
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+    .modules-head { margin-bottom: 16px; text-align: left; }
+    .modules-head .label {
+      font-size: 10.5px; margin-bottom: 6px;
+      letter-spacing: 0.08em; color: var(--mid);
+    }
+    .modules-head h2 {
+      font-size: 22px; line-height: 1.2;
+      letter-spacing: -0.02em;
+    }
     .module-grid {
       grid-template-columns: 1fr 1fr;
       gap: 10px;
     }
     .module-card {
-      padding: 14px 12px;
-      min-height: 0;
-      display: flex; flex-direction: column;
+      padding: 16px 14px;
+      min-height: 120px;
+      display: flex !important;
+      flex-direction: column;
       gap: 6px;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
     }
+    /* Tek kalan 9. kart 2 kolon kaplar — simetri korunur */
+    .module-card.module-card-wide {
+      grid-column: 1 / -1;
+      flex-direction: row !important;
+      align-items: center;
+      min-height: 0;
+      padding: 14px 16px;
+      gap: 14px;
+    }
+    .module-card-wide .mc-icon { margin: 0; flex-shrink: 0; }
+    .module-card-wide h3 { margin: 0; flex: 0 0 auto; }
+    .module-card-wide p { flex: 1; -webkit-line-clamp: 1; }
+    .module-card-wide .arrow { margin: 0 0 0 4px; }
+
     .module-card .mc-icon {
       width: 32px; height: 32px;
       margin-bottom: 4px;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: var(--cyan-soft);
+      border-radius: var(--radius);
     }
-    .module-card .mc-icon svg { width: 16px; height: 16px; }
-    .module-card h3 { font-size: 14px; margin: 0; line-height: 1.25; }
+    .module-card .mc-icon svg { width: 16px; height: 16px; stroke: var(--cyan-ink); }
+    .module-card h3 {
+      font-size: 14px; margin: 0; line-height: 1.25;
+      font-weight: 600;
+    }
     .module-card p {
       font-size: 11.5px; line-height: 1.4;
       color: var(--mid); margin: 0;
@@ -225,6 +260,7 @@
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
+      flex: 1;
     }
     .module-card .arrow {
       font-size: 11px; margin-top: auto;
@@ -404,7 +440,7 @@
         <span class="arrow" data-i18n="common.open">Aç →</span>
       </a>
 
-      <a class="module-card" href="hakkinda.html#iletisim">
+      <a class="module-card module-card-wide" href="hakkinda.html#iletisim">
         <div class="mc-icon">
           <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
         </div>
