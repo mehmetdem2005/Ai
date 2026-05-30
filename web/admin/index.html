@@ -6,19 +6,10 @@
 <title>Sovereign · Admin</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="../tokens.css" />
-<link rel="stylesheet" href="shell.css" />
+<link rel="stylesheet" href="/tokens.css" />
+<link rel="stylesheet" href="/admin/shell.css" />
 </head>
-<body class="admin-body">
-
-<div id="adminGate" class="gate">
-  <div class="gate-card">
-    <h1>Sovereign Admin</h1>
-    <p>Bu panel sadece yetkili kullanıcılara açıktır.</p>
-    <button class="btn primary" id="gateSignIn">Giriş yap</button>
-    <p class="gate-err" id="gateErr"></p>
-  </div>
-</div>
+<body class="admin-body" hidden>
 
 <div id="adminApp" class="admin-app" hidden>
   <aside class="sidebar" id="sidebar">
@@ -200,6 +191,6 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="shell.js"></script>
+<script src="/admin/shell.js"></script>
 </body>
 </html>

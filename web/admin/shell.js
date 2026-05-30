@@ -4,7 +4,7 @@
 
   const ROUTES = {
     overview:    { label: "Özet" },
-    newsletters: { label: "Bültenler",      parent: "İçerik" },
+    newsletters: { label: "Bültenler",       parent: "İçerik" },
     articles:    { label: "Makaleler",       parent: "İçerik" },
     cms:         { label: "Site metinleri",  parent: "İçerik" },
     sources:     { label: "Kaynaklar",       parent: "Kaynak & İşlem" },
@@ -17,9 +17,8 @@
 
   let sb = null;
 
-  function ready(fn) {
-    if (document.readyState !== "loading") fn();
-    else document.addEventListener("DOMContentLoaded", fn);
+  function bounce() {
+    location.replace("/");
   }
 
   function parseHash() {
@@ -45,8 +44,7 @@
     const crumbs = document.getElementById("crumbs");
     const parts = [`<a href="#/overview">Admin</a>`];
     if (r.parent) parts.push(`<span class="sep">/</span><span>${r.parent}</span>`);
-    if (name !== "overview") parts.push(`<span class="sep">/</span><span class="current">${r.label}</span>`);
-    else parts.push(`<span class="sep">/</span><span class="current">${r.label}</span>`);
+    parts.push(`<span class="sep">/</span><span class="current">${r.label}</span>`);
     crumbs.innerHTML = parts.join(" ");
   }
 
@@ -70,7 +68,7 @@
     });
     document.getElementById("signOutBtn")?.addEventListener("click", async () => {
       await sb.auth.signOut();
-      location.reload();
+      bounce();
     });
     window.addEventListener("hashchange", () => setActiveRoute(parseHash()));
     if (localStorage.getItem("admin_sb_collapsed") === "1") {
@@ -81,7 +79,6 @@
   async function loadOverview() {
     if (!sb) return;
     try {
-      const headers = {};
       const ops = [
         sb.from("profiles").select("id", { count: "exact", head: true }),
         sb.from("niches").select("id", { count: "exact", head: true }).eq("active", true),
@@ -94,73 +91,41 @@
       document.getElementById("kpiBriefs").textContent = b.count ?? "—";
       document.getElementById("kpiCron").textContent = "—";
     } catch (e) {
-      // Tablo yoksa veya RLS engel: sessizce — placeholder gösterilmeye devam eder
+      // tablo/RLS yok: sessizce — KPI'lar — kalır
     }
-  }
-
-  async function gateUser() {
-    if (!window.supabase || SUPABASE_URL.indexOf("__") === 0) {
-      showGateErr("Yapılandırma eksik. SUPABASE env değişkenleri lazım.");
-      return null;
-    }
-    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: { persistSession: true, autoRefreshToken: true, storageKey: "sov-auth" },
-    });
-    const { data: { session } } = await sb.auth.getSession();
-    if (!session) {
-      bindGateSignIn(null);
-      return null;
-    }
-    const role = session.user?.app_metadata?.role;
-    if (role !== "admin") {
-      showGateErr("Bu hesap admin değil. Yetkili bir hesapla giriş yap.");
-      bindGateSignIn(session.user.email);
-      return null;
-    }
-    return session;
-  }
-
-  function showGateErr(msg) {
-    document.getElementById("gateErr").textContent = msg;
-  }
-
-  function bindGateSignIn(currentEmail) {
-    const btn = document.getElementById("gateSignIn");
-    if (currentEmail) btn.textContent = "Farklı hesapla giriş";
-    btn.onclick = async () => {
-      const email = prompt("E-posta:");
-      if (!email) return;
-      const password = prompt("Şifre:");
-      if (!password) return;
-      btn.disabled = true; btn.textContent = "Giriş yapılıyor…";
-      try {
-        const { error } = await sb.auth.signInWithPassword({ email: email.trim(), password });
-        if (error) { showGateErr(error.message); return; }
-        location.reload();
-      } catch (e) {
-        showGateErr(e.message || "Bağlantı hatası.");
-      } finally {
-        btn.disabled = false; btn.textContent = "Giriş yap";
-      }
-    };
   }
 
   function showApp(session) {
-    document.getElementById("adminGate").hidden = true;
-    const app = document.getElementById("adminApp");
-    app.hidden = false;
-
+    document.body.hidden = false;
+    document.getElementById("adminApp").hidden = false;
     const email = session.user.email || "admin";
     document.getElementById("userEmail").textContent = email;
-    document.getElementById("userAvatar").textContent = email[0] || "·";
-
+    document.getElementById("userAvatar").textContent = (email[0] || "·").toUpperCase();
     bindShellEvents();
     setActiveRoute(parseHash());
     loadOverview();
   }
 
-  ready(async () => {
-    const session = await gateUser();
-    if (session) showApp(session);
-  });
+  async function init() {
+    if (!window.supabase || SUPABASE_URL.indexOf("__") === 0) {
+      bounce();
+      return;
+    }
+    sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { persistSession: true, autoRefreshToken: true, storageKey: "sov-auth" },
+    });
+    const { data: { session } } = await sb.auth.getSession();
+    const role = session?.user?.app_metadata?.role;
+    if (!session || role !== "admin") {
+      bounce();
+      return;
+    }
+    showApp(session);
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
 })();
