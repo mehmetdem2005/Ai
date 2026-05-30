@@ -456,7 +456,11 @@
 
   // Sign in (gate)
   document.getElementById('gateSignIn')?.addEventListener('click', () => {
-    document.getElementById('sovBackdrop')?.classList.add('open');
+    if (typeof window.sovOpenLogin === 'function') {
+      window.sovOpenLogin();
+    } else {
+      document.getElementById('sovBackdrop')?.classList.add('open');
+    }
   });
 
   // Run now
