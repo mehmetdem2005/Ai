@@ -489,7 +489,7 @@
   function shortTitle(content) {
     const m = (content || "").match(/^#\s+(.+)$/m);
     let t = m ? m[1] : "Bülten";
-    t = t.replace(/^[🧬🚀📊💡⚡🔬]\s*/, "");
+    t = t.replace(/^[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}]+\s*/u, "");
     return t.length > 92 ? t.slice(0, 90) + "…" : t;
   }
   function bodyFromContent(content) {

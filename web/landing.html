@@ -476,7 +476,7 @@
   function shortTitle(content) {
     const m = (content || "").match(/^#\s+(.+)$/m);
     let t = m ? m[1] : "Bülten";
-    t = t.replace(/^[🧬🚀📊💡⚡🔬]\s*/, "");
+    t = t.replace(/^[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}]+\s*/u, "");
     return t.length > 86 ? t.slice(0, 84) + "…" : t;
   }
   function shortDate(d) { return `${d.getDate()} ${TR_MONTHS_SHORT[d.getMonth()]}`; }
