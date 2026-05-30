@@ -21,9 +21,10 @@ from . import embed, summarize
 
 log = logging.getLogger(__name__)
 
-DEFAULT_THRESHOLD = 0.65
+DEFAULT_THRESHOLD = 0.72  # text-embedding-3-small medical literature için temiz başlangıç
 DEFAULT_TOP_K_PER_NICHE = 5
 DEFAULT_LOOKBACK_HOURS = 48
+DEFAULT_DEDUP_WINDOW_DAYS = 7  # son 7 gün başka briefde gönderilmiş item'ları ele
 
 
 def fetch_user_niches(db: SupabaseClient, user_id: str) -> list[dict]:
@@ -102,19 +103,27 @@ def upsert_items(db: SupabaseClient, raw_items: list[RawItem]) -> dict[str, int]
 
 def match_niche(
     db: SupabaseClient,
+    user_id: str,
     niche: dict,
     *,
     top_k: int = DEFAULT_TOP_K_PER_NICHE,
     lookback_hours: int = DEFAULT_LOOKBACK_HOURS,
+    dedup_window_days: int = DEFAULT_DEDUP_WINDOW_DAYS,
 ) -> list[dict]:
-    """Tek niş için en yakın top_k yeni item'ı döndürür (Supabase RPC)."""
+    """Tek niş için en yakın top_k yeni item (RPC v2 — son N gün gönderilenleri eler).
+    Niş embedding'i yoksa boş döner: cli `embed-niches` adımı sync'i sağlamalı."""
+    if not niche.get("embedding"):
+        log.warning("Niş id=%s embedding null — embed-niches sync edilmedi mi?", niche.get("id"))
+        return []
     since = (datetime.now(timezone.utc) - timedelta(hours=lookback_hours)).isoformat()
     threshold = niche.get("threshold") or DEFAULT_THRESHOLD
-    return db.rpc("match_items_for_niche", {
-        "niche_embedding": niche["embedding"],
-        "match_threshold": threshold,
-        "match_count": top_k,
-        "since": since,
+    return db.rpc("match_items_for_niche_v2", {
+        "p_user_id": user_id,
+        "p_niche_embedding": niche["embedding"],
+        "p_match_threshold": threshold,
+        "p_match_count": top_k,
+        "p_since": since,
+        "p_dedup_window_days": dedup_window_days,
     })
 
 
@@ -139,7 +148,7 @@ def build_brief_for_user(
     sections: dict[int, list[dict]] = {}
     seen_items: set[int] = set()
     for niche in niches:
-        matches = match_niche(db, niche, top_k=top_k, lookback_hours=lookback_hours)
+        matches = match_niche(db, user_id, niche, top_k=top_k, lookback_hours=lookback_hours)
         # Aynı item birden fazla nişte top'taysa en yüksek skorlu olana ata
         filtered = []
         for m in matches:

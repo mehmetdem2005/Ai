@@ -1,10 +1,11 @@
 """Sovereign V2 CLI.
 
 Komutlar:
+  python -m sovereign.cli embed-niches   # Aktif nişlerin embedding'lerini senkronize et
   python -m sovereign.cli fetch          # Tüm aktif kullanıcı nişleri için kaynak tara
   python -m sovereign.cli brief --all    # Her aktif kullanıcı için brief üret
   python -m sovereign.cli brief --user X # Tek kullanıcı için brief üret
-  python -m sovereign.cli daily          # fetch + brief --all (cron için)
+  python -m sovereign.cli daily          # embed-niches + fetch + brief --all (cron için)
 """
 from __future__ import annotations
 
@@ -24,7 +25,7 @@ if _env_file.exists():
             os.environ.setdefault(k.strip(), v.strip())
 
 from .db import SupabaseClient
-from .pipeline import fetch, match
+from .pipeline import embed_niches, fetch, match
 
 logging.basicConfig(
     level=logging.INFO,
@@ -32,6 +33,13 @@ logging.basicConfig(
     datefmt="%H:%M:%S",
 )
 log = logging.getLogger("sovereign")
+
+
+def cmd_embed_niches(args: argparse.Namespace) -> int:
+    db = SupabaseClient()
+    res = embed_niches.sync_niche_embeddings(db)
+    log.info("Niş embedding sync: %s", res)
+    return 0
 
 
 def cmd_fetch(args: argparse.Namespace) -> int:
@@ -84,7 +92,12 @@ def cmd_brief(args: argparse.Namespace) -> int:
 
 
 def cmd_daily(args: argparse.Namespace) -> int:
-    """fetch + brief --all (cron için)"""
+    """embed-niches + fetch + brief --all (cron için).
+    embed-niches her sabah ilk adım — yeni niş eklenmiş veya düzenlenmişse
+    embedding'i güncel kalsın."""
+    rc = cmd_embed_niches(args)
+    if rc != 0:
+        return rc
     rc = cmd_fetch(args)
     if rc != 0:
         return rc
@@ -96,6 +109,9 @@ def cmd_daily(args: argparse.Namespace) -> int:
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="sovereign")
     sub = p.add_subparsers(dest="cmd", required=True)
+
+    pe = sub.add_parser("embed-niches", help="Aktif nişlerin embedding'lerini senkronize et")
+    pe.set_defaults(func=cmd_embed_niches)
 
     pf = sub.add_parser("fetch", help="Kaynakları tara, items DB'sine yeni içerik ekle")
     pf.add_argument("--lookback-hours", type=int, default=48)

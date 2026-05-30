@@ -69,7 +69,7 @@
   <div class="topbar">
     <div class="brand">Sovereign<span class="dot">.</span> <span style="font-family:var(--font-mono);font-size:11px;color:var(--mid);letter-spacing:0.12em">PRO</span></div>
     <div class="actions">
-      <a href="./onboarding.html">Niş ayarları</a>
+      <a href="./onboarding.html">Konular</a>
       <button onclick="signOut()">Çıkış</button>
     </div>
   </div>
@@ -111,7 +111,7 @@ function renderBrief(brief, items, nichesMap) {
     content.innerHTML = `<div class="empty">
       <div class="icon">📭</div>
       <p><strong>Bugün eşleşen yeni içerik yok.</strong></p>
-      <p>Yarın sabah tekrar bak veya <a href="./onboarding.html">niş tanımını genişlet</a>.</p>
+      <p>Yarın sabah tekrar bak veya <a href="./onboarding.html">konu tanımını genişlet</a>.</p>
     </div>`;
     return;
   }
@@ -128,7 +128,7 @@ function renderBrief(brief, items, nichesMap) {
     const sec = document.createElement('section');
     sec.className = 'niche-section';
     sec.innerHTML = `<div class="niche-head">
-      <div class="nh-label">${escapeHtml(niche?.label || 'Niş')}</div>
+      <div class="nh-label">${escapeHtml(niche?.label || 'Konu')}</div>
       <div class="nh-count">${list.length} makale</div>
     </div>`;
     for (const m of list) {
@@ -160,7 +160,7 @@ function renderBrief(brief, items, nichesMap) {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.href = './index.html'; return; }
 
-  // Niş'leri yükle (etiket göstermek için)
+  // Konuları yükle (etiket göstermek için)
   const { data: niches } = await sb.from('niches').select('id,label').eq('is_active', true);
   if (!niches || !niches.length) {
     window.location.href = './onboarding.html';
@@ -183,7 +183,7 @@ function renderBrief(brief, items, nichesMap) {
     document.getElementById('content').innerHTML = `<div class="empty">
       <div class="icon">⏳</div>
       <p><strong>İlk brief'in hazırlanıyor.</strong></p>
-      <p>Niş tanımların kaydedildi. İlk brief en geç sabah 06:30'da burada olur.</p>
+      <p>Konu tanımların kaydedildi. İlk brief en geç sabah 06:30'da burada olur.</p>
     </div>`;
     return;
   }

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Sovereign Pro · Niş tanımla</title>
+<title>Sovereign Pro · Konu tanımla</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="../tokens.css" />
@@ -59,8 +59,8 @@
 <div class="ob-wrap">
   <div class="ob-header">
     <div class="crumb">Sovereign Pro · Kurulum 1/1</div>
-    <h1>Niş konularını tanımla.</h1>
-    <p class="dek">Sistem her sabah PubMed + ClinicalTrials.gov + medRxiv + bioRxiv havuzunu tarayıp <strong>sadece bu nişlere</strong> dokunan yeni içerikleri Türkçe özetle önüne koyar.</p>
+    <h1>Takip edeceğin konuları tanımla.</h1>
+    <p class="dek">Spesifik bir tedavi, ilaç, mekanizma, klinik soru — ne olursa olsun. Sistem her sabah PubMed + ClinicalTrials.gov + medRxiv + bioRxiv havuzunu tarayıp <strong>sadece bu konulara</strong> dokunan yeni makaleleri Türkçe özetle önüne koyar.</p>
   </div>
 
   <div class="specialty-row">
@@ -83,7 +83,7 @@
 
   <div id="msg" hidden></div>
   <div id="nichesList"></div>
-  <button class="add-btn" onclick="addNiche()" id="addBtn">+ Yeni niş ekle</button>
+  <button class="add-btn" onclick="addNiche()" id="addBtn">+ Yeni konu ekle</button>
 
   <div class="actions">
     <button class="btn-secondary" onclick="window.location.href='./index.html'">İptal</button>
@@ -128,21 +128,21 @@ function render() {
     const card = document.createElement('div');
     card.className = 'niche-card';
     card.innerHTML = `
-      <div class="badge">Niş ${idx + 1}</div>
+      <div class="badge">Konu ${idx + 1}</div>
       <button class="remove" onclick="removeNiche(${idx})" title="Sil">✕</button>
       <div class="field">
         <label>Kısa etiket</label>
         <input type="text" value="${escapeHtml(n.label)}" oninput="niches[${idx}].label=this.value" placeholder="örn. HER2+ metastatik meme · ADC" />
       </div>
       <div class="field">
-        <label>Niş tanımı (serbest metin) <span style="color:var(--mid);font-weight:400">— sistem buradan embedding üretir</span></label>
+        <label>Konu tanımı (serbest metin) <span style="color:var(--mid);font-weight:400">— sistem buradan embedding üretir</span></label>
         <textarea oninput="niches[${idx}].description=this.value" placeholder="Konuyu somut alt-başlıklarla tanımla. Tedavi, popülasyon, mekanizma, hedef molekül, klinik soru — ne kadar spesifik o kadar iyi match.">${escapeHtml(n.description)}</textarea>
         <div class="hint">İpucu: 2-4 cümle. Hedef hasta grubu + ilaç/mekanizma + spesifik klinik soru.</div>
       </div>
       <div class="field">
         <label>PubMed sorgusu (opsiyonel)</label>
         <input type="text" value="${escapeHtml(n.pubmed_query || '')}" oninput="niches[${idx}].pubmed_query=this.value" placeholder='örn. (trastuzumab deruxtecan OR T-DXd) AND HER2' />
-        <div class="hint">Boş bırakırsan niş tanımı kullanılır.</div>
+        <div class="hint">Boş bırakırsan konu tanımı kullanılır.</div>
       </div>
     `;
     list.appendChild(card);
@@ -180,7 +180,7 @@ function showMsg(text, type) {
 document.getElementById('specialty').addEventListener('change', e => {
   const sp = e.target.value;
   if (sp && EXAMPLES[sp] && niches.length === 0) {
-    if (confirm(`${sp} için 1-2 örnek niş yükleyeyim mi? Sonra düzenleyebilirsin.`)) {
+    if (confirm(`${sp} için 1-2 örnek konu yükleyeyim mi? Sonra düzenleyebilirsin.`)) {
       niches = EXAMPLES[sp].slice(0, 2).map(x => newNiche(x.label, x.desc));
       render();
     }
@@ -191,7 +191,7 @@ async function saveNiches() {
   showMsg('', null);
   const valid = niches.filter(n => n.label.trim() && n.description.trim().length >= 30);
   if (!valid.length) {
-    showMsg('En az 1 niş tanımı gerekli (etiket + en az 30 karakter açıklama).', 'err');
+    showMsg('En az 1 konu tanımı gerekli (etiket + en az 30 karakter açıklama).', 'err');
     return;
   }
 
@@ -222,8 +222,8 @@ async function saveNiches() {
     const { error: insErr } = await sb.from('niches').insert(rows);
     if (insErr) throw insErr;
 
-    // Embedding işleme + ilk brief üretme arka uç sorumluluğu
-    showMsg(`${valid.length} niş kaydedildi. İlk brief'in sabah 06:30'da kutuna düşecek (deneme için /api/brief tetiklenebilir).`, 'ok');
+    // Embedding sync ve ilk brief, arka taraftaki cron (06:30 İstanbul) ile veya admin "Trigger" ile çalışır
+    showMsg(`${valid.length} konu kaydedildi. İlk brief'in sabah 06:30'da kutuna düşecek (deneme için /api/brief tetiklenebilir).`, 'ok');
     setTimeout(() => { window.location.href = './dashboard.html'; }, 1500);
   } catch (err) {
     showMsg(err.message || String(err), 'err');

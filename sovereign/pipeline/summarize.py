@@ -21,15 +21,33 @@ DEEPSEEK_URL = "https://api.deepseek.com/chat/completions"
 # Reasoning'li modeller (v4-pro, v4-flash) max_tokens budget'ını yiyor → boş content.
 MODEL = os.environ.get("DEEPSEEK_MODEL_SUMMARY") or "deepseek-chat"
 
-SYSTEM_PROMPT = """Sen Türkçe, tıbbi/klinik literatür özetçisisin. Her özet 3 satırdır:
-- Satır 1: Olay + 1 somut sayı (n, %, p, OS, doz, ay, $ vb.).
-- Satır 2: Bu sonucun klinik veya bilimsel bağlamı (önceki standartla farkı, hangi yola çıkar).
-- Satır 3: Türkiye'deki klinik karara/pratiğe somut etkisi (ödeme, ruhsat, reçete, izlem değişikliği).
+SYSTEM_PROMPT = """Sen Türkçe, tıbbi/klinik literatür özetçisisin. Her özet ÜÇ paragraftır,
+her paragraf bir bilgi katmanı:
 
-YASAK: "yapay zeka önemli oluyor", "uzmanlar uyarıyor", "sektör büyüyor" gibi boş ifadeler.
-ZORUNLU: her satırda en az 1 somut veri."""
+(1) BULGU — Makalenin temel sonucu + makaleden alınmış en az 1 somut sayı
+    (n, %, HR, OR, OS, PFS, doz, mg/m², p-değeri, ay, $). Sayı yoksa "(somut sayı bildirilmedi)".
 
-USER_TEMPLATE = """Niş bağlamı: {niche_label}
+(2) BAĞLAM — Hangi literatür açığını dolduruyor; hangi standart-of-care, hangi önceki
+    çalışma veya yöntemsel sınırla kıyaslanıyor. Mümkünse karşılaştırma sayısı
+    (önceki HR=X.XX vs. mevcut HR=Y.YY).
+
+(3) KLİNİK ANLAM — Hangi karar değişebilir, hangi hasta alt-grubu etkilenir, hangi izlem
+    veya ardıl çalışma gerekir. Makalede pratik etki açıkça yoksa "Pratik etki için onay
+    veya replikasyon bekleniyor" yaz — UYDURMA.
+
+Biçim:
+- Üç paragrafı boş satırla ayır. Başına liste işareti, "1.", "(1)" KOYMA — düz cümleler.
+- Toplam 70-110 kelime.
+
+Yasak ifadeler (kullanma): "uzmanlar uyarıyor", "devrim niteliğinde", "çığır açıyor",
+"umut vadediyor", "yapay zeka önemli olacak", "sektör büyüyor", "oyun değiştirici".
+
+Kullanıcının takip ettiği konu (label + açıklama) sana verilir. Makaleyi BU konunun
+penceresinden özetle — konuyla doğrudan bağı yoksa ilk cümle olarak "Bu makale belirtilen
+konuyla yalnızca dolaylı ilişkilidir." yaz, sonra üç paragrafı yine de üret."""
+
+USER_TEMPLATE = """Takip edilen konu: {niche_label}
+Konu tanımı:
 {niche_description}
 
 Makale:
@@ -40,7 +58,7 @@ Yazarlar: {authors}
 {content_header}
 {content}
 
-Bu makaleyi yukarıdaki 3-satır kuralına göre özetle. {content_instr}
+Bu makaleyi yukarıdaki üç-paragraf kuralına göre özetle. {content_instr}
 Sadece özeti döndür, başka şey yazma."""
 
 
@@ -60,8 +78,9 @@ def summarize_for_niche(
     if not key:
         raise RuntimeError("DEEPSEEK_API_KEY yok — .env'i kontrol et.")
 
-    # Niş açıklamasını kısalt — token bütçesini korumak için
-    niche_short = (niche_description or "")[:400]
+    # Konu tanımı tam veriliyor — kullanıcının niyeti %20 bağlamla bozulmasın.
+    # DeepSeek-chat 128K context; 2000 char tavanı bütçe için yeterli.
+    niche_short = (niche_description or "")[:2000]
 
     # Full text varsa onu kullan (gerçek makale gövdesi); yoksa abstract'a düş.
     if fulltext and len(fulltext) >= 800:
