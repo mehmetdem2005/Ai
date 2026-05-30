@@ -217,7 +217,7 @@ async function saveNiches() {
       description: n.description.trim(),
       pubmed_query: (n.pubmed_query || '').trim() || null,
       is_active: true,
-      threshold: 0.45,
+      // threshold: DB default (0.55) kullanılır. UI'da slider eklenince override gelir.
     }));
     const { error: insErr } = await sb.from('niches').insert(rows);
     if (insErr) throw insErr;

@@ -21,7 +21,9 @@ from . import embed, summarize
 
 log = logging.getLogger(__name__)
 
-DEFAULT_THRESHOLD = 0.72  # text-embedding-3-small medical literature için temiz başlangıç
+DEFAULT_THRESHOLD = 0.55  # text-embedding-3-small medical literature için kalibre edilmiş;
+                          # gerçek brief skor dağılımı (v3 deneme) 0.50-0.58 bandında, 0.72 boş
+                          # döndürüyordu. top_k=5 sıkı niş-başı limiti zaten gürültüyü kesiyor.
 DEFAULT_TOP_K_PER_NICHE = 5
 DEFAULT_LOOKBACK_HOURS = 48
 DEFAULT_DEDUP_WINDOW_DAYS = 7  # son 7 gün başka briefde gönderilmiş item'ları ele

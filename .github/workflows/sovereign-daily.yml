@@ -38,7 +38,7 @@ jobs:
       - name: Bağımlılıkları kur
         run: |
           python -m pip install --upgrade pip
-          pip install requests
+          pip install requests beautifulsoup4
       - name: Sovereign daily çalıştır
         run: |
           python -m sovereign.cli daily \
