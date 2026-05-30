@@ -128,6 +128,7 @@
 
       <div class="drawer-foot">
         <a href="#" class="login-link" data-i18n="nav.signin">Giriş yap</a>
+        <a href="#" class="logout-link" id="navDrawerLogout" data-i18n="nav.logout">Çıkış yap</a>
         <a href="abonelik.html" class="btn primary lg" style="width:100%; justify-content:center;" data-i18n="nav.getbriefs">Brief'leri al →</a>
       </div>
     </nav>
@@ -265,6 +266,10 @@
   background: var(--cyan, #1F6FEB);
   flex-shrink: 0;
 }
+
+/* Logout link — drawer-foot'ta, varsayılan gizli; auth.js admin olunca açar */
+.logout-link { display: none; }
+.logout-link.visible { display: inline-block; }
 `;
     document.head.appendChild(s);
   }

@@ -311,6 +311,10 @@
     const adminSection = document.getElementById("navAdminSection");
     if (adminSection) adminSection.classList.remove("visible");
 
+    // Drawer'daki Çıkış linkini her renderAuth'ta gizle (admin login olunca aşağıda açılır)
+    const drawerLogout = document.getElementById("navDrawerLogout");
+    if (drawerLogout) drawerLogout.classList.remove("visible");
+
     // nav.js'in koyduğu TÜM "Giriş" linkleri — masthead + drawer + sayfa içi gate'ler
     // (querySelectorAll, sadece masthead değil tüm sayfa)
     const allLoginLinks = document.querySelectorAll(".login-link");
@@ -340,26 +344,28 @@
     const u = session.user;
     const role = (u && u.app_metadata && u.app_metadata.role) || "user";
 
-    const bar = document.createElement("div");
-    bar.className = "sov-admin-bar";
-
     // Admin ise drawer'daki admin section'ı göster.
-    // (yukarıda zaten reset edildi; sadece admin değilse gizli kalır)
+    // (yukarıda zaten reset edildi; admin değilse gizli kalır)
     if (role === "admin" && adminSection) {
       adminSection.classList.add("visible");
     }
 
-    const emailSpan = document.createElement("span");
-    emailSpan.className = "sov-user-email";
-    emailSpan.textContent = u.email || "";
-    bar.appendChild(emailSpan);
-
-    const logoutBtn = makeBtn('⎋ <span class="label">Çıkış</span>', "ghost");
-    logoutBtn.title = "Çıkış yap";
-    logoutBtn.onclick = logout;
-    bar.appendChild(logoutBtn);
-
-    actions.appendChild(bar);
+    // Public site top auth bar'da hiçbir kullanıcı bilgisi yok — email
+    // ve Çıkış admin panelinin İÇİNDE. Logout drawer-foot'tan yapılır.
+    const drawerLogout = document.getElementById("navDrawerLogout");
+    if (drawerLogout) {
+      drawerLogout.classList.add("visible");
+      drawerLogout.onclick = (e) => {
+        e.preventDefault();
+        // Drawer'ı kapat sonra logout
+        const drawer = document.getElementById("navDrawer");
+        if (drawer && drawer.classList.contains("open")) {
+          drawer.classList.remove("open");
+          document.body.style.overflow = "";
+        }
+        logout();
+      };
+    }
   }
 
   // Masthead'deki "Son güncelleme: ..." metnini en güncel bülten tarihinden doldur.
