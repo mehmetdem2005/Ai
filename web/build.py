@@ -83,12 +83,39 @@ PAGE_MAP = {
     "ayarlar.html": "ayarlar.html",
     "hakkinda.html": "hakkinda.html",
 }
+
+# FOUC-free tercih bootstrap'i — her sayfanın <head>'ine inject edilir.
+# Render'dan ÖNCE çalışıp data-theme/density/accent attribute'larını uygular.
+# Cross-tab sync için 'storage' event listener ekler.
+PREFS_BOOTSTRAP = """<script>
+(function(){
+  var h=document.documentElement;
+  function apply(){
+    var t=localStorage.getItem('sov_theme');
+    if(t&&t!=='system')h.setAttribute('data-theme',t);else h.removeAttribute('data-theme');
+    var d=localStorage.getItem('sov_density');
+    if(d)h.setAttribute('data-density',d);else h.removeAttribute('data-density');
+    var a=localStorage.getItem('sov_accent');
+    if(a)h.setAttribute('data-accent',a);else h.removeAttribute('data-accent');
+  }
+  apply();
+  window.addEventListener('storage',function(e){
+    if(e.key&&e.key.indexOf('sov_')===0)apply();
+  });
+})();
+</script>
+</head>"""
+
 for src_name, dst_name in PAGE_MAP.items():
     src_file = HERE / src_name
     if not src_file.exists():
         print(f"⚠️ kaynak yok, atlandı: {src_name}")
         continue
-    (DIST / dst_name).write_text(inject(src_file.read_text(encoding="utf-8")), encoding="utf-8")
+    html = inject(src_file.read_text(encoding="utf-8"))
+    # Bootstrap'i </head>'den hemen önce inject et (idempotent: zaten varsa atla)
+    if "sov_theme" not in html.split("</head>")[0]:
+        html = html.replace("</head>", PREFS_BOOTSTRAP, 1)
+    (DIST / dst_name).write_text(html, encoding="utf-8")
 
 # 5. Legacy yönetim sayfası — geriye dönük link uyumu için
 if (HERE / "yonetim.html").exists():

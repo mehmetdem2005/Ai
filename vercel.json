@@ -10,5 +10,9 @@
     { "source": "/landing.html", "destination": "/", "permanent": true },
     { "source": "/yonetim", "destination": "/admin", "permanent": true },
     { "source": "/yonetim.html", "destination": "/admin", "permanent": true }
+  ],
+  "rewrites": [
+    { "source": "/b/:id", "destination": "/reader.html?bulten=:id" },
+    { "source": "/bulten/:id", "destination": "/reader.html?bulten=:id" }
   ]
 }
