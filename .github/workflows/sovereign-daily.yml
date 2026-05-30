@@ -1,0 +1,48 @@
+name: Sovereign Pro — Günlük Brief Üretimi
+
+on:
+  schedule:
+    # 03:30 UTC = 06:30 İstanbul (UTC+3). Cron Vercel'le bağımsız.
+    - cron: "30 3 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      LANG: C.UTF-8
+      LC_ALL: C.UTF-8
+      PYTHONIOENCODING: utf-8
+      PYTHONUTF8: "1"
+      # Pipeline
+      LOOKBACK_HOURS: "26"      # bir önceki günkü 06:30 + biraz tampon
+      TOP_K_PER_NICHE: "5"
+      MAX_PER_SOURCE: "25"
+      MAX_PER_SERVER: "200"
+      # Sağlayıcılar
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+      DEEPSEEK_MODEL_SUMMARY: deepseek-chat
+      EMBEDDING_MODEL: text-embedding-3-small
+      # Supabase
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+      # Opsiyonel: NCBI API key (PubMed rate limit 3→10 rps)
+      NCBI_API_KEY: ${{ secrets.NCBI_API_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Bağımlılıkları kur
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+      - name: Sovereign daily çalıştır
+        run: |
+          python -m sovereign.cli daily \
+            --lookback-hours $LOOKBACK_HOURS \
+            --per-source $MAX_PER_SOURCE \
+            --per-server $MAX_PER_SERVER \
+            --top-k $TOP_K_PER_NICHE

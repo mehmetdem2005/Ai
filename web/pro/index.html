@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Sovereign Pro · Giriş</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../tokens.css" />
+<link rel="stylesheet" href="../mobile.css" />
+<style>
+  body { background: var(--bg-2); }
+  .auth-wrap { max-width: 420px; margin: 64px auto 32px; padding: 0 20px; }
+  .auth-card {
+    background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--radius-lg); padding: 36px 32px;
+    box-shadow: var(--shadow);
+  }
+  .brand { text-align: center; margin-bottom: 28px; }
+  .brand .logo { font-family: var(--font-display, 'Inter'); font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+  .brand .logo .dot { color: var(--cyan); }
+  .brand .tag { color: var(--mid); font-size: 13px; margin-top: 4px; font-family: var(--font-mono); letter-spacing: 0.08em; text-transform: uppercase; }
+  .auth-card h1 { margin: 0 0 4px; font-size: 24px; font-weight: 700; letter-spacing: -0.015em; }
+  .auth-card .dek { color: var(--mid); font-size: 14px; margin: 0 0 24px; }
+  .tab-bar { display: flex; gap: 0; border-bottom: 1px solid var(--line); margin-bottom: 24px; }
+  .tab-bar button {
+    flex: 1; padding: 12px; background: none; border: none; cursor: pointer;
+    font: inherit; font-size: 14px; font-weight: 500; color: var(--mid);
+    border-bottom: 2px solid transparent; transition: all .15s;
+  }
+  .tab-bar button.active { color: var(--ink); border-bottom-color: var(--cyan); }
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 12px; font-weight: 600; color: var(--ink-2); margin-bottom: 6px; letter-spacing: 0.02em; }
+  .field input {
+    width: 100%; padding: 11px 14px; font: inherit; font-size: 14.5px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    color: var(--ink); transition: border .15s;
+  }
+  .field input:focus { outline: none; border-color: var(--cyan); box-shadow: 0 0 0 3px var(--cyan-soft); }
+  .btn-primary {
+    width: 100%; padding: 12px; font: inherit; font-size: 14.5px; font-weight: 600;
+    background: var(--cyan); color: white; border: none; border-radius: var(--radius);
+    cursor: pointer; transition: opacity .15s;
+  }
+  .btn-primary:hover:not(:disabled) { opacity: 0.9; }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .msg { padding: 10px 12px; border-radius: var(--radius); font-size: 13px; margin-bottom: 16px; }
+  .msg.ok { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+  .msg.err { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+  [hidden] { display: none !important; }
+  .switch-note { text-align: center; margin-top: 16px; font-size: 13px; color: var(--mid); }
+  .back { display: block; text-align: center; margin-top: 24px; font-size: 13px; color: var(--mid); }
+</style>
+</head>
+<body>
+
+<div class="auth-wrap">
+  <div class="brand">
+    <div class="logo">Sovereign<span class="dot">.</span></div>
+    <div class="tag">PRO</div>
+  </div>
+
+  <div class="auth-card">
+    <h1 id="title">Giriş</h1>
+    <p class="dek" id="subtitle">Kendi niş konularına göre kişisel günlük brief.</p>
+
+    <div class="tab-bar">
+      <button id="tabSignIn" class="active" onclick="switchTab('signin')">Giriş yap</button>
+      <button id="tabSignUp" onclick="switchTab('signup')">Hesap oluştur</button>
+    </div>
+
+    <div id="msg" hidden></div>
+
+    <form id="authForm" onsubmit="submitAuth(event)">
+      <div class="field">
+        <label for="email">E-posta</label>
+        <input type="email" id="email" required autocomplete="email" />
+      </div>
+      <div class="field">
+        <label for="password">Parola</label>
+        <input type="password" id="password" required autocomplete="current-password" minlength="6" />
+      </div>
+      <button type="submit" class="btn-primary" id="submitBtn">Giriş yap</button>
+    </form>
+
+    <a href="../index.html" class="back">← Sovereign anasayfa</a>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL = "__SUPABASE_URL__";
+const SUPABASE_ANON_KEY = "__SUPABASE_ANON_KEY__";
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let mode = 'signin';
+function switchTab(m) {
+  mode = m;
+  document.getElementById('tabSignIn').classList.toggle('active', m === 'signin');
+  document.getElementById('tabSignUp').classList.toggle('active', m === 'signup');
+  document.getElementById('title').textContent = m === 'signin' ? 'Giriş' : 'Hesap oluştur';
+  document.getElementById('subtitle').textContent = m === 'signin'
+    ? 'Kendi niş konularına göre kişisel günlük brief.'
+    : 'Bir dakikada hesap aç, niş konularını tanımla.';
+  document.getElementById('submitBtn').textContent = m === 'signin' ? 'Giriş yap' : 'Hesap oluştur';
+  document.getElementById('password').autocomplete = m === 'signin' ? 'current-password' : 'new-password';
+  showMsg('', null);
+}
+
+function showMsg(text, type) {
+  const el = document.getElementById('msg');
+  if (!text) { el.hidden = true; return; }
+  el.hidden = false;
+  el.className = 'msg ' + (type || 'err');
+  el.textContent = text;
+}
+
+async function submitAuth(e) {
+  e.preventDefault();
+  const email = document.getElementById('email').value.trim();
+  const pw = document.getElementById('password').value;
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = mode === 'signin' ? 'Giriş yapılıyor…' : 'Oluşturuluyor…';
+  showMsg('', null);
+
+  try {
+    if (mode === 'signin') {
+      const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
+      if (error) throw error;
+      // Niş var mı kontrol et — yoksa onboarding
+      const { data: niches } = await sb.from('niches').select('id').limit(1);
+      window.location.href = (niches && niches.length) ? './dashboard.html' : './onboarding.html';
+    } else {
+      const { data, error } = await sb.auth.signUp({
+        email, password: pw,
+        options: { emailRedirectTo: window.location.origin + '/pro/onboarding.html' },
+      });
+      if (error) throw error;
+      if (data.session) {
+        // E-posta onayı kapalıysa direkt onboarding
+        window.location.href = './onboarding.html';
+      } else {
+        showMsg('Hesap oluşturuldu. E-posta kutunu kontrol et — onay linkini tıkla.', 'ok');
+        btn.disabled = false;
+        btn.textContent = 'Hesap oluştur';
+      }
+    }
+  } catch (err) {
+    showMsg(err.message || String(err), 'err');
+    btn.disabled = false;
+    btn.textContent = mode === 'signin' ? 'Giriş yap' : 'Hesap oluştur';
+  }
+}
+
+// Zaten giriş yapmışsa yönlendir
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    const { data: niches } = await sb.from('niches').select('id').limit(1);
+    window.location.href = (niches && niches.length) ? './dashboard.html' : './onboarding.html';
+  }
+})();
+</script>
+</body>
+</html>

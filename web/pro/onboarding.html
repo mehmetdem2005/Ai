@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Sovereign Pro · Niş tanımla</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../tokens.css" />
+<link rel="stylesheet" href="../mobile.css" />
+<style>
+  body { background: var(--bg-2); }
+  .ob-wrap { max-width: 720px; margin: 32px auto 64px; padding: 0 20px; }
+  .ob-header { margin-bottom: 24px; }
+  .ob-header .crumb { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cyan-ink); margin-bottom: 8px; }
+  .ob-header h1 { margin: 0 0 8px; font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
+  .ob-header .dek { color: var(--mid); font-size: 15px; margin: 0; max-width: 580px; }
+  .specialty-row { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 16px 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .specialty-row label { font-size: 13px; font-weight: 600; color: var(--ink-2); }
+  .specialty-row select { padding: 8px 12px; font: inherit; font-size: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+  .niche-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 22px; margin-bottom: 14px; position: relative; }
+  .niche-card .badge { font-family: var(--font-mono); font-size: 11px; color: var(--mid); letter-spacing: 0.1em; text-transform: uppercase; }
+  .niche-card .field { margin-top: 10px; }
+  .niche-card label { display: block; font-size: 12px; font-weight: 600; color: var(--ink-2); margin-bottom: 5px; }
+  .niche-card input, .niche-card textarea {
+    width: 100%; padding: 10px 12px; font: inherit; font-size: 14px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    color: var(--ink);
+  }
+  .niche-card textarea { min-height: 90px; resize: vertical; font-family: var(--font-sans, 'Inter'); line-height: 1.5; }
+  .niche-card input:focus, .niche-card textarea:focus { outline: none; border-color: var(--cyan); box-shadow: 0 0 0 3px var(--cyan-soft); }
+  .niche-card .hint { font-size: 11.5px; color: var(--mid); margin-top: 4px; }
+  .niche-card .remove { position: absolute; top: 16px; right: 16px; background: none; border: none; color: var(--mid); cursor: pointer; font-size: 18px; }
+  .add-btn {
+    width: 100%; padding: 14px; background: transparent; border: 2px dashed var(--line);
+    border-radius: var(--radius-lg); cursor: pointer; font: inherit; font-size: 14px; font-weight: 500;
+    color: var(--cyan-ink); transition: all .15s;
+  }
+  .add-btn:hover { border-color: var(--cyan); background: var(--cyan-soft); }
+  .actions { margin-top: 24px; display: flex; gap: 10px; }
+  .btn-primary, .btn-secondary {
+    flex: 1; padding: 13px; font: inherit; font-size: 14.5px; font-weight: 600;
+    border-radius: var(--radius); cursor: pointer; border: none; transition: opacity .15s;
+  }
+  .btn-primary { background: var(--cyan); color: white; }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-secondary { background: var(--surface); border: 1px solid var(--line); color: var(--ink); }
+  .msg { padding: 10px 12px; border-radius: var(--radius); font-size: 13px; margin-bottom: 16px; }
+  .msg.ok { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
+  .msg.err { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; }
+  [hidden] { display: none !important; }
+  .examples-list { font-size: 12.5px; color: var(--mid); margin-top: 4px; }
+  .examples-list span { cursor: pointer; padding: 2px 8px; background: var(--bg-2); border: 1px solid var(--line); border-radius: 999px; margin-right: 4px; display: inline-block; margin-top: 4px; }
+  .examples-list span:hover { background: var(--cyan-soft); color: var(--cyan-ink); border-color: var(--cyan); }
+</style>
+</head>
+<body>
+
+<div class="ob-wrap">
+  <div class="ob-header">
+    <div class="crumb">Sovereign Pro · Kurulum 1/1</div>
+    <h1>Niş konularını tanımla.</h1>
+    <p class="dek">Sistem her sabah PubMed + ClinicalTrials.gov + medRxiv + bioRxiv havuzunu tarayıp <strong>sadece bu nişlere</strong> dokunan yeni içerikleri Türkçe özetle önüne koyar.</p>
+  </div>
+
+  <div class="specialty-row">
+    <label for="specialty">Uzmanlık alanın:</label>
+    <select id="specialty">
+      <option value="">Seç…</option>
+      <option value="oncology">Onkoloji</option>
+      <option value="cardiology">Kardiyoloji</option>
+      <option value="radiology">Radyoloji</option>
+      <option value="icu">Yoğun bakım</option>
+      <option value="pathology">Patoloji</option>
+      <option value="endocrinology">Endokrinoloji</option>
+      <option value="neurology">Nöroloji</option>
+      <option value="psychiatry">Psikiyatri</option>
+      <option value="pharma">İlaç endüstrisi</option>
+      <option value="ai_research">Klinik AI araştırması</option>
+      <option value="other">Diğer</option>
+    </select>
+  </div>
+
+  <div id="msg" hidden></div>
+  <div id="nichesList"></div>
+  <button class="add-btn" onclick="addNiche()" id="addBtn">+ Yeni niş ekle</button>
+
+  <div class="actions">
+    <button class="btn-secondary" onclick="window.location.href='./index.html'">İptal</button>
+    <button class="btn-primary" onclick="saveNiches()" id="saveBtn">Kaydet ve ilk brief'i üret</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL = "__SUPABASE_URL__";
+const SUPABASE_ANON_KEY = "__SUPABASE_ANON_KEY__";
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const EXAMPLES = {
+  oncology: [
+    { label: "HER2+ metastatik meme · ADC", desc: "HER2-pozitif (IHC 3+/FISH+) metastatik meme kanserinde trastuzumab-deruxtecan (T-DXd), T-DM1 klinik çalışmaları, ADC sonrası direnç mekanizmaları, HER2-low alt grubu, beyin metastazı yönetimi, ctDNA monitorizasyonu." },
+    { label: "Immün checkpoint direnci", desc: "PD-1, PD-L1, CTLA-4 inhibitörlerine kazanılmış direnç mekanizmaları (STK11, KEAP1, MHC kaybı). Pan-tümör analizleri ve melanom, NSCLC, MMR-deficient kolorektal alt gruplar." },
+    { label: "KRAS G12C inhibitörleri", desc: "Sotorasib, adagrasib KRAS G12C mutant NSCLC ve kolorektal kanserde klinik sonuçlar, kombinasyon stratejileri, sekonder direnç mekanizmaları." },
+  ],
+  cardiology: [
+    { label: "Akut MI sonrası antiagregan", desc: "STEMI/NSTEMI sonrası ikili antiagregan tedavi süresi, ticagrelor vs prasugrel head-to-head, de-escalation stratejileri, yaşlı popülasyonda kanama riski." },
+    { label: "TAVI vs SAVR uzun dönem", desc: "Düşük cerrahi riskli aort stenozunda TAVI vs SAVR 5+ yıl izlem sonuçları, dayanıklılık, paravalvüler yetersizlik, pacemaker oranı." },
+  ],
+  radiology: [
+    { label: "FDA-onaylı AI radyoloji araçları", desc: "FDA AI/ML enabled medical devices listesi güncellemeleri, akciğer nodülü, meme densite, kardiyak CT skor AI uygulamaları, validasyon çalışmaları." },
+  ],
+  icu: [
+    { label: "Surviving Sepsis 2026 ve sonrası", desc: "Septik şokta sıvı resüsitasyonu, vazopressör seçimi, kortikosteroid kullanımı; Surviving Sepsis 2026 önerileri ve sonrasındaki RCT'ler." },
+  ],
+};
+
+let niches = [];
+
+function newNiche(label = '', desc = '', query = '') {
+  return { label, description: desc, pubmed_query: query };
+}
+
+function render() {
+  const list = document.getElementById('nichesList');
+  list.innerHTML = '';
+  niches.forEach((n, idx) => {
+    const card = document.createElement('div');
+    card.className = 'niche-card';
+    card.innerHTML = `
+      <div class="badge">Niş ${idx + 1}</div>
+      <button class="remove" onclick="removeNiche(${idx})" title="Sil">✕</button>
+      <div class="field">
+        <label>Kısa etiket</label>
+        <input type="text" value="${escapeHtml(n.label)}" oninput="niches[${idx}].label=this.value" placeholder="örn. HER2+ metastatik meme · ADC" />
+      </div>
+      <div class="field">
+        <label>Niş tanımı (serbest metin) <span style="color:var(--mid);font-weight:400">— sistem buradan embedding üretir</span></label>
+        <textarea oninput="niches[${idx}].description=this.value" placeholder="Konuyu somut alt-başlıklarla tanımla. Tedavi, popülasyon, mekanizma, hedef molekül, klinik soru — ne kadar spesifik o kadar iyi match.">${escapeHtml(n.description)}</textarea>
+        <div class="hint">İpucu: 2-4 cümle. Hedef hasta grubu + ilaç/mekanizma + spesifik klinik soru.</div>
+      </div>
+      <div class="field">
+        <label>PubMed sorgusu (opsiyonel)</label>
+        <input type="text" value="${escapeHtml(n.pubmed_query || '')}" oninput="niches[${idx}].pubmed_query=this.value" placeholder='örn. (trastuzumab deruxtecan OR T-DXd) AND HER2' />
+        <div class="hint">Boş bırakırsan niş tanımı kullanılır.</div>
+      </div>
+    `;
+    list.appendChild(card);
+  });
+}
+
+function escapeHtml(s) {
+  return (s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function addNiche() {
+  niches.push(newNiche());
+  render();
+  // Son karta scroll
+  setTimeout(() => {
+    const cards = document.querySelectorAll('.niche-card');
+    if (cards.length) cards[cards.length - 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 50);
+}
+
+function removeNiche(idx) {
+  niches.splice(idx, 1);
+  render();
+}
+
+function showMsg(text, type) {
+  const el = document.getElementById('msg');
+  if (!text) { el.hidden = true; return; }
+  el.hidden = false;
+  el.className = 'msg ' + (type || 'err');
+  el.textContent = text;
+  if (type === 'err') window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+document.getElementById('specialty').addEventListener('change', e => {
+  const sp = e.target.value;
+  if (sp && EXAMPLES[sp] && niches.length === 0) {
+    if (confirm(`${sp} için 1-2 örnek niş yükleyeyim mi? Sonra düzenleyebilirsin.`)) {
+      niches = EXAMPLES[sp].slice(0, 2).map(x => newNiche(x.label, x.desc));
+      render();
+    }
+  }
+});
+
+async function saveNiches() {
+  showMsg('', null);
+  const valid = niches.filter(n => n.label.trim() && n.description.trim().length >= 30);
+  if (!valid.length) {
+    showMsg('En az 1 niş tanımı gerekli (etiket + en az 30 karakter açıklama).', 'err');
+    return;
+  }
+
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true;
+  btn.textContent = 'Kaydediliyor…';
+
+  try {
+    const { data: { user }, error: userErr } = await sb.auth.getUser();
+    if (userErr || !user) throw new Error('Oturum bulunamadı, lütfen tekrar giriş yap.');
+
+    // Specialty kaydet
+    const sp = document.getElementById('specialty').value;
+    if (sp) {
+      await sb.from('profiles').update({ specialty: sp }).eq('id', user.id);
+    }
+
+    // Eski nişleri sil, yenilerini ekle
+    await sb.from('niches').delete().eq('user_id', user.id);
+    const rows = valid.map(n => ({
+      user_id: user.id,
+      label: n.label.trim(),
+      description: n.description.trim(),
+      pubmed_query: (n.pubmed_query || '').trim() || null,
+      is_active: true,
+      threshold: 0.45,
+    }));
+    const { error: insErr } = await sb.from('niches').insert(rows);
+    if (insErr) throw insErr;
+
+    // Embedding işleme + ilk brief üretme arka uç sorumluluğu
+    showMsg(`${valid.length} niş kaydedildi. İlk brief'in sabah 06:30'da kutuna düşecek (deneme için /api/brief tetiklenebilir).`, 'ok');
+    setTimeout(() => { window.location.href = './dashboard.html'; }, 1500);
+  } catch (err) {
+    showMsg(err.message || String(err), 'err');
+    btn.disabled = false;
+    btn.textContent = 'Kaydet ve ilk brief\'i üret';
+  }
+}
+
+// Auth guard + mevcut nişleri yükle
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) {
+    window.location.href = './index.html';
+    return;
+  }
+  // Mevcut nişler varsa düzenleme modunda göster
+  const { data } = await sb.from('niches').select('*').eq('is_active', true).order('id');
+  if (data && data.length) {
+    niches = data.map(n => ({ label: n.label, description: n.description, pubmed_query: n.pubmed_query || '' }));
+  } else {
+    niches = [newNiche()];
+  }
+  render();
+})();
+</script>
+</body>
+</html>
