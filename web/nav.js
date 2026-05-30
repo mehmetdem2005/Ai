@@ -91,19 +91,7 @@
     </div>
     <nav class="drawer-nav">
       <a href="/" class="dn-link" data-page="landing" data-i18n="nav.home">Anasayfa</a>
-
-      <details class="dn-group">
-        <summary><span data-i18n="nav.briefs">Bültenler</span> <span class="chev">▾</span></summary>
-        <div class="dn-sub">
-          <div class="dn-sublabel" data-i18n="nav.today">Bugün</div>
-          <a href="reader.html" data-i18n="nav.evening">Akşam edisyonu</a>
-          <a href="reader.html" data-i18n="nav.morning">Sabah edisyonu</a>
-          <div class="dn-sublabel" data-i18n="nav.explore">Keşfet</div>
-          <a href="reader.html" data-i18n="nav.archive">Arşiv</a>
-          <a href="reader.html" data-i18n="nav.longreads">Uzun okumalar</a>
-          <a href="reader.html" data-i18n="nav.topics">Konu kümeleri</a>
-        </div>
-      </details>
+      <a href="reader.html" class="dn-link" data-page="bultenler" data-i18n="nav.archive">Arşiv</a>
 
       <details class="dn-group">
         <summary><span data-i18n="nav.about">Hakkında</span> <span class="chev">▾</span></summary>
@@ -312,29 +300,37 @@
         document.querySelectorAll('.dd.open').forEach(d => d.classList.remove('open'));
       }, { passive: true });
 
-      // Hamburger drawer
-      const drawer = document.getElementById('navDrawer');
-      const burger = document.querySelector('.nav-burger');
-      const closeBtn = document.querySelector('.drawer-close');
-      const overlay = document.querySelector('.drawer-overlay');
+      // Hamburger drawer — event delegation (cached/race-safe)
       const openDrawer = () => {
+        const drawer = document.getElementById('navDrawer');
+        const burger = document.querySelector('.nav-burger');
+        if (!drawer) return;
         drawer.classList.add('open');
         drawer.setAttribute('aria-hidden', 'false');
-        burger.setAttribute('aria-expanded', 'true');
+        burger?.setAttribute('aria-expanded', 'true');
         document.body.style.overflow = 'hidden';
       };
       const closeDrawer = () => {
+        const drawer = document.getElementById('navDrawer');
+        const burger = document.querySelector('.nav-burger');
+        if (!drawer) return;
         drawer.classList.remove('open');
         drawer.setAttribute('aria-hidden', 'true');
-        burger.setAttribute('aria-expanded', 'false');
+        burger?.setAttribute('aria-expanded', 'false');
         document.body.style.overflow = '';
       };
-      burger?.addEventListener('click', openDrawer);
-      closeBtn?.addEventListener('click', closeDrawer);
-      overlay?.addEventListener('click', closeDrawer);
-      drawer?.querySelectorAll('a').forEach(a => a.addEventListener('click', closeDrawer));
+      // Document-level delegation: çocuk span'lar üstünden de tetiklenir
+      document.addEventListener('click', (e) => {
+        if (e.target.closest('.nav-burger')) { e.preventDefault(); openDrawer(); return; }
+        if (e.target.closest('.drawer-close')) { e.preventDefault(); closeDrawer(); return; }
+        if (e.target.closest('.drawer-overlay')) { closeDrawer(); return; }
+        // Drawer içindeki link tıklamalarında kapat
+        const drawer = document.getElementById('navDrawer');
+        if (drawer?.classList.contains('open') && e.target.closest('.nav-drawer a')) closeDrawer();
+      });
       document.addEventListener('keydown', e => {
-        if (e.key === 'Escape' && drawer.classList.contains('open')) closeDrawer();
+        const drawer = document.getElementById('navDrawer');
+        if (e.key === 'Escape' && drawer?.classList.contains('open')) closeDrawer();
       });
 
       // Language switcher

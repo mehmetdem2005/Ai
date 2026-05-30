@@ -128,6 +128,7 @@
         download_btn: "⤓ İndir",
         in_publication: "YAYINDA",
         long_read: "📖 Uzun okuma →",
+        back_to_archive: "← Tüm arşivi gör",
       },
       dashboard: {
         admin_only: "Bu sayfa adminlere özel",
@@ -363,6 +364,7 @@
         download_btn: "⤓ Download",
         in_publication: "PUBLISHED",
         long_read: "📖 Long read →",
+        back_to_archive: "← Back to archive",
       },
       dashboard: {
         admin_only: "This page is for admins only",
@@ -588,6 +590,7 @@
         download_btn: "⤓ Descargar",
         in_publication: "PUBLICADO",
         long_read: "📖 Lectura larga →",
+        back_to_archive: "← Ver todo el archivo",
       },
       dashboard: {
         admin_only: "Esta página es solo para administradores",
@@ -813,6 +816,7 @@
         download_btn: "⤓ Herunterladen",
         in_publication: "VERÖFFENTLICHT",
         long_read: "📖 Lange Lektüre →",
+        back_to_archive: "← Zum gesamten Archiv",
       },
       dashboard: {
         admin_only: "Diese Seite ist nur für Administratoren",

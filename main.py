@@ -695,12 +695,14 @@ KURALLAR:
     def render(self, items: list[dict]) -> str:
         dt = now_ist()
         readable = f"{dt.day} {TR_MONTHS[dt.month]} {dt.year}"
+        edition_label = "Sabah" if dt.hour < 12 else "Akşam"
+        title = f"{edition_label} Brief'i · {dt.day} {TR_MONTHS[dt.month]} {dt.year}"
         intro = self._generate_intro(items) or (
             "Sektördeki gürültüyü filtreliyor, otonom yapay zeka mimarimizle "
             "sadece sinyali veriyoruz."
         )
         lines = [
-            f"# {NEWSLETTER_TITLE}",
+            f"# {title}",
             f"**Tarih:** {readable}",
             "",
             intro,

@@ -439,6 +439,20 @@
     .bull { padding: 16px 16px; }
     .bull.active { padding-left: 13px; }
   }
+
+  /* ===== TEK-EDİSYON MODU (?bulten=ID) — arşiv kenar çubuğu gizli ===== */
+  body.single-edition .layout { grid-template-columns: 1fr; }
+  body.single-edition aside.list-col { display: none; }
+  body.single-edition .back-to-archive {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 8px 14px; margin: 16px 24px 0;
+    font-family: var(--font-mono); font-size: 11.5px;
+    color: var(--mid); border: 1px solid var(--line);
+    border-radius: 6px; text-decoration: none;
+    background: var(--surface);
+  }
+  body.single-edition .back-to-archive:hover { background: var(--tint); color: var(--ink); border-color: var(--ink-2); }
+  .back-to-archive { display: none; }
 </style>
 </head>
 <body>
@@ -457,6 +471,7 @@
   </aside>
 
   <main class="reader-col">
+    <a class="back-to-archive" href="reader.html" data-i18n="reader.back_to_archive">← Tüm arşivi gör</a>
     <div class="reader-head" id="readerHead">
       <span class="sid" id="rhSid" data-i18n="reader.loading">Bültenler yükleniyor…</span>
     </div>
@@ -581,12 +596,13 @@
     renderList();
     show(0);
 
-    // URL ?bulten=ID parametresi varsa o bülteni aç
+    // URL ?bulten=ID parametresi varsa: o bülteni aç + arşiv kenar çubuğunu gizle (tek-edisyon modu)
     const params = new URLSearchParams(location.search);
     const bid = params.get("bulten");
     if (bid) {
       const idx = data.findIndex(n => String(n.id) === bid);
       if (idx >= 0) show(idx);
+      document.body.classList.add("single-edition");
     }
   }
   load();
