@@ -119,6 +119,13 @@
       <a href="ayarlar.html" class="dn-link" data-page="ayarlar" data-i18n="nav.settings">Ayarlar</a>
       <a href="hakkinda.html#iletisim" class="dn-link" data-page="iletisim" data-i18n="nav.contact">İletişim</a>
 
+      <!-- Admin section: sadece admin login olunca .visible class'ı eklenir -->
+      <div class="dn-admin-section" id="navAdminSection">
+        <div class="dn-section-divider"></div>
+        <div class="dn-section-label" data-i18n="nav.admin_section">Yönetim</div>
+        <a href="__ADMIN_PANEL_URL__" target="_blank" rel="noopener" class="dn-link dn-admin-link" data-i18n="nav.admin_panel">⚙️ Admin Paneli →</a>
+      </div>
+
       <div class="drawer-foot">
         <a href="#" class="login-link" data-i18n="nav.signin">Giriş yap</a>
         <a href="abonelik.html" class="btn primary lg" style="width:100%; justify-content:center;" data-i18n="nav.getbriefs">Brief'leri al →</a>
@@ -223,6 +230,37 @@
     grid-template-columns: 1fr !important;
     gap: 0 !important;
   }
+}
+
+/* Drawer admin section — sadece admin login olunca .visible class'ı eklenir */
+.dn-admin-section { display: none; }
+.dn-admin-section.visible { display: block; }
+.dn-section-divider {
+  height: 1px;
+  background: var(--line, #D1D9E0);
+  margin: 14px 0 12px;
+}
+.dn-section-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mid, #59636E);
+  padding: 0 4px 6px;
+}
+.dn-admin-link {
+  background: var(--cyan-soft, #DDF4FF);
+  color: var(--cyan-ink, #0969DA) !important;
+  border-radius: var(--radius, 6px);
+  font-weight: 600;
+  padding: 11px 12px !important;
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+}
+.dn-admin-link:hover {
+  background: #c8eaff !important;
+  text-decoration: none !important;
 }
 `;
     document.head.appendChild(s);

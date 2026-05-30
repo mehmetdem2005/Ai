@@ -46,12 +46,12 @@ resp.raise_for_status()
 rows = resp.json()
 (DIST / "data.json").write_text(json.dumps(rows, ensure_ascii=False), encoding="utf-8")
 
-# 2. Asset'ler (CSS + JS) — değişmeden kopyalanır
-ASSETS = ["tokens.css", "mobile.css", "nav.js", "i18n.js"]
+# 2. Asset'ler — placeholder içermeyenler değişmeden kopyalanır
+ASSETS = ["tokens.css", "mobile.css", "i18n.js"]
 for f in ASSETS:
     shutil.copy(HERE / f, DIST / f)
 
-# 3. Placeholder enjeksiyonu — auth.js + her HTML sayfasında çalışır
+# 3. Placeholder enjeksiyonu — auth.js + nav.js + her HTML sayfasında çalışır
 PLACEHOLDERS = {
     "__SUPABASE_URL__": URL,
     "__SUPABASE_ANON_KEY__": ANON_KEY,
@@ -66,8 +66,10 @@ def inject(src: str) -> str:
     return src
 
 
-# auth.js placeholder'ları içeriyor
-(DIST / "auth.js").write_text(inject((HERE / "auth.js").read_text(encoding="utf-8")), encoding="utf-8")
+# Placeholder içeren JS'leri inject ile yaz
+for js_file in ("auth.js", "nav.js"):
+    src = inject((HERE / js_file).read_text(encoding="utf-8"))
+    (DIST / js_file).write_text(src, encoding="utf-8")
 
 # 4. HTML sayfaları
 # landing.html → index.html (anasayfa)

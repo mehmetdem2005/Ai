@@ -306,6 +306,11 @@
     const oldBar = actions.querySelector(".sov-admin-bar");
     if (oldBar) oldBar.remove();
 
+    // Drawer admin section'ı varsayılan olarak gizle — admin ise aşağıda gösterilir.
+    // Logout sonrası temiz state için her renderAuth çağrısında reset edilir.
+    const adminSection = document.getElementById("navAdminSection");
+    if (adminSection) adminSection.classList.remove("visible");
+
     // nav.js'in koyduğu TÜM "Giriş" linkleri — masthead + drawer + sayfa içi gate'ler
     // (querySelectorAll, sadece masthead değil tüm sayfa)
     const allLoginLinks = document.querySelectorAll(".login-link");
@@ -338,17 +343,10 @@
     const bar = document.createElement("div");
     bar.className = "sov-admin-bar";
 
-    if (role === "admin") {
-      // Operasyonel butonlar (Tetikle, Cron) public site'ta DEĞİL — admin
-      // panelinin içinde. Burada sadece admin paneline link ve email/çıkış.
-      const adminLink = document.createElement("a");
-      adminLink.className = "sov-admin-btn primary";
-      adminLink.href = ADMIN_PANEL_URL;
-      adminLink.target = "_blank";
-      adminLink.rel = "noopener";
-      adminLink.innerHTML = '⚙️ <span class="label">Admin Paneli</span>';
-      adminLink.title = "Editöryal admin paneli (yeni sekmede açılır)";
-      bar.appendChild(adminLink);
+    // Admin ise drawer'daki admin section'ı göster.
+    // (yukarıda zaten reset edildi; sadece admin değilse gizli kalır)
+    if (role === "admin" && adminSection) {
+      adminSection.classList.add("visible");
     }
 
     const emailSpan = document.createElement("span");
