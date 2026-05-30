@@ -84,15 +84,16 @@ PAGE_MAP = {
     "hakkinda.html": "hakkinda.html",
 }
 
-# <base href="/"> — Vercel rewrite'larından (örn. /b/:id → /reader?bulten=:id)
-# gelen sayfalarda relative asset path'lerinin (tokens.css, nav.js, data.json)
-# kök'e göre çözülmesini sağlar. Olmazsa /b/tokens.css 404 olur.
-#
+# <base href="/"> — Vercel rewrite'larından (örn. /b/:id) gelen sayfalarda
+# relative asset path'lerinin kök'e göre çözülmesini sağlar. <head>'in EN BAŞINA
+# inject edilmeli — yoksa browser ilk <link href="tokens.css">'i base'i görmeden
+# /b/tokens.css olarak istemeye çalışır ve 404 alır.
+BASE_TAG = '<head>\n<base href="/">'
+
 # FOUC-free tercih bootstrap'i — her sayfanın <head>'ine inject edilir.
 # Render'dan ÖNCE çalışıp data-theme/density/accent attribute'larını uygular.
 # Cross-tab sync için 'storage' event listener ekler.
-PREFS_BOOTSTRAP = """<base href="/">
-<script>
+PREFS_BOOTSTRAP = """<script>
 (function(){
   var h=document.documentElement;
   function apply(){
@@ -117,7 +118,10 @@ for src_name, dst_name in PAGE_MAP.items():
         print(f"⚠️ kaynak yok, atlandı: {src_name}")
         continue
     html = inject(src_file.read_text(encoding="utf-8"))
-    # Bootstrap'i </head>'den hemen önce inject et (idempotent: zaten varsa atla)
+    # <base href="/"> <head>'in EN BAŞINA — link/script'lerden önce
+    if '<base href="/">' not in html.split("</head>")[0]:
+        html = html.replace("<head>", BASE_TAG, 1)
+    # Bootstrap script'i </head>'den önce
     if "sov_theme" not in html.split("</head>")[0]:
         html = html.replace("</head>", PREFS_BOOTSTRAP, 1)
     (DIST / dst_name).write_text(html, encoding="utf-8")
