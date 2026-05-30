@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { PendingItem, PublishItem, PublishResult } from "@/lib/types";
 
@@ -13,6 +13,62 @@ type Props = {
 export default function PanelClient({ pending, oldestAgeHours, autoHours, userEmail }: Props) {
   const router = useRouter();
   const [rejected, setRejected] = useState<Set<string>>(new Set());
+  const [cronState, setCronState] = useState<"loading" | "active" | "disabled_manually" | "unknown">("loading");
+  const [triggering, setTriggering] = useState(false);
+  const [cronToggling, setCronToggling] = useState(false);
+  const [opMsg, setOpMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
+
+  // Cron durumunu yükle (sayfa açılışında)
+  useEffect(() => {
+    fetch("/api/workflow")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (d && typeof d.state === "string") setCronState(d.state as "active" | "disabled_manually");
+        else setCronState("unknown");
+      })
+      .catch(() => setCronState("unknown"));
+  }, []);
+
+  async function handleTrigger() {
+    if (!confirm("Worker'ı şimdi tetiklemek istediğine emin misin? 3-6 dakikada yeni haberler pending kuyruğuna düşer.")) return;
+    setTriggering(true);
+    setOpMsg(null);
+    try {
+      const r = await fetch("/api/trigger", { method: "POST" });
+      const out = await r.json();
+      if (!r.ok) {
+        setOpMsg({ kind: "err", text: `Tetikleme başarısız: ${out.error || r.status}` });
+      } else {
+        setOpMsg({ kind: "ok", text: out.message || "Worker tetiklendi." });
+      }
+    } catch (e) {
+      setOpMsg({ kind: "err", text: `Ağ hatası: ${e}` });
+    } finally {
+      setTriggering(false);
+    }
+  }
+
+  async function handleCronToggle() {
+    setCronToggling(true);
+    setOpMsg(null);
+    try {
+      const r = await fetch("/api/workflow", { method: "POST" });
+      const out = await r.json();
+      if (!r.ok) {
+        setOpMsg({ kind: "err", text: `Cron değişimi başarısız: ${out.error || r.status}` });
+      } else {
+        setCronState(out.new_state);
+        setOpMsg({
+          kind: "ok",
+          text: out.new_state === "active" ? "Cron aktif edildi (08:00 ve 18:00 İstanbul)." : "Cron durduruldu.",
+        });
+      }
+    } catch (e) {
+      setOpMsg({ kind: "err", text: `Ağ hatası: ${e}` });
+    } finally {
+      setCronToggling(false);
+    }
+  }
   const [edits, setEdits] = useState<Record<string, string>>({});
   const [publishing, setPublishing] = useState(false);
   const [result, setResult] = useState<PublishResult | null>(null);
@@ -71,7 +127,9 @@ export default function PanelClient({ pending, oldestAgeHours, autoHours, userEm
   return (
     <div className="layout">
       <aside className="sidebar">
-        <h1>🧬 Sovereign Kokpit</h1>
+        <h1>Sovereign<span style={{ color: "var(--cyan)" }}>.</span> Kokpit</h1>
+        <p className="sub">Editöryal onay paneli</p>
+        <div className="section-label">Durum</div>
         {oldestAgeHours === null ? (
           <div className="stat">
             <div className="label">Pending</div>
@@ -135,6 +193,71 @@ export default function PanelClient({ pending, oldestAgeHours, autoHours, userEm
         <p className="subtitle">
           Onay bekleyen makaleleri incele, gerekirse reddet/düzenle ve bülteni yayınla.
         </p>
+
+        {/* Operasyonel aksiyonlar — public site'tan taşındı */}
+        <div className="actions-bar">
+          <div className="info">
+            <h3>Pipeline</h3>
+            <p>
+              Worker manuel tetikleme · GitHub Actions cron (08:00 ve 18:00 İstanbul)
+            </p>
+          </div>
+          <div className="btns">
+            <button
+              className="primary"
+              onClick={handleTrigger}
+              disabled={triggering}
+              title="Worker'ı şimdi çalıştır → 3-6 dakikada yeni haberler pending'e düşer"
+            >
+              {triggering ? "Tetikleniyor…" : "🚀 Şimdi Tetikle"}
+            </button>
+            <button
+              onClick={handleCronToggle}
+              disabled={cronToggling || cronState === "loading"}
+              className={
+                cronState === "active"
+                  ? "state-on"
+                  : cronState === "disabled_manually"
+                  ? "state-off"
+                  : ""
+              }
+              title={
+                cronState === "active"
+                  ? "Otomatik cron aktif — tıkla durdur"
+                  : cronState === "disabled_manually"
+                  ? "Cron durduruldu — tıkla başlat"
+                  : "Cron durumu yükleniyor…"
+              }
+            >
+              {cronToggling ? (
+                "Değişiyor…"
+              ) : cronState === "loading" ? (
+                "Cron…"
+              ) : (
+                <>
+                  <span className="state-dot"></span>
+                  {cronState === "active" ? "Cron Açık" : cronState === "disabled_manually" ? "Cron Kapalı" : "Cron ?"}
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {opMsg && (
+          <div
+            className="result"
+            style={
+              opMsg.kind === "err"
+                ? { borderLeftColor: "var(--alert)", borderColor: "rgba(207,34,46,0.3)" }
+                : undefined
+            }
+          >
+            <strong style={{ color: opMsg.kind === "err" ? "var(--alert)" : "var(--ok)" }}>
+              {opMsg.kind === "err" ? "Hata" : "✓"}
+            </strong>{" "}
+            {opMsg.text}
+          </div>
+        )}
 
         {result && <PublishResultBanner result={result} onClose={() => setResult(null)} />}
 
