@@ -522,7 +522,7 @@
     URL.revokeObjectURL(a.href);
   }
   async function share(nl) {
-    const url = location.origin + "/?bulten=" + encodeURIComponent(nl.id);
+    const url = location.origin + "/b/" + encodeURIComponent(nl.id);
     if (navigator.share) {
       try { await navigator.share({ title: shortTitle(nl.content), url }); }
       catch {}

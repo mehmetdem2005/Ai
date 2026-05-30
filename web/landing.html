@@ -493,7 +493,7 @@
     const tLink = document.querySelector(".today-bar .today-link");
     if (tStamp) tStamp.textContent = `${td.getDate()} ${TR_MONTHS_SHORT[td.getMonth()]} · ${ED[ed(td)]} edisyonu`;
     if (tTitle) tTitle.textContent = shortTitle(top.content);
-    if (tLink) tLink.href = `reader.html?bulten=${encodeURIComponent(top.id)}`;
+    if (tLink) tLink.href = `/b/${encodeURIComponent(top.id)}`;
     // Latest list — son 6 bülten
     const wrap = document.getElementById("latestList");
     wrap.innerHTML = "";
@@ -501,7 +501,7 @@
       const d = new Date(nl.created_at);
       const a = document.createElement("a");
       a.className = "latest-item";
-      a.href = `reader.html?bulten=${encodeURIComponent(nl.id)}`;
+      a.href = `/b/${encodeURIComponent(nl.id)}`;
       a.innerHTML =
         `<span class="when">${shortDate(d)} · ${ED[ed(d)]}</span>` +
         `<span class="t">${shortTitle(nl.content).replace(/</g,"&lt;")}</span>` +
