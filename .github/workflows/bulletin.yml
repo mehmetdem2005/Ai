@@ -1,9 +1,11 @@
 name: Sovereign Bülten Cron
 
 on:
-  schedule:
-    # 05:00 ve 15:00 UTC = 08:00 ve 18:00 (İstanbul, UTC+3)
-    - cron: "0 5,15 * * *"
+  # SCHEDULE DEVRE DIŞI — V2 (sovereign-daily.yml) ile değiştirildi.
+  # Bu workflow eski "tek karma günlük bülten" mantığıyla çöp özetler üretiyordu:
+  # somut sayı yerine "oyun değiştirici nitelikte" klişeleri. V2'nin niş-bazlı,
+  # 3-satır + somut sayı + TR pratik etkisi formatı çok daha kaliteli.
+  # Acil durumda manuel tetikleme için workflow_dispatch korundu.
   workflow_dispatch: {}
 
 jobs:
