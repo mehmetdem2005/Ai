@@ -120,6 +120,107 @@
   .gate-msg p { margin: 0 0 16px; color: var(--mid); font-size: 14px; }
 
   .loader { color: var(--mid); font-size: 13px; padding: 14px 0; }
+
+  /* ===== SUPABASE MOBILE REFINEMENT (≤ 640px) — dashboard =====
+     mobile.css'i tamamlayıcı; override değil. */
+  @media (max-width: 640px) {
+    /* Action-bar: label üstte, button grubu altta tam genişlik
+       (mobile.css 540'ta kapatıyor, biz 640'ta öne çekiyoruz) */
+    .action-bar {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+      padding: 16px 18px;
+    }
+    .action-bar .label-grp { min-width: 0; flex: none; }
+    .action-bar .btns {
+      width: 100%;
+      flex-wrap: wrap;
+    }
+    .action-bar .btns .btn {
+      flex: 1 1 100%;
+      justify-content: center;
+    }
+    .action-bar h3 { font-size: 14px; }
+    .action-bar .sub { font-size: 12.5px; line-height: 1.5; }
+
+    /* Stat-card: 4'lü dikey stack (mobile.css zaten 540'ta 1fr yapıyor)
+       640'ta da tek kolona alıyoruz — Supabase prensibi */
+    .dash-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    /* mobile.css stat-card padding 16, value 22px ayarladı; biz Supabase compact */
+    .stat-card .label {
+      font-size: 10.5px;
+      margin-bottom: 6px;
+    }
+    .stat-card .value {
+      font-size: 24px;
+      line-height: 1.1;
+    }
+    .stat-card .hint {
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    /* Card-block compact */
+    .card-block {
+      padding: 18px 18px;
+      margin-bottom: 14px;
+    }
+    .card-block h2 {
+      font-size: 14.5px;
+      line-height: 1.35;
+      margin-bottom: 12px;
+    }
+
+    /* Config-list: dt/dd alt alta stack */
+    .config-list {
+      grid-template-columns: 1fr;
+      gap: 4px 0;
+    }
+    .config-list dt {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-top: 10px;
+    }
+    .config-list dt:first-child { margin-top: 0; }
+    .config-list dd {
+      font-size: 13px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--line-2);
+    }
+    .config-list dd:last-child { border-bottom: none; padding-bottom: 0; }
+
+    /* opStatus pill wrap */
+    #opStatus {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+
+    /* Gate */
+    .gate-msg { padding: 32px 20px; }
+    .gate-msg .btn { width: 100%; justify-content: center; }
+
+    /* Pill compact */
+    .pill {
+      font-size: 10.5px;
+      padding: 3px 9px;
+    }
+  }
+
+  /* ===== ULTRA-MOBILE (≤ 540px) — dashboard extras ===== */
+  @media (max-width: 540px) {
+    /* mobile.css action-bar zaten column stack ediyor; biz card-block ekle */
+    .card-block { padding: 16px; }
+    .action-bar { padding: 14px 16px; }
+    /* Value daha sıkı küçük ekran */
+    .stat-card .value { font-size: 22px; }
+  }
 </style>
 </head>
 <body>

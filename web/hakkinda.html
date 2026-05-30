@@ -182,12 +182,100 @@
 
   @media (max-width: 900px) {
     .page-grid { grid-template-columns: 1fr; gap: 24px; padding: 28px 20px 60px; }
-    aside.toc { position: static; padding-top: 0; display: flex; gap: 4px; overflow-x: auto; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+    aside.toc {
+      position: static; padding-top: 0;
+      display: flex; gap: 4px; overflow-x: auto;
+      padding-bottom: 8px; border-bottom: 1px solid var(--line);
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    aside.toc::-webkit-scrollbar { display: none; }
     aside.toc .label { display: none; }
     aside.toc a { white-space: nowrap; padding: 8px 12px; border-left: none; border-bottom: 2px solid transparent; flex-shrink: 0; font-size: 13px; }
     aside.toc a.active { border-left-color: transparent; border-bottom-color: var(--cyan); }
     section.layer h2 { font-size: 24px !important; }
     .team, .method-grid, .contact-grid, .source-cats { grid-template-columns: 1fr; }
+  }
+
+  /* Supabase mobile principles — 640px polish */
+  @media (max-width: 640px) {
+    .page-grid { gap: 16px; padding: 20px 16px 48px; }
+
+    /* Compact page-head */
+    .page-wrap .page-head h1 { font-size: 26px; letter-spacing: -0.02em; }
+    .page-wrap .page-head .dek { font-size: 14px; }
+
+    /* TOC: tab strip with bg-2, 44px tap */
+    aside.toc {
+      margin: 0 -16px 4px;
+      padding: 4px 16px 6px;
+      background: var(--bg-2);
+      border-bottom: none;
+      gap: 2px;
+    }
+    aside.toc a {
+      min-height: 40px;
+      padding: 10px 14px;
+      font-size: 13px;
+      display: inline-flex; align-items: center;
+      border-bottom: none;
+      border-radius: 6px;
+    }
+    aside.toc a.active {
+      background: var(--cyan-soft);
+      color: var(--cyan-ink);
+      border-bottom: none;
+    }
+
+    /* Layers: tighter rhythm, compact h2 */
+    section.layer { padding: 22px 0 32px; }
+    section.layer h2 { font-size: 22px !important; line-height: 1.15; margin-bottom: 12px; }
+    section.layer p { font-size: 16px; line-height: 1.6; }
+    section.layer .crumb { font-size: 10px; margin-bottom: 10px; }
+
+    /* Team / Method / Contact / Sources: tek kolon zaten, padding sıkı */
+    .team, .method-grid, .contact-grid, .source-cats {
+      gap: 12px;
+      margin-top: 18px;
+    }
+    .team .person { padding: 16px; }
+    .team .name { font-size: 17px; }
+    .team .bio { font-size: 13.5px; }
+
+    .method-step { padding: 16px 18px; }
+    .method-step .n { font-size: 28px; }
+    .method-step h4 { font-size: 16px; margin: 8px 0 6px; }
+    .method-step p { font-size: 13px; }
+
+    /* Source cats: count capped at 22px per spec */
+    .source-cat { padding: 14px; }
+    .source-cat .count { font-size: 22px; }
+    .source-cat h5 { font-size: 10px; }
+    .source-cat li { font-size: 11px; }
+
+    /* FAQ: 44px tap, 15px font */
+    .faq { margin-top: 18px; }
+    .faq details { padding: 14px 0; }
+    .faq details summary {
+      min-height: 44px;
+      font-size: 15px;
+      align-items: center;
+      padding-right: 4px;
+    }
+    .faq details summary::after { font-size: 20px; }
+    .faq details p { font-size: 14.5px; margin-top: 10px; }
+
+    /* Contact cards */
+    .contact-card { padding: 16px; }
+    .contact-card h4 { font-size: 16px; }
+    .contact-card p { font-size: 13px !important; }
+    .contact-card a {
+      display: inline-block;
+      min-height: 44px;
+      line-height: 44px;
+      font-size: 12.5px;
+      word-break: break-all;
+    }
   }
 </style>
 </head>

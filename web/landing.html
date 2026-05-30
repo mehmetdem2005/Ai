@@ -30,28 +30,42 @@
     margin-top: 28px; display: flex; gap: 10px; flex-wrap: wrap;
   }
 
-  /* Today's brief callout */
+  /* Today's brief callout — Supabase-vari sade yapı */
   .today-bar {
     background: var(--bg-2);
     border-bottom: 1px solid var(--line);
-    padding: 14px 32px;
+    padding: 16px 32px;
   }
   .today-inner {
     max-width: 1280px; margin: 0 auto;
     display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
   }
+  .today-bar .today-meta {
+    display: flex; align-items: center; gap: 12px;
+    flex-shrink: 0;
+  }
   .today-bar .pill { font-size: 11.5px; }
   .today-bar .stamp {
     font-family: var(--font-mono); font-size: 12px; color: var(--mid);
+    white-space: nowrap;
   }
+  .today-bar .today-link {
+    flex: 1; min-width: 0;
+    display: flex; align-items: center; gap: 14px;
+    color: var(--ink); text-decoration: none; border: none;
+    padding: 4px 0;
+  }
+  .today-bar .today-link:hover { color: var(--cyan); text-decoration: none; }
   .today-bar .title {
-    font-size: 14px; font-weight: 500; color: var(--ink);
-    flex: 1; min-width: 220px;
+    flex: 1; min-width: 0;
+    font-size: 14px; font-weight: 500;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  .today-bar .read-link {
-    font-size: 13.5px; font-weight: 500; color: var(--cyan); border: none;
+  .today-bar .arrow {
+    font-size: 13.5px; font-weight: 500; color: var(--cyan);
+    flex-shrink: 0; white-space: nowrap;
   }
-  .today-bar .read-link:hover { color: var(--cyan-ink); text-decoration: none; }
+  .today-bar .today-link:hover .arrow { color: var(--cyan-ink); }
 
   /* Modules */
   .modules {
@@ -154,10 +168,10 @@
   }
 
   @media (max-width: 900px) {
-    .hero-min { padding: 44px 20px 36px; }
+    .hero-min { padding: 48px 20px 36px; }
     .hero-min h1 { font-size: 30px; }
     .hero-min .sub { font-size: 15.5px; }
-    .today-bar { padding: 12px 20px; }
+    .today-bar { padding: 14px 20px; }
     .modules { padding: 48px 20px; }
     .modules-head h2 { font-size: 24px; }
     .module-grid { grid-template-columns: 1fr 1fr; }
@@ -165,11 +179,27 @@
     .latest-item { grid-template-columns: 100px 1fr; }
     .latest-item .meta-r { grid-column: 1 / -1; text-align: left; }
   }
+  /* Supabase-tarzı mobil: today-bar dikey stack, hero geniş whitespace */
   @media (max-width: 640px) {
-    .hero-min h1 { font-size: 26px; }
+    .hero-min { padding: 36px 20px 28px; }
+    .hero-min h1 { font-size: 26px; line-height: 1.15; }
+    .hero-min .sub { font-size: 15px; margin-top: 12px; }
+    .hero-min .cta-row { margin-top: 20px; gap: 8px; }
+    .hero-min .cta-row .btn { flex: 1; justify-content: center; min-width: 0; }
     .module-grid { grid-template-columns: 1fr; }
-    .today-inner { gap: 10px; }
-    .today-bar .title { width: 100%; min-width: 0; }
+
+    /* Today-bar dikey: pill+stamp üst, başlık ortada, Oku altta */
+    .today-bar { padding: 14px 16px; }
+    .today-inner { flex-direction: column; align-items: stretch; gap: 8px; }
+    .today-bar .today-meta { gap: 8px; }
+    .today-bar .stamp { font-size: 11.5px; }
+    .today-bar .today-link {
+      gap: 8px; padding: 6px 0;
+      justify-content: space-between;
+    }
+    .today-bar .title { font-size: 14.5px; }
+    .today-bar .arrow { font-size: 13px; }
+
     .latest-item { grid-template-columns: 1fr; gap: 6px; padding: 14px 16px; }
     .latest-item .meta-r { font-size: 11.5px; }
   }
@@ -192,10 +222,14 @@
 
 <section class="today-bar">
   <div class="today-inner">
-    <span class="pill ok"><span class="dot"></span><span data-i18n="common.published">YAYINDA</span></span>
-    <span class="stamp">Bugün</span>
-    <span class="title">En son brief yükleniyor…</span>
-    <a class="read-link" href="reader.html" data-i18n="common.read">Oku →</a>
+    <div class="today-meta">
+      <span class="pill ok"><span class="dot"></span><span data-i18n="common.published">YAYINDA</span></span>
+      <span class="stamp">Bugün</span>
+    </div>
+    <a class="today-link" href="reader.html">
+      <span class="title">En son brief yükleniyor…</span>
+      <span class="arrow" data-i18n="common.read">Oku →</span>
+    </a>
   </div>
 </section>
 
@@ -330,7 +364,7 @@
     const td = new Date(top.created_at);
     const tStamp = document.querySelector(".today-bar .stamp");
     const tTitle = document.querySelector(".today-bar .title");
-    const tLink = document.querySelector(".today-bar .read-link");
+    const tLink = document.querySelector(".today-bar .today-link");
     if (tStamp) tStamp.textContent = `${td.getDate()} ${TR_MONTHS_SHORT[td.getMonth()]} · ${ED[ed(td)]} edisyonu`;
     if (tTitle) tTitle.textContent = shortTitle(top.content);
     if (tLink) tLink.href = `reader.html?bulten=${encodeURIComponent(top.id)}`;
