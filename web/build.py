@@ -84,10 +84,15 @@ PAGE_MAP = {
     "hakkinda.html": "hakkinda.html",
 }
 
+# <base href="/"> — Vercel rewrite'larından (örn. /b/:id → /reader?bulten=:id)
+# gelen sayfalarda relative asset path'lerinin (tokens.css, nav.js, data.json)
+# kök'e göre çözülmesini sağlar. Olmazsa /b/tokens.css 404 olur.
+#
 # FOUC-free tercih bootstrap'i — her sayfanın <head>'ine inject edilir.
 # Render'dan ÖNCE çalışıp data-theme/density/accent attribute'larını uygular.
 # Cross-tab sync için 'storage' event listener ekler.
-PREFS_BOOTSTRAP = """<script>
+PREFS_BOOTSTRAP = """<base href="/">
+<script>
 (function(){
   var h=document.documentElement;
   function apply(){
