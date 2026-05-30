@@ -50,8 +50,10 @@
     transition: background .15s;
     display: block;
     background: transparent;
+    color: inherit;
+    text-decoration: none;
   }
-  .bull:hover { background: var(--surface); }
+  .bull:hover { background: var(--surface); text-decoration: none; color: inherit; }
   .bull:focus-visible {
     outline: 2px solid var(--cyan);
     outline-offset: -2px;
@@ -453,6 +455,16 @@
   }
   body.single-edition .back-to-archive:hover { background: var(--tint); color: var(--ink); border-color: var(--ink-2); }
   .back-to-archive { display: none; }
+
+  /* ===== ARŞİV MODU (param yok) — reader-col gizli, sadece liste ===== */
+  body.archive-mode .layout { grid-template-columns: 1fr; height: auto; min-height: 0; }
+  body.archive-mode main.reader-col { display: none; }
+  body.archive-mode aside.list-col {
+    max-height: none !important; height: auto;
+    border-right: none; border-bottom: none;
+  }
+  body.archive-mode .bull { cursor: pointer; }
+  body.archive-mode .bull:hover { background: var(--surface); }
 </style>
 </head>
 <body>
@@ -508,9 +520,9 @@
     return t.length > 92 ? t.slice(0, 90) + "…" : t;
   }
   function bodyFromContent(content) {
-    // Markdown'ı render et — başlık zaten reader-head'de göstereceğiz
-    // İlk h1'i kaldır
-    const stripped = (content || "").replace(/^#\s+.+$/m, "").replace(/^\*\*Tarih:\*\*.*$/m, "").trim();
+    // H1 (başlık) korunur — haber sitesi gibi büyük başlık görünür.
+    // Sadece "**Tarih:**" satırı kaldırılır (meta zaten reader-head'de).
+    const stripped = (content || "").replace(/^\*\*Tarih:\*\*.*$/m, "").trim();
     return DOMPurify.sanitize(marked.parse(stripped));
   }
   function download(nl) {
@@ -558,25 +570,20 @@
     window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  function renderList() {
+  function renderList(activeId) {
     const wrap = document.getElementById("bullList");
     wrap.innerHTML = "";
-    data.forEach((nl, i) => {
+    data.forEach((nl) => {
       const d = new Date(nl.created_at);
-      const div = document.createElement("div");
-      div.className = "bull" + (i === 0 ? " active" : "");
-      div.setAttribute("role", "button");
-      div.setAttribute("tabindex", "0");
-      div.setAttribute("aria-label", `${edition(d)} · ${fmt(d)} — ${shortTitle(nl.content)}`);
-      div.innerHTML =
+      const a = document.createElement("a");
+      a.className = "bull" + (String(nl.id) === String(activeId) ? " active" : "");
+      a.href = `/b/${encodeURIComponent(nl.id)}`;
+      a.setAttribute("aria-label", `${edition(d)} · ${fmt(d)} — ${shortTitle(nl.content)}`);
+      a.innerHTML =
         `<div class="top"><span class="sid">${edition(d)}</span> · ${fmt(d).toUpperCase()}</div>` +
         `<h4>${shortTitle(nl.content)}</h4>` +
         `<div class="stats"><span class="pill-mini">${nl.article_count ?? "?"} sinyal</span><span style="margin-left:auto" aria-hidden="true">Aç →</span></div>`;
-      div.onclick = () => show(i);
-      div.onkeydown = (e) => {
-        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); show(i); }
-      };
-      wrap.appendChild(div);
+      wrap.appendChild(a);
     });
   }
 
@@ -593,16 +600,21 @@
       document.getElementById("readerBody").innerHTML = '<p style="color:var(--mid);padding:40px 0;" data-i18n="reader.empty_title">Henüz bülten üretilmedi.</p>';
       return;
     }
-    renderList();
-    show(0);
 
-    // URL ?bulten=ID parametresi varsa: o bülteni aç + arşiv kenar çubuğunu gizle (tek-edisyon modu)
+    // URL ?bulten=ID varsa: tek-edisyon okuma modu (haber sitesi gibi).
+    // Yoksa: arşiv listesi modu — içerik gösterilmez, sadece liste.
     const params = new URLSearchParams(location.search);
     const bid = params.get("bulten");
     if (bid) {
       const idx = data.findIndex(n => String(n.id) === bid);
+      renderList(bid);
       if (idx >= 0) show(idx);
+      else document.getElementById("readerBody").innerHTML =
+        '<p style="color:var(--mid);padding:40px 0;">Bülten bulunamadı.</p>';
       document.body.classList.add("single-edition");
+    } else {
+      renderList(null);
+      document.body.classList.add("archive-mode");
     }
   }
   load();
