@@ -339,24 +339,15 @@
     bar.className = "sov-admin-bar";
 
     if (role === "admin") {
-      const triggerBtn = makeBtn('🚀 <span class="label">Tetikle</span>', "primary");
-      triggerBtn.title = "Worker'ı şimdi tetikle — yeni haberler çekilir";
-      triggerBtn.onclick = () => triggerWorkflow(triggerBtn);
-      bar.appendChild(triggerBtn);
-
-      const cronBtn = makeBtn('<span class="label">Cron…</span>');
-      cronBtn.disabled = true;
-      cronBtn.onclick = () => toggleCron(cronBtn);
-      bar.appendChild(cronBtn);
-      refreshCron(cronBtn);
-
+      // Operasyonel butonlar (Tetikle, Cron) public site'ta DEĞİL — admin
+      // panelinin içinde. Burada sadece admin paneline link ve email/çıkış.
       const adminLink = document.createElement("a");
-      adminLink.className = "sov-admin-btn";
+      adminLink.className = "sov-admin-btn primary";
       adminLink.href = ADMIN_PANEL_URL;
       adminLink.target = "_blank";
       adminLink.rel = "noopener";
-      adminLink.innerHTML = '⚙️ <span class="label">Admin</span>';
-      adminLink.title = "Editöryal admin paneli (yeni sekmede)";
+      adminLink.innerHTML = '⚙️ <span class="label">Admin Paneli</span>';
+      adminLink.title = "Editöryal admin paneli (yeni sekmede açılır)";
       bar.appendChild(adminLink);
     }
 
