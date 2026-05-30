@@ -352,7 +352,6 @@
 
     // Public site top auth bar'da hiçbir kullanıcı bilgisi yok — email
     // ve Çıkış admin panelinin İÇİNDE. Logout drawer-foot'tan yapılır.
-    const drawerLogout = document.getElementById("navDrawerLogout");
     if (drawerLogout) {
       drawerLogout.classList.add("visible");
       drawerLogout.onclick = (e) => {
