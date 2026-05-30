@@ -17,8 +17,9 @@ import requests
 log = logging.getLogger(__name__)
 
 DEEPSEEK_URL = "https://api.deepseek.com/chat/completions"
-# Özet için flash (reasoning yok, ucuz/hızlı). Haftalık derin analiz için DEEPSEEK_MODEL_DEEP.
-MODEL = os.environ.get("DEEPSEEK_MODEL_SUMMARY") or "deepseek-v4-flash"
+# Özet için non-reasoning model: deepseek-chat (deprecation 2026-07-24, sonra v4-pro/flash reasoning_effort=low).
+# Reasoning'li modeller (v4-pro, v4-flash) max_tokens budget'ını yiyor → boş content.
+MODEL = os.environ.get("DEEPSEEK_MODEL_SUMMARY") or "deepseek-chat"
 
 SYSTEM_PROMPT = """Sen Türkçe, tıbbi/klinik literatür özetçisisin. Her özet 3 satırdır:
 - Satır 1: Olay + 1 somut sayı (n, %, p, OS, doz, ay, $ vb.).
@@ -49,19 +50,21 @@ def summarize_for_niche(
     niche_label: str,
     niche_description: str,
     api_key: str | None = None,
-    max_tokens: int = 700,
+    max_tokens: int = 1200,
 ) -> str:
     key = api_key or os.environ.get("DEEPSEEK_API_KEY")
     if not key:
         raise RuntimeError("DEEPSEEK_API_KEY yok — .env'i kontrol et.")
 
+    # Niş açıklamasını kısalt — reasoning tokens budget'ını korumak için
+    niche_short = (niche_description or "")[:400]
     user_msg = USER_TEMPLATE.format(
         niche_label=niche_label,
-        niche_description=niche_description,
+        niche_description=niche_short,
         title=title,
         journal=journal or "n/a",
         authors=", ".join((authors or [])[:5]) or "n/a",
-        abstract=(abstract or "(özet yok)")[:3500],
+        abstract=(abstract or "(özet yok)")[:2500],
     )
 
     payload: dict[str, Any] = {
