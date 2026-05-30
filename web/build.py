@@ -67,9 +67,10 @@ def inject(src: str) -> str:
 
 
 # Placeholder içeren JS'leri inject ile yaz
-for js_file in ("auth.js", "nav.js"):
-    src = inject((HERE / js_file).read_text(encoding="utf-8"))
-    (DIST / js_file).write_text(src, encoding="utf-8")
+for js_file in ("auth.js", "nav.js", "cms-client.js"):
+    if (HERE / js_file).exists():
+        src = inject((HERE / js_file).read_text(encoding="utf-8"))
+        (DIST / js_file).write_text(src, encoding="utf-8")
 
 # 4. HTML sayfaları
 # landing.html → index.html (anasayfa)
