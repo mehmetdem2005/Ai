@@ -135,13 +135,16 @@ function renderBrief(brief, items, nichesMap) {
       const it = m.items;
       const summary = (m.summary_tr || '').trim()
         .split(/\n+/).map(p => `<p>${escapeHtml(p.replace(/^[-*•]\s*/, ''))}</p>`).join('');
-      const srcLabel = ({
+      const SRC_LABELS = {
         pubmed: 'PubMed', medrxiv: 'medRxiv', biorxiv: 'bioRxiv',
         clinicaltrials: 'ClinicalTrials', openfda: 'FDA', arxiv: 'arXiv',
-      })[it.source_type] || it.source_type;
+      };
+      // Whitelist: izinli kaynak tipleri dışında "unknown" — class injection riski sıfırlanır
+      const srcType = SRC_LABELS[it.source_type] ? it.source_type : 'unknown';
+      const srcLabel = SRC_LABELS[srcType] || 'Kaynak';
       sec.insertAdjacentHTML('beforeend', `<div class="item">
         <div class="item-head">
-          <span class="src-badge ${it.source_type}">${srcLabel}</span>
+          <span class="src-badge ${srcType}">${escapeHtml(srcLabel)}</span>
           <span class="score">eşleşme ${(m.score * 100).toFixed(0)}%</span>
         </div>
         <h3><a href="${escapeHtml(it.url || '#')}" target="_blank" rel="noopener">${escapeHtml(it.title)}</a></h3>
