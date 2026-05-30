@@ -98,6 +98,20 @@
       bounce();
     });
     window.addEventListener("hashchange", () => mountRoute(parseHash()));
+
+    // Global search → routes filter
+    const search = document.getElementById("globalSearch");
+    if (search) {
+      search.addEventListener("keydown", (e) => {
+        if (e.key !== "Enter") return;
+        const q = search.value.trim().toLowerCase();
+        if (!q) return;
+        const match = Object.entries(ROUTES).find(([k, v]) =>
+          k.includes(q) || v.label.toLowerCase().includes(q));
+        if (match) { location.hash = "#/" + match[0]; search.value = ""; search.blur(); }
+        else Admin.toast.info("Eşleşen modül yok");
+      });
+    }
     if (localStorage.getItem("admin_sb_collapsed") === "1") {
       document.getElementById("adminApp").classList.add("sb-collapsed");
     }
