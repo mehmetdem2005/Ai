@@ -2,11 +2,11 @@
   "landing.html": [
     {
       "text": "Bugün",
-      "context": "section > div > span"
+      "context": "div > div > span"
     },
     {
       "text": "En son brief yükleniyor…",
-      "context": "section > div > span"
+      "context": "div > a > span"
     }
   ],
   "reader.html": [],
