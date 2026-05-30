@@ -239,16 +239,25 @@
     .layout { gap: 0; }
     aside.list-col {
       max-height: none;
+      border-right: none;
       border-bottom: 1px solid var(--line);
+      background: var(--surface-2);
     }
     .list-head {
-      padding: 20px 20px 12px;
+      padding: 24px 20px 14px;
       border-bottom: 1px solid var(--line);
+      background: var(--surface-2);
     }
     .list-head h2 { font-size: 22px; letter-spacing: -0.02em; }
-    .list-head .meta { font-size: 10px; margin-top: 6px; }
+    .list-head .meta {
+      font-size: 10px;
+      margin-top: 6px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
-    /* Bull rows — Supabase row pattern: zebra-ish via bg-2 active stripe */
+    /* Bull rows — Supabase row pattern: bg-2 stripe yerine surface farkı */
     .bull {
       padding: 18px 20px;
       border-bottom: 1px solid var(--line-2);
@@ -256,21 +265,45 @@
     .bull.active {
       border-left-width: 3px;
       padding-left: 17px;
+      background: var(--surface);
     }
     .bull h4 {
       font-size: 16px;
       margin: 8px 0;
       -webkit-line-clamp: 2;
+      line-height: 1.32;
     }
-    .bull .top { font-size: 10.5px; }
-    .bull .stats { font-size: 10px; gap: 10px; }
+    .bull .top {
+      font-size: 10.5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .bull .stats {
+      font-size: 10px;
+      gap: 10px;
+      white-space: nowrap;
+      overflow: hidden;
+    }
+    .bull .stats .pill-mini {
+      max-width: 60%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
     /* Reader-head: SID + meta tek satır, actions ayrı satır tam-genişlik */
     .reader-head {
-      padding: 16px 20px;
+      padding: 18px 20px;
       gap: 8px;
+      border-bottom: 1px solid var(--line);
     }
-    .reader-head .sid { font-size: 10.5px; }
+    .reader-head .sid {
+      font-size: 10.5px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 60%;
+    }
     .reader-head .date { font-size: 10.5px; }
     .reader-head .pill { font-size: 9.5px; padding: 3px 8px; }
     .reader-head .actions {
@@ -289,45 +322,50 @@
       text-overflow: ellipsis;
       justify-content: center;
     }
-    /* Primary "Uzun okuma" alır geniş alanı (2x), diğerleri kompakt */
+    /* Primary "Uzun okuma" alır geniş alanı (1.6x), diğerleri kompakt */
     .reader-head .actions .btn:first-child {
       flex: 1.6 1 0;
     }
 
     /* Reader body — bol whitespace + compact tipografi */
     .reader-body {
-      padding: 28px 20px 60px;
+      padding: 32px 20px 64px;
     }
     .reader-body h1 {
-      font-size: 26px !important;
-      line-height: 1.18 !important;
-      margin-bottom: 14px;
+      font-size: 28px !important;
+      line-height: 1.15 !important;
+      margin-bottom: 16px;
+      letter-spacing: -0.02em;
     }
     .reader-body .dek {
       font-size: 16px;
       line-height: 1.5;
     }
     .reader-body h3 {
-      font-size: 18px !important;
-      margin: 28px 0 8px;
+      font-size: 19px !important;
+      margin: 28px 0 10px;
+      line-height: 1.25;
     }
     .reader-body p {
       font-size: 16px;
       line-height: 1.65;
-      margin: 12px 0;
+      margin: 14px 0;
     }
     .reader-body blockquote {
-      margin: 20px 0 !important;
-      padding: 16px 18px !important;
+      margin: 22px 0 !important;
+      padding: 18px 20px !important;
       font-size: 17px !important;
       line-height: 1.45 !important;
+      border-left-width: 3px;
     }
 
     /* Meta-strip stack tam dikey — Supabase row */
     .meta-strip {
       grid-template-columns: 1fr !important;
-      padding: 8px 0;
+      padding: 4px 0;
       margin: 24px 0;
+      border-top-color: var(--line);
+      border-bottom-color: var(--line);
     }
     .meta-strip .cell {
       padding: 12px 0 !important;
@@ -339,24 +377,28 @@
     .meta-strip .k {
       font-size: 9.5px;
       flex: 0 0 auto;
-      min-width: 90px;
+      min-width: 96px;
     }
     .meta-strip .v {
       font-size: 16px;
       margin-top: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
     /* Source list — Supabase compact list */
     .src-list {
-      padding: 14px 16px;
-      margin-top: 28px;
+      padding: 16px 18px;
+      margin-top: 32px;
     }
-    .src-list h4 { font-size: 10.5px; margin-bottom: 10px; }
+    .src-list h4 { font-size: 10.5px; margin-bottom: 12px; }
     .src-list li {
       grid-template-columns: 22px 1fr !important;
       gap: 10px;
-      padding: 10px 0;
+      padding: 12px 0;
       font-size: 14px;
+      line-height: 1.45;
     }
 
     /* Filter chips — küçük pill */
@@ -371,6 +413,7 @@
 
   /* ===== TINY PHONES (≤ 380px) — iPhone SE / mini ===== */
   @media (max-width: 380px) {
+    .reader-head { padding: 16px 16px; }
     .reader-head .actions .btn {
       font-size: 11.5px !important;
       padding: 10px 6px !important;
@@ -389,8 +432,12 @@
     .reader-head .actions .btn:first-child {
       flex: 1 1 0;
     }
-    .reader-body h1 { font-size: 24px !important; }
+    .reader-body { padding: 28px 16px 56px; }
+    .reader-body h1 { font-size: 26px !important; }
+    .list-head { padding: 22px 16px 12px; }
     .list-head h2 { font-size: 20px; }
+    .bull { padding: 16px 16px; }
+    .bull.active { padding-left: 13px; }
   }
 </style>
 </head>
@@ -503,11 +550,17 @@
       const d = new Date(nl.created_at);
       const div = document.createElement("div");
       div.className = "bull" + (i === 0 ? " active" : "");
+      div.setAttribute("role", "button");
+      div.setAttribute("tabindex", "0");
+      div.setAttribute("aria-label", `${edition(d)} · ${fmt(d)} — ${shortTitle(nl.content)}`);
       div.innerHTML =
         `<div class="top"><span class="sid">${edition(d)}</span> · ${fmt(d).toUpperCase()}</div>` +
         `<h4>${shortTitle(nl.content)}</h4>` +
-        `<div class="stats"><span class="pill-mini">${nl.article_count ?? "?"} sinyal</span><span style="margin-left:auto">Aç →</span></div>`;
+        `<div class="stats"><span class="pill-mini">${nl.article_count ?? "?"} sinyal</span><span style="margin-left:auto" aria-hidden="true">Aç →</span></div>`;
       div.onclick = () => show(i);
+      div.onkeydown = (e) => {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); show(i); }
+      };
       wrap.appendChild(div);
     });
   }
