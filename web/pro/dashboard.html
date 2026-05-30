@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Sovereign Pro · Bugünün brief'i</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../tokens.css" />
+<link rel="stylesheet" href="../mobile.css" />
+<style>
+  body { background: var(--bg-2); }
+  .page-wrap { max-width: 760px; margin: 0 auto; padding: 24px 20px 64px; }
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 28px; padding-bottom: 16px; border-bottom: 1px solid var(--line);
+  }
+  .topbar .brand { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
+  .topbar .brand .dot { color: var(--cyan); }
+  .topbar .actions { display: flex; gap: 12px; align-items: center; font-size: 13px; }
+  .topbar .actions a { color: var(--mid); text-decoration: none; }
+  .topbar .actions a:hover { color: var(--ink); }
+  .topbar button { background: none; border: none; color: var(--mid); cursor: pointer; font: inherit; font-size: 13px; }
+  .head {
+    margin-bottom: 24px;
+  }
+  .head .stamp { font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cyan-ink); margin-bottom: 8px; }
+  .head h1 { margin: 0 0 6px; font-family: 'Newsreader', serif; font-size: 32px; font-weight: 500; letter-spacing: -0.02em; }
+  .head .meta { color: var(--mid); font-size: 14px; }
+  .niche-section { margin-top: 28px; }
+  .niche-section .niche-head {
+    display: flex; align-items: baseline; gap: 12px;
+    border-bottom: 1px solid var(--line); padding-bottom: 8px; margin-bottom: 14px;
+  }
+  .niche-section .niche-head .nh-label { font-size: 15px; font-weight: 600; color: var(--ink); flex: 1; }
+  .niche-section .niche-head .nh-count { font-family: var(--font-mono); font-size: 11.5px; color: var(--mid); }
+  .item {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg);
+    padding: 20px 22px; margin-bottom: 12px;
+  }
+  .item .item-head { display: flex; gap: 12px; align-items: baseline; margin-bottom: 8px; flex-wrap: wrap; }
+  .item .item-head .src-badge { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; background: var(--bg-2); color: var(--ink-2); }
+  .item .item-head .src-badge.pubmed { background: #ecfdf5; color: #047857; }
+  .item .item-head .src-badge.medrxiv,
+  .item .item-head .src-badge.biorxiv { background: #fef3c7; color: #92400e; }
+  .item .item-head .src-badge.clinicaltrials { background: #ddd6fe; color: #5b21b6; }
+  .item .item-head .score { font-family: var(--font-mono); font-size: 11px; color: var(--mid); }
+  .item h3 { margin: 4px 0 6px; font-size: 15.5px; font-weight: 600; line-height: 1.35; letter-spacing: -0.005em; }
+  .item h3 a { color: var(--ink); text-decoration: none; border-bottom: 1px solid transparent; }
+  .item h3 a:hover { border-bottom-color: var(--cyan); color: var(--cyan-ink); }
+  .item .journal { font-size: 12.5px; color: var(--mid); margin-bottom: 12px; font-family: var(--font-mono); }
+  .item .summary { font-family: 'Newsreader', serif; font-size: 15.5px; line-height: 1.6; color: var(--ink-2); }
+  .item .summary p { margin: 0 0 8px; }
+  .empty {
+    text-align: center; padding: 60px 20px; color: var(--mid);
+    background: var(--surface); border: 1px dashed var(--line); border-radius: var(--radius-lg);
+  }
+  .empty .icon { font-size: 32px; margin-bottom: 12px; }
+  .empty p { margin: 4px 0; }
+  .empty a { color: var(--cyan-ink); }
+  .skeleton { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 22px; margin-bottom: 12px; }
+  .skeleton .bar { height: 12px; background: var(--bg-2); border-radius: 4px; margin-bottom: 8px; animation: pulse 1.4s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+</style>
+</head>
+<body>
+
+<div class="page-wrap">
+  <div class="topbar">
+    <div class="brand">Sovereign<span class="dot">.</span> <span style="font-family:var(--font-mono);font-size:11px;color:var(--mid);letter-spacing:0.12em">PRO</span></div>
+    <div class="actions">
+      <a href="./onboarding.html">Niş ayarları</a>
+      <button onclick="signOut()">Çıkış</button>
+    </div>
+  </div>
+
+  <div class="head">
+    <div class="stamp" id="dateStamp">—</div>
+    <h1 id="title">Bugünün brief'i</h1>
+    <div class="meta" id="meta">Yükleniyor…</div>
+  </div>
+
+  <div id="content">
+    <div class="skeleton"><div class="bar" style="width:60%"></div><div class="bar" style="width:90%"></div><div class="bar" style="width:75%"></div></div>
+    <div class="skeleton"><div class="bar" style="width:50%"></div><div class="bar" style="width:85%"></div><div class="bar" style="width:70%"></div></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL = "__SUPABASE_URL__";
+const SUPABASE_ANON_KEY = "__SUPABASE_ANON_KEY__";
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const TR_MONTHS = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+
+async function signOut() {
+  await sb.auth.signOut();
+  window.location.href = './index.html';
+}
+
+function escapeHtml(s) {
+  return (s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function renderBrief(brief, items, nichesMap) {
+  const content = document.getElementById('content');
+  content.innerHTML = '';
+
+  if (!items || !items.length) {
+    content.innerHTML = `<div class="empty">
+      <div class="icon">📭</div>
+      <p><strong>Bugün eşleşen yeni içerik yok.</strong></p>
+      <p>Yarın sabah tekrar bak veya <a href="./onboarding.html">niş tanımını genişlet</a>.</p>
+    </div>`;
+    return;
+  }
+
+  // Niş bazında grupla
+  const bySection = {};
+  for (const it of items) {
+    const k = it.niche_id;
+    (bySection[k] ??= []).push(it);
+  }
+
+  for (const [nicheId, list] of Object.entries(bySection)) {
+    const niche = nichesMap[nicheId];
+    const sec = document.createElement('section');
+    sec.className = 'niche-section';
+    sec.innerHTML = `<div class="niche-head">
+      <div class="nh-label">${escapeHtml(niche?.label || 'Niş')}</div>
+      <div class="nh-count">${list.length} makale</div>
+    </div>`;
+    for (const m of list) {
+      const it = m.items;
+      const summary = (m.summary_tr || '').trim()
+        .split(/\n+/).map(p => `<p>${escapeHtml(p.replace(/^[-*•]\s*/, ''))}</p>`).join('');
+      const srcLabel = ({
+        pubmed: 'PubMed', medrxiv: 'medRxiv', biorxiv: 'bioRxiv',
+        clinicaltrials: 'ClinicalTrials', openfda: 'FDA', arxiv: 'arXiv',
+      })[it.source_type] || it.source_type;
+      sec.insertAdjacentHTML('beforeend', `<div class="item">
+        <div class="item-head">
+          <span class="src-badge ${it.source_type}">${srcLabel}</span>
+          <span class="score">eşleşme ${(m.score * 100).toFixed(0)}%</span>
+        </div>
+        <h3><a href="${escapeHtml(it.url || '#')}" target="_blank" rel="noopener">${escapeHtml(it.title)}</a></h3>
+        <div class="journal">${escapeHtml(it.journal || '')}</div>
+        <div class="summary">${summary}</div>
+      </div>`);
+    }
+    content.appendChild(sec);
+  }
+}
+
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = './index.html'; return; }
+
+  // Niş'leri yükle (etiket göstermek için)
+  const { data: niches } = await sb.from('niches').select('id,label').eq('is_active', true);
+  if (!niches || !niches.length) {
+    window.location.href = './onboarding.html';
+    return;
+  }
+  const nichesMap = {};
+  for (const n of niches) nichesMap[n.id] = n;
+
+  // En son brief
+  const today = new Date();
+  document.getElementById('dateStamp').textContent =
+    `${today.getDate()} ${TR_MONTHS[today.getMonth()]} ${today.getFullYear()}`;
+
+  const { data: briefs } = await sb.from('briefs')
+    .select('id,brief_date,item_count,status')
+    .order('brief_date', { ascending: false }).limit(1);
+
+  if (!briefs || !briefs.length) {
+    document.getElementById('meta').textContent = 'Henüz brief üretilmedi. İlk brief gece tetiklenecek.';
+    document.getElementById('content').innerHTML = `<div class="empty">
+      <div class="icon">⏳</div>
+      <p><strong>İlk brief'in hazırlanıyor.</strong></p>
+      <p>Niş tanımların kaydedildi. İlk brief en geç sabah 06:30'da burada olur.</p>
+    </div>`;
+    return;
+  }
+
+  const brief = briefs[0];
+  document.getElementById('meta').textContent =
+    `${brief.item_count} makale · ${brief.status === 'draft' ? 'taslak' : brief.status}`;
+
+  const { data: items, error } = await sb.from('brief_items')
+    .select('niche_id,score,summary_tr,position,items(source_type,title,journal,url)')
+    .eq('brief_id', brief.id).order('position');
+
+  if (error) {
+    document.getElementById('content').innerHTML = `<div class="empty">Yükleme hatası: ${escapeHtml(error.message)}</div>`;
+    return;
+  }
+  renderBrief(brief, items, nichesMap);
+})();
+</script>
+</body>
+</html>

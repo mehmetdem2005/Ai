@@ -15,11 +15,13 @@ import pathlib
 import sys
 from datetime import datetime, timedelta, timezone
 
-# .env yükle
-for line in pathlib.Path(__file__).resolve().parent.parent.joinpath(".env").read_text().splitlines():
-    if "=" in line and not line.startswith("#"):
-        k, v = line.split("=", 1)
-        os.environ.setdefault(k.strip(), v.strip())
+# .env varsa yükle (yerel geliştirme); CI'de env vars secrets'tan gelir.
+_env_file = pathlib.Path(__file__).resolve().parent.parent.joinpath(".env")
+if _env_file.exists():
+    for line in _env_file.read_text().splitlines():
+        if "=" in line and not line.startswith("#"):
+            k, v = line.split("=", 1)
+            os.environ.setdefault(k.strip(), v.strip())
 
 from .db import SupabaseClient
 from .pipeline import fetch, match

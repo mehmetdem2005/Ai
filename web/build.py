@@ -126,6 +126,21 @@ for src_name, dst_name in PAGE_MAP.items():
         html = html.replace("</head>", PREFS_BOOTSTRAP, 1)
     (DIST / dst_name).write_text(html, encoding="utf-8")
 
+# 4b. Sovereign Pro — SaaS UI (web/pro/*.html → dist/pro/*.html)
+# Pro sayfaları auth/login + niş onboarding + brief dashboard içerir.
+# Bunlar Supabase Auth + REST kullanır; aynı placeholder enjeksiyonu.
+PRO_DIR = HERE / "pro"
+if PRO_DIR.is_dir():
+    PRO_DIST = DIST / "pro"
+    PRO_DIST.mkdir(parents=True, exist_ok=True)
+    pro_pages = sorted(PRO_DIR.glob("*.html"))
+    for src_file in pro_pages:
+        html = inject(src_file.read_text(encoding="utf-8"))
+        # Pro sayfaları kendi <link href="../tokens.css"> kullanır — base/bootstrap
+        # eklemeye gerek yok; Pro alt dizininde ayrı yaşar.
+        (PRO_DIST / src_file.name).write_text(html, encoding="utf-8")
+    print(f"✓ Pro UI: {len(pro_pages)} sayfa → dist/pro/")
+
 # 5. Legacy yönetim sayfası — geriye dönük link uyumu için
 if (HERE / "yonetim.html").exists():
     (DIST / "yonetim.html").write_text(
