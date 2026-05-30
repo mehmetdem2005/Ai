@@ -123,7 +123,7 @@
       <div class="dn-admin-section" id="navAdminSection">
         <div class="dn-section-divider"></div>
         <div class="dn-section-label" data-i18n="nav.admin_section">Yönetim</div>
-        <a href="__ADMIN_PANEL_URL__" target="_blank" rel="noopener" class="dn-link dn-admin-link" data-i18n="nav.admin_panel">⚙️ Admin Paneli →</a>
+        <a href="__ADMIN_PANEL_URL__" target="_blank" rel="noopener" class="dn-link dn-admin-link" data-i18n="nav.admin_panel">Admin Paneli</a>
       </div>
 
       <div class="drawer-foot">
@@ -232,7 +232,8 @@
   }
 }
 
-/* Drawer admin section — sadece admin login olunca .visible class'ı eklenir */
+/* Drawer admin section — sadece admin login olunca .visible class'ı eklenir.
+   Diğer .dn-link öğeleriyle aynı görünüm; YÖNETİM label'ı bölümü ayırır. */
 .dn-admin-section { display: none; }
 .dn-admin-section.visible { display: block; }
 .dn-section-divider {
@@ -246,21 +247,23 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--mid, #59636E);
-  padding: 0 4px 6px;
+  padding: 8px 4px 6px;
 }
+/* Admin link — diğer .dn-link gibi sade, sadece küçük cyan dot ile ayırıcı işaret */
 .dn-admin-link {
-  background: var(--cyan-soft, #DDF4FF);
-  color: var(--cyan-ink, #0969DA) !important;
-  border-radius: var(--radius, 6px);
-  font-weight: 600;
-  padding: 11px 12px !important;
   display: flex !important;
   align-items: center;
   gap: 8px;
+  position: relative;
 }
-.dn-admin-link:hover {
-  background: #c8eaff !important;
-  text-decoration: none !important;
+.dn-admin-link::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--cyan, #1F6FEB);
+  flex-shrink: 0;
 }
 `;
     document.head.appendChild(s);
