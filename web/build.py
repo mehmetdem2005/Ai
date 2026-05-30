@@ -76,7 +76,7 @@ for js_file in ("auth.js", "nav.js"):
 PAGE_MAP = {
     "landing.html": "index.html",
     "reader.html": "reader.html",
-    "admin.html": "admin.html",
+    "admin.html": "legacy-admin.html",
     "editorial.html": "editorial.html",
     "dashboard.html": "dashboard.html",
     "abonelik.html": "abonelik.html",
@@ -124,6 +124,20 @@ if (HERE / "yonetim.html").exists():
     )
 if (HERE / "admin.js").exists():
     shutil.copy(HERE / "admin.js", DIST / "admin.js")
+
+# 6. Admin SPA — yeni GCP-tarzı yönetim paneli (web/admin/* → dist/admin/*)
+ADMIN_DIR = HERE / "admin"
+if ADMIN_DIR.is_dir():
+    DIST_ADMIN = DIST / "admin"
+    DIST_ADMIN.mkdir(parents=True, exist_ok=True)
+    for src_file in sorted(ADMIN_DIR.iterdir()):
+        if src_file.is_file():
+            content = src_file.read_text(encoding="utf-8") if src_file.suffix in (".html", ".js", ".css") else None
+            if content is not None:
+                (DIST_ADMIN / src_file.name).write_text(inject(content), encoding="utf-8")
+            else:
+                shutil.copy(src_file, DIST_ADMIN / src_file.name)
+    print(f"✓ Admin SPA: {sum(1 for _ in ADMIN_DIR.iterdir())} dosya → dist/admin/")
 
 print(f"✓ {len(rows)} bülten + {len(PAGE_MAP)} sayfa + {len(ASSETS)} asset → dist/")
 if not ANON_KEY:

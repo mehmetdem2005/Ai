@@ -9,10 +9,12 @@
     { "source": "/landing", "destination": "/", "permanent": true },
     { "source": "/landing.html", "destination": "/", "permanent": true },
     { "source": "/yonetim", "destination": "/admin", "permanent": true },
-    { "source": "/yonetim.html", "destination": "/admin", "permanent": true }
+    { "source": "/yonetim.html", "destination": "/admin", "permanent": true },
+    { "source": "/admin.html", "destination": "/legacy-admin", "permanent": false }
   ],
   "rewrites": [
     { "source": "/b/:id", "destination": "/reader.html?bulten=:id" },
-    { "source": "/bulten/:id", "destination": "/reader.html?bulten=:id" }
+    { "source": "/bulten/:id", "destination": "/reader.html?bulten=:id" },
+    { "source": "/admin", "destination": "/admin/index.html" }
   ]
 }
