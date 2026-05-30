@@ -17,6 +17,7 @@
     margin: 0 0 16px;
     font-size: 40px; font-weight: 700; line-height: 1.15; letter-spacing: -0.025em;
     color: var(--ink);
+    text-wrap: balance;
   }
   .sub-hero h1 em { font-style: normal; color: var(--cyan); }
   .sub-hero p.dek {
@@ -31,6 +32,11 @@
     border-radius: var(--radius-lg); padding: 28px 30px;
     box-shadow: var(--shadow);
   }
+  .sub-form-label {
+    font-size: 12px; color: var(--mid); font-weight: 500;
+    text-transform: uppercase; letter-spacing: .06em;
+    display: block; margin-bottom: 6px;
+  }
   .sub-form-card .row {
     display: flex; gap: 8px; flex-wrap: wrap;
   }
@@ -38,8 +44,9 @@
     flex: 1; min-width: 200px;
     padding: 12px 14px;
     border: 1px solid var(--line); border-radius: var(--radius);
-    font-family: inherit; font-size: 14.5px;
+    font-family: inherit; font-size: 16px;
     background: var(--bg); color: var(--ink);
+    min-height: 44px;
   }
   .sub-form-card input[type="email"]:focus { outline: none; border-color: var(--cyan); }
   .sub-btn {
@@ -47,12 +54,15 @@
     background: var(--cyan); color: #fff; border: 1px solid var(--cyan);
     border-radius: var(--radius); cursor: pointer; font-family: inherit;
     white-space: nowrap;
+    min-height: 44px;
+    display: inline-flex; align-items: center; justify-content: center;
   }
   .sub-btn:hover:not(:disabled) { background: var(--cyan-ink); }
   .sub-btn:disabled { opacity: 0.6; cursor: wait; }
   .sub-msg {
     margin-top: 14px; padding: 10px 12px; border-radius: var(--radius);
     font-size: 13.5px; display: none;
+    line-height: 1.5;
   }
   .sub-msg.ok { display: block; background: var(--ok-soft); color: var(--ok); }
   .sub-msg.err { display: block; background: var(--alert-soft); color: var(--alert); }
@@ -60,6 +70,8 @@
   .sub-footer-note {
     text-align: center; font-size: 12.5px; color: var(--mid);
     max-width: 480px; margin: 0 auto;
+    line-height: 1.5;
+    padding: 0 20px;
   }
 
   .sub-manifesto {
@@ -76,16 +88,122 @@
   .sub-manifesto .blk h3 {
     margin: 0 0 8px;
     font-size: 18px; font-weight: 600;
+    letter-spacing: -0.005em;
   }
   .sub-manifesto .blk p {
     margin: 0; font-size: 15.5px; line-height: 1.65; color: var(--ink-2);
   }
 
+  /* ===== ULTRA-MOBILE (≤ 540px) — Supabase tek kolon ===== */
   @media (max-width: 540px) {
-    .sub-hero { padding-top: 40px; }
-    .sub-hero h1 { font-size: 30px; }
-    .sub-hero p.dek { font-size: 15px; }
-    .sub-form-card { margin: 28px 16px 20px; padding: 22px 20px; }
+    .sub-hero {
+      padding: 40px 20px 20px;
+    }
+    .sub-hero h1 {
+      font-size: 28px;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+    }
+    .sub-hero p.dek {
+      font-size: 15.5px;
+      line-height: 1.55;
+    }
+
+    /* Supabase mantığı: mobilde card border/shadow yumuşat, padding bol tut */
+    .sub-form-card {
+      margin: 24px 16px 20px;
+      padding: 24px 20px;
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+    }
+    .sub-form-label {
+      font-size: 11.5px;
+      margin-bottom: 8px;
+    }
+    /* Form row: input + buton mutlaka column stack, ikisi de tam genişlik */
+    .sub-form-card .row {
+      flex-direction: column;
+      gap: 10px;
+    }
+    .sub-form-card input[type="email"] {
+      width: 100%;
+      min-width: 0;
+      flex: none;
+      font-size: 16px;
+      padding: 13px 14px;
+      min-height: 46px;
+    }
+    .sub-btn {
+      width: 100%;
+      padding: 13px 20px;
+      min-height: 46px;
+      font-size: 15px;
+    }
+    .sub-msg {
+      font-size: 14px;
+      padding: 11px 12px;
+      line-height: 1.5;
+    }
+
+    .sub-footer-note {
+      font-size: 12.5px;
+      line-height: 1.6;
+      margin-top: 4px;
+      padding: 0 24px;
+    }
+
+    /* Manifesto — geniş whitespace, okunaklı tipografi */
+    .sub-manifesto {
+      margin: 48px auto 64px;
+      padding: 0 20px;
+    }
+    .sub-manifesto h2 {
+      font-size: 12px;
+      margin: 0 0 24px;
+    }
+    .sub-manifesto .blk {
+      margin-bottom: 24px;
+    }
+    .sub-manifesto .blk h3 {
+      font-size: 17px;
+      margin: 0 0 8px;
+    }
+    .sub-manifesto .blk p {
+      font-size: 15.5px;
+      line-height: 1.65;
+    }
+  }
+
+  /* ===== TINY PHONES (≤ 380px) — iPhone SE / mini ===== */
+  @media (max-width: 380px) {
+    .sub-hero {
+      padding: 32px 16px 16px;
+    }
+    .sub-hero h1 {
+      font-size: 25px;
+      line-height: 1.18;
+    }
+    .sub-hero p.dek {
+      font-size: 15px;
+    }
+    .sub-form-card {
+      margin: 20px 12px 16px;
+      padding: 20px 16px;
+    }
+    .sub-footer-note {
+      padding: 0 16px;
+      font-size: 12px;
+    }
+    .sub-manifesto {
+      padding: 0 16px;
+      margin: 40px auto 56px;
+    }
+    .sub-manifesto .blk h3 {
+      font-size: 16.5px;
+    }
+    .sub-manifesto .blk p {
+      font-size: 15px;
+    }
   }
 </style>
 </head>
@@ -100,7 +218,7 @@
 
 <div class="sub-form-card">
   <form id="subForm" method="POST" action="__BEEHIIV_SUBSCRIBE_URL__" target="_blank">
-    <label for="subEmail" style="font-size:12px;color:var(--mid);font-weight:500;text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:6px;" data-i18n="subscribe.email_lbl">E-posta</label>
+    <label for="subEmail" class="sub-form-label" data-i18n="subscribe.email_lbl">E-posta</label>
     <div class="row">
       <input id="subEmail" name="email" type="email" required autocomplete="email" placeholder="sen@şirket.com" />
       <button type="submit" class="sub-btn" data-i18n="subscribe.subscribe_btn">Abone ol</button>
