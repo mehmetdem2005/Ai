@@ -175,15 +175,26 @@
       const submit = document.getElementById("sovSubmit");
       const err = document.getElementById("sovErr");
       submit.disabled = true; submit.textContent = "Giriş yapılıyor…";
-      const { error } = await window.sovSb.auth.signInWithPassword({ email, password });
-      submit.disabled = false; submit.textContent = "Giriş Yap";
-      if (error) {
-        err.textContent = error.message || "Giriş başarısız.";
+      err.classList.remove("show");
+      try {
+        const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error("Ağ yavaş — tekrar deneyin")), 20000));
+        const { error } = await Promise.race([
+          window.sovSb.auth.signInWithPassword({ email, password }),
+          timeout,
+        ]);
+        if (error) {
+          err.textContent = error.message || "Giriş başarısız.";
+          err.classList.add("show");
+          return;
+        }
+        close();
+        await renderAuth();
+      } catch (e) {
+        err.textContent = (e && e.message) || "Bağlantı hatası.";
         err.classList.add("show");
-        return;
+      } finally {
+        submit.disabled = false; submit.textContent = "Giriş Yap";
       }
-      close();
-      await renderAuth();
     };
   }
 
