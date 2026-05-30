@@ -93,6 +93,98 @@
   .status.ok { display: block; background: var(--ok-soft); color: var(--ok); }
   .status.err { display: block; background: var(--alert-soft); color: var(--alert); }
   .empty { color: var(--mid); font-size: 13px; padding: 18px 0; }
+
+  /* ===== SUPABASE MOBILE REFINEMENT (≤ 640px) — admin =====
+     mobile.css'i tamamlar; override değil, doldurma. */
+  @media (max-width: 640px) {
+    /* Actions-bar: label group üstte, butonlar altta tam genişlik
+       (mobile.css 540px'te column stack zaten yapıyor, biz 640'a çekiyoruz) */
+    .actions-bar {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+      padding: 16px 18px;
+    }
+    .actions-bar .lbl-grp { min-width: 0; flex: none; }
+    .actions-bar > div[style*="display:flex"] {
+      width: 100%;
+      gap: 8px !important;
+    }
+    .actions-bar > div[style*="display:flex"] .btn {
+      flex: 1 1 100%;
+      justify-content: center;
+    }
+
+    /* Compact başlık ölçeği (h1 zaten page-head'de 28px) */
+    .card h2 { font-size: 14.5px; }
+    .actions-bar h3 { font-size: 14px; }
+
+    /* Feed-row: ad+url üstte tam genişlik, actions alt satırda full-width */
+    .feed-row {
+      gap: 10px;
+      padding: 14px 0;
+    }
+    .feed-main { flex: 1 1 100%; min-width: 0; }
+    .feed-name {
+      font-size: 15px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .feed-url {
+      font-size: 11px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      word-break: break-all;
+    }
+    .feed-actions {
+      width: 100%;
+      align-items: stretch;
+    }
+    .feed-actions .pill {
+      align-self: center;
+      margin-right: auto;
+    }
+    .feed-actions .btn.sm {
+      min-height: 40px;
+      flex: 1 1 auto;
+      justify-content: center;
+    }
+
+    /* Gate-msg: Supabase tarzı geniş whitespace, button full-width */
+    .gate-msg {
+      padding: 32px 20px;
+    }
+    .gate-msg h2 { font-size: 19px; }
+    .gate-msg p { font-size: 14.5px; line-height: 1.5; }
+    .gate-msg .btn {
+      width: 100%;
+      justify-content: center;
+    }
+
+    /* Compact pill */
+    .pill {
+      font-size: 11px;
+      padding: 3px 9px;
+    }
+  }
+
+  /* ===== ULTRA-MOBILE (≤ 540px) — admin extras ===== */
+  @media (max-width: 540px) {
+    /* Feed-actions düğmeler dik stack (ekran çok dar) — pill üstte */
+    .feed-actions {
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+    .feed-actions .btn.sm {
+      flex: 1 1 calc(50% - 4px);
+    }
+    /* Card iç padding (mobile.css 16/14 yapıyor; daha sıkı ihtiyaç yok) */
+    .actions-bar { padding: 14px 16px; }
+  }
 </style>
 </head>
 <body>

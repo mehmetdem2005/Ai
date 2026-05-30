@@ -17,13 +17,13 @@
   }
 
   aside.list-col {
-    border-right: 1px solid var(--ink);
-    background: var(--surface); overflow-y: auto;
+    border-right: 1px solid var(--line);
+    background: var(--surface-2); overflow-y: auto;
   }
   .list-head {
     padding: 22px 24px 14px;
-    border-bottom: 2px solid var(--ink);
-    position: sticky; top: 0; background: var(--surface); z-index: 2;
+    border-bottom: 1px solid var(--line);
+    position: sticky; top: 0; background: var(--surface-2); z-index: 2;
   }
   .list-head h2 {
     margin: 0; font-family: var(--font-display);
@@ -45,33 +45,55 @@
 
   .bull {
     padding: 20px 24px;
-    border-bottom: 1px solid var(--line);
+    border-bottom: 1px solid var(--line-2);
     cursor: pointer;
     transition: background .15s;
+    display: block;
+    background: transparent;
   }
-  .bull:hover { background: var(--tint); }
+  .bull:hover { background: var(--surface); }
+  .bull:focus-visible {
+    outline: 2px solid var(--cyan);
+    outline-offset: -2px;
+  }
   .bull.active {
-    background: var(--bg-2);
-    border-left: 4px solid var(--cyan);
-    padding-left: 20px;
+    background: var(--surface);
+    border-left: 3px solid var(--cyan);
+    padding-left: 21px;
   }
   .bull .top {
     display: flex; gap: 8px; align-items: baseline;
     font-family: var(--font-mono); font-size: 11px; color: var(--mid);
     letter-spacing: 0.04em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .bull .top .sid { color: var(--cyan-ink); }
   .bull h4 {
     margin: 10px 0 10px;
     font-family: var(--font-display); font-size: 18px; font-weight: 500;
     line-height: 1.3; letter-spacing: -0.005em; color: var(--ink);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-word;
   }
   .bull .stats {
-    display: flex; gap: 14px;
+    display: flex; gap: 14px; align-items: center;
     font-family: var(--font-mono); font-size: 10.5px; color: var(--mid);
     letter-spacing: 0.04em;
   }
   .bull .stats b { color: var(--ink); font-weight: 500; }
+  .bull .stats .pill-mini {
+    display: inline-flex; align-items: center;
+    padding: 2px 8px; background: var(--bg-2);
+    border-radius: 999px; font-size: 10px;
+    color: var(--ink-2); letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
 
   /* Reader */
   main.reader-col { overflow-y: auto; background: var(--bg); }
@@ -183,21 +205,22 @@
       grid-template-columns: 1fr;
       height: auto;
       min-height: 0;
+      gap: 0;
     }
     aside.list-col {
       border-right: none;
       border-bottom: 2px solid var(--ink);
-      max-height: 320px;
+      max-height: 360px;
     }
-    .list-head { padding: 16px 18px 10px; }
+    .list-head { padding: 18px 20px 12px; }
     .list-head h2 { font-size: 20px; }
-    .bull { padding: 16px 18px; }
+    .bull { padding: 18px 20px; }
     .bull h4 { font-size: 16px; }
 
-    .reader-head { padding: 14px 20px; flex-wrap: wrap; gap: 8px; }
-    .reader-head .actions { width: 100%; margin-left: 0; flex-wrap: wrap; }
-    .reader-body { padding: 28px 20px 56px; }
-    .reader-body h1 { font-size: 26px !important; }
+    .reader-head { padding: 14px 20px; flex-wrap: wrap; gap: 10px; }
+    .reader-head .actions { width: 100%; margin-left: 0; flex-wrap: wrap; gap: 8px; }
+    .reader-body { padding: 32px 20px 56px; }
+    .reader-body h1 { font-size: 28px !important; }
     .reader-body .dek { font-size: 16px; }
 
     .meta-strip { grid-template-columns: 1fr 1fr; }
@@ -210,11 +233,164 @@
     .src-list li { grid-template-columns: 26px 1fr; }
     .src-list .domain { display: none; }
   }
-  @media (max-width: 640px) {
-    .filt { gap: 5px; }
-    .chip { padding: 4px 8px; font-size: 10.5px; }
+
+  /* ===== ULTRA-MOBILE (≤ 540px) — Supabase tek kolon ===== */
+  @media (max-width: 540px) {
+    .layout { gap: 0; }
+    aside.list-col {
+      max-height: none;
+      border-bottom: 1px solid var(--line);
+    }
+    .list-head {
+      padding: 20px 20px 12px;
+      border-bottom: 1px solid var(--line);
+    }
+    .list-head h2 { font-size: 22px; letter-spacing: -0.02em; }
+    .list-head .meta { font-size: 10px; margin-top: 6px; }
+
+    /* Bull rows — Supabase row pattern: zebra-ish via bg-2 active stripe */
+    .bull {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--line-2);
+    }
+    .bull.active {
+      border-left-width: 3px;
+      padding-left: 17px;
+    }
+    .bull h4 {
+      font-size: 16px;
+      margin: 8px 0;
+      -webkit-line-clamp: 2;
+    }
+    .bull .top { font-size: 10.5px; }
+    .bull .stats { font-size: 10px; gap: 10px; }
+
+    /* Reader-head: SID + meta tek satır, actions ayrı satır tam-genişlik */
+    .reader-head {
+      padding: 16px 20px;
+      gap: 8px;
+    }
     .reader-head .sid { font-size: 10.5px; }
-    .reader-head .actions .btn { font-size: 11.5px; padding: 6px 9px; }
+    .reader-head .date { font-size: 10.5px; }
+    .reader-head .pill { font-size: 9.5px; padding: 3px 8px; }
+    .reader-head .actions {
+      width: 100%; margin-left: 0;
+      display: flex; gap: 8px;
+      flex-wrap: nowrap;
+    }
+    /* Actions tam-genişlik: 3 buton 1fr 1fr 1fr */
+    .reader-head .actions .btn {
+      flex: 1 1 0;
+      min-height: 44px !important;
+      padding: 10px 8px !important;
+      font-size: 12.5px !important;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      justify-content: center;
+    }
+    /* Primary "Uzun okuma" alır geniş alanı (2x), diğerleri kompakt */
+    .reader-head .actions .btn:first-child {
+      flex: 1.6 1 0;
+    }
+
+    /* Reader body — bol whitespace + compact tipografi */
+    .reader-body {
+      padding: 28px 20px 60px;
+    }
+    .reader-body h1 {
+      font-size: 26px !important;
+      line-height: 1.18 !important;
+      margin-bottom: 14px;
+    }
+    .reader-body .dek {
+      font-size: 16px;
+      line-height: 1.5;
+    }
+    .reader-body h3 {
+      font-size: 18px !important;
+      margin: 28px 0 8px;
+    }
+    .reader-body p {
+      font-size: 16px;
+      line-height: 1.65;
+      margin: 12px 0;
+    }
+    .reader-body blockquote {
+      margin: 20px 0 !important;
+      padding: 16px 18px !important;
+      font-size: 17px !important;
+      line-height: 1.45 !important;
+    }
+
+    /* Meta-strip stack tam dikey — Supabase row */
+    .meta-strip {
+      grid-template-columns: 1fr !important;
+      padding: 8px 0;
+      margin: 24px 0;
+    }
+    .meta-strip .cell {
+      padding: 12px 0 !important;
+      border-right: none !important;
+      border-bottom: 1px solid var(--line-2) !important;
+      display: flex; align-items: baseline; gap: 12px;
+    }
+    .meta-strip .cell:last-child { border-bottom: none !important; }
+    .meta-strip .k {
+      font-size: 9.5px;
+      flex: 0 0 auto;
+      min-width: 90px;
+    }
+    .meta-strip .v {
+      font-size: 16px;
+      margin-top: 0;
+    }
+
+    /* Source list — Supabase compact list */
+    .src-list {
+      padding: 14px 16px;
+      margin-top: 28px;
+    }
+    .src-list h4 { font-size: 10.5px; margin-bottom: 10px; }
+    .src-list li {
+      grid-template-columns: 22px 1fr !important;
+      gap: 10px;
+      padding: 10px 0;
+      font-size: 14px;
+    }
+
+    /* Filter chips — küçük pill */
+    .filt { gap: 6px; margin-top: 12px; }
+    .chip {
+      padding: 4px 10px;
+      font-size: 10.5px;
+      min-height: 28px;
+      display: inline-flex; align-items: center;
+    }
+  }
+
+  /* ===== TINY PHONES (≤ 380px) — iPhone SE / mini ===== */
+  @media (max-width: 380px) {
+    .reader-head .actions .btn {
+      font-size: 11.5px !important;
+      padding: 10px 6px !important;
+    }
+    /* Çok dar ekranda secondary butonlardaki text gizle, sadece icon kalsın */
+    .reader-head .actions #dlBtn .lbl,
+    .reader-head .actions #shBtn .lbl {
+      display: none;
+    }
+    .reader-head .actions #dlBtn,
+    .reader-head .actions #shBtn {
+      flex: 0 0 48px;
+      min-width: 48px;
+      padding: 10px 0 !important;
+    }
+    .reader-head .actions .btn:first-child {
+      flex: 1 1 0;
+    }
+    .reader-body h1 { font-size: 24px !important; }
+    .list-head h2 { font-size: 20px; }
   }
 </style>
 </head>
@@ -308,9 +484,9 @@
       `<span class="date">${timeAgo(d)}</span>` +
       `<span class="pill ok"><span class="dot"></span><span data-i18n="reader.in_publication">YAYINDA</span></span>` +
       `<div class="actions">` +
-        `<a class="btn sm" href="editorial.html?bulten=${encodeURIComponent(nl.id)}" data-i18n="reader.long_read">📖 Uzun okuma →</a>` +
-        `<button class="btn sm" id="dlBtn" data-i18n="reader.download_btn">⤓ İndir</button>` +
-        `<button class="btn sm primary" id="shBtn" data-i18n="reader.share_btn">⤴ Paylaş</button>` +
+        `<a class="btn sm primary" href="editorial.html?bulten=${encodeURIComponent(nl.id)}" data-i18n="reader.long_read" title="Uzun okuma">📖 <span class="lbl">Uzun okuma</span> →</a>` +
+        `<button class="btn sm" id="dlBtn" data-i18n="reader.download_btn" title="İndir" aria-label="İndir">⤓ <span class="lbl">İndir</span></button>` +
+        `<button class="btn sm" id="shBtn" data-i18n="reader.share_btn" title="Paylaş" aria-label="Paylaş">⤴ <span class="lbl">Paylaş</span></button>` +
       `</div>`;
     document.getElementById("dlBtn").onclick = () => download(nl);
     document.getElementById("shBtn").onclick = () => share(nl);
@@ -330,7 +506,7 @@
       div.innerHTML =
         `<div class="top"><span class="sid">${edition(d)}</span> · ${fmt(d).toUpperCase()}</div>` +
         `<h4>${shortTitle(nl.content)}</h4>` +
-        `<div class="stats"><span>${nl.article_count ?? "?"} sinyal</span><span style="margin-left:auto">Aç →</span></div>`;
+        `<div class="stats"><span class="pill-mini">${nl.article_count ?? "?"} sinyal</span><span style="margin-left:auto">Aç →</span></div>`;
       div.onclick = () => show(i);
       wrap.appendChild(div);
     });

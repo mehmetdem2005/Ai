@@ -133,11 +133,93 @@
       position: static; padding-top: 0;
       display: flex; gap: 4px; overflow-x: auto;
       padding-bottom: 8px; border-bottom: 1px solid var(--line);
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
     }
+    aside.settings-toc::-webkit-scrollbar { display: none; }
     aside.settings-toc .label { display: none; }
     aside.settings-toc a { white-space: nowrap; flex-shrink: 0; padding: 8px 12px; font-size: 13px; }
     .lang-grid { grid-template-columns: 1fr; }
     .setting-row { grid-template-columns: 1fr; gap: 10px; }
+  }
+
+  /* Supabase mobile principles — 640px polish */
+  @media (max-width: 640px) {
+    .settings-grid { gap: 12px; padding: 16px 16px 48px; }
+
+    /* Compact page-head */
+    .page-wrap .page-head h1 { font-size: 26px; letter-spacing: -0.02em; }
+    .page-wrap .page-head .dek { font-size: 14px; }
+
+    /* TOC: tab strip — 44px tap, bg-2 strip instead of border-bottom only */
+    aside.settings-toc {
+      gap: 2px;
+      margin: 0 -16px 4px;
+      padding: 4px 16px 6px;
+      background: var(--bg-2);
+      border-bottom: none;
+    }
+    aside.settings-toc a {
+      min-height: 36px;
+      padding: 9px 14px;
+      font-size: 13px;
+      display: inline-flex; align-items: center;
+      border-radius: 6px;
+    }
+
+    /* Section blocks: bg-2 strip headers, more whitespace */
+    section.setting-block { padding: 18px 0 22px; }
+    section.setting-block h2 { font-size: 18px; }
+    section.setting-block .desc { font-size: 13.5px; margin-bottom: 14px; }
+
+    /* Row: label up, control down full-width */
+    .setting-row {
+      padding: 14px 0;
+      gap: 12px;
+      align-items: stretch;
+    }
+    .setting-row .lbl { font-size: 14px; }
+    .setting-row .hint { font-size: 13px; }
+
+    /* Segments: full-width 3-button grid, 44px tap */
+    .seg {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      width: 100%;
+      gap: 0;
+    }
+    .seg[data-key="accent"] {
+      grid-template-columns: repeat(4, 1fr);
+    }
+    .seg button {
+      min-height: 40px;
+      padding: 8px 6px;
+      font-size: 13px;
+      text-align: center;
+    }
+
+    /* Lang grid: stacked, 44px+ tap area */
+    .lang-grid { gap: 8px; }
+    .lang-pick {
+      min-height: 56px;
+      padding: 12px 14px;
+      grid-template-columns: 28px 1fr auto;
+      gap: 12px;
+    }
+    .lang-pick .lf { font-size: 20px; }
+    .lang-pick .lname { font-size: 14px; }
+    .lang-pick .lstatus { font-size: 12px; }
+
+    /* Account: buttons full-width below label */
+    #accountSignedIn .setting-row .btn,
+    #accountSignedOut .btn {
+      width: 100%;
+      min-height: 44px;
+      padding: 10px 14px;
+      font-size: 14px;
+    }
+    .danger { padding: 12px 14px; }
+    .danger .setting-row .btn { width: 100%; }
   }
 </style>
 </head>
