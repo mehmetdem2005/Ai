@@ -168,10 +168,9 @@ def build_brief_for_user(
         brief_id = row["id"]
 
     # Top-k seçilen item'lar için tam metin detayını çek (lazy — sadece bu az sayıda)
-    # match RPC döndürdüğü item'larda source_type/url/doi var ama abstract dışı yok.
-    # items tablosundan ek alanları çekmek için tek sorgu
+    # match RPC döndürdüğü item'larda source_type/url/doi var ama tam meta yok.
     all_item_ids = [m["id"] for items in sections.values() for m in items]
-    item_extra = {}
+    item_extra: dict[int, dict] = {}
     if all_item_ids:
         ids_csv = ",".join(str(i) for i in all_item_ids)
         rows = db.select("items", params={
@@ -180,13 +179,37 @@ def build_brief_for_user(
         })
         item_extra = {r["id"]: r for r in rows}
 
+    # Her item için niş bağlamıyla TR özet üret
+    niche_map = {n["id"]: n for n in niches}
+    brief_items_rows: list[dict] = []
+    position = 0
+    ncbi_key = os.environ.get("NCBI_API_KEY")
+    for niche_id, items in sections.items():
+        niche = niche_map[niche_id]
+        for m in items:
+            # Lazy fulltext fetch — sadece bu top-k için (5-10 makale max)
+            meta = item_extra.get(m["id"], {})
+            fulltext = None
+            try:
+                fulltext = ft.fetch_for_item(
+                    source_type=meta.get("source_type", m["source_type"]),
+                    source_id=meta.get("source_id", ""),
+                    doi=meta.get("doi"),
+                    url=meta.get("url", m.get("url")),
+                    ncbi_api_key=ncbi_key,
+                )
+                if fulltext:
+                    log.info("Fulltext: item %s, %d char", m["id"], len(fulltext))
+            except Exception as e:
+                log.debug("Fulltext çekilemedi (item %s): %s", m["id"], e)
+
             summary_tr = ""
             try:
                 summary_tr = summarize.summarize_for_niche(
                     title=m["title"],
                     abstract=m.get("abstract"),
                     journal=m.get("journal"),
-                    authors=None,  # match RPC authors döndürmüyor (basit tut)
+                    authors=None,
                     niche_label=niche["label"],
                     niche_description=niche["description"],
                     fulltext=fulltext,
