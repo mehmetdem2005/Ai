@@ -36,9 +36,12 @@ Makale:
 Başlık: {title}
 Dergi: {journal}
 Yazarlar: {authors}
-Özet: {abstract}
 
-Bu makaleyi yukarıdaki 3-satır kuralına göre özetle. Sadece özeti döndür, başka şey yazma."""
+{content_header}
+{content}
+
+Bu makaleyi yukarıdaki 3-satır kuralına göre özetle. {content_instr}
+Sadece özeti döndür, başka şey yazma."""
 
 
 def summarize_for_niche(
@@ -49,6 +52,7 @@ def summarize_for_niche(
     authors: list[str] | None,
     niche_label: str,
     niche_description: str,
+    fulltext: str | None = None,
     api_key: str | None = None,
     max_tokens: int = 1200,
 ) -> str:
@@ -56,15 +60,31 @@ def summarize_for_niche(
     if not key:
         raise RuntimeError("DEEPSEEK_API_KEY yok — .env'i kontrol et.")
 
-    # Niş açıklamasını kısalt — reasoning tokens budget'ını korumak için
+    # Niş açıklamasını kısalt — token bütçesini korumak için
     niche_short = (niche_description or "")[:400]
+
+    # Full text varsa onu kullan (gerçek makale gövdesi); yoksa abstract'a düş.
+    if fulltext and len(fulltext) >= 800:
+        content = fulltext[:14000]  # ~ 3500 token, DeepSeek-chat 128K context bol
+        content_header = "Makalenin tam metni (ana bölümler):"
+        content_instr = (
+            "Tam metinden somut sayıları, hasta sayılarını, primer/sekonder son noktaları "
+            "ve istatistiksel sonuçları (HR/OR/p) çek — abstract'ın yüzeyselliğine takılma."
+        )
+    else:
+        content = (abstract or "(özet yok)")[:2500]
+        content_header = "Abstract:"
+        content_instr = "Abstract'ta verilen tüm somut sayıları (n, %, HR, p) muhakkak özete dahil et."
+
     user_msg = USER_TEMPLATE.format(
         niche_label=niche_label,
         niche_description=niche_short,
         title=title,
         journal=journal or "n/a",
         authors=", ".join((authors or [])[:5]) or "n/a",
-        abstract=(abstract or "(özet yok)")[:2500],
+        content_header=content_header,
+        content=content,
+        content_instr=content_instr,
     )
 
     payload: dict[str, Any] = {
