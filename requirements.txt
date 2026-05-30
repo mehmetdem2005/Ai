@@ -10,3 +10,6 @@ tzdata==2024.1
 # V3 — editöryal kokpit + Beehiiv HTML çevirisi
 streamlit==1.40.0
 markdown==3.7
+# V2 — PDF full-text extraction (Nature/npj, biorxiv, arXiv)
+# PyMuPDF saf binary, cryptography bağımlılığı yok
+pymupdf>=1.24.0

@@ -1,28 +1,20 @@
-"""Supabase'den bültenleri çekip statik siteyi (dist/) üretir. Vercel build'inde çalışır.
+"""Sovereign V2 statik site build'i. Vercel build'inde çalışır.
 
-Mimari:
-- landing.html → index.html (anasayfa)
-- reader.html, admin.html, editorial.html, dashboard.html, abonelik.html,
-  ayarlar.html, hakkinda.html (alt sayfalar)
-- tokens.css, mobile.css (tasarım sistemi)
-- nav.js, i18n.js (navigasyon + 4-dil çeviri)
-- auth.js (Supabase Auth + admin buton katmanı)
+Mimari (sade):
+- landing.html → index.html — Pro pitch + CTA
+- hakkinda.html — Sovereign nedir / kim için
+- tokens.css, mobile.css — tasarım sistemi
+- pro/*.html — kişiselleştirilmiş SaaS UI (auth/onboarding/dashboard)
 
-Placeholder injection: index.html, reader.html ve auth.js içindeki
-__SUPABASE_URL__, __SUPABASE_ANON_KEY__, __ADMIN_PANEL_URL__ token'ları
-Vercel env'inden enjekte edilir."""
-import json
+Placeholder injection: __SUPABASE_URL__, __SUPABASE_ANON_KEY__ Vercel env'inden.
+Eski "bülten arşivi" mantığı kaldırıldı (V2 = kişiselleştirilmiş, herkesin kendi briefi).
+"""
 import os
 import pathlib
 import shutil
 
-import requests
-
-URL = os.environ["SUPABASE_URL"].rstrip("/")
-KEY = os.environ["SUPABASE_KEY"]
+URL = os.environ.get("SUPABASE_URL", "").rstrip("/")
 ANON_KEY = os.environ.get("SUPABASE_ANON_KEY", "")
-ADMIN_PANEL_URL = os.environ.get("ADMIN_PANEL_URL", "https://sovereign-admin.vercel.app")
-BEEHIIV_SUBSCRIBE_URL = os.environ.get("BEEHIIV_SUBSCRIBE_URL", "")
 
 HERE = pathlib.Path(__file__).parent
 DIST = HERE / "dist"
@@ -31,32 +23,16 @@ if DIST.exists():
     shutil.rmtree(DIST)
 DIST.mkdir(parents=True, exist_ok=True)
 
-# 1. Supabase'den bültenleri çek → data.json
-resp = requests.get(
-    f"{URL}/rest/v1/newsletters"
-    "?select=id,filename,article_count,content,created_at&order=created_at.desc&limit=200",
-    headers={
-        "apikey": KEY,
-        "Authorization": f"Bearer {KEY}",
-        "User-Agent": "Mozilla/5.0 (compatible; SovereignBio-Pages/1.0)",
-    },
-    timeout=30,
-)
-resp.raise_for_status()
-rows = resp.json()
-(DIST / "data.json").write_text(json.dumps(rows, ensure_ascii=False), encoding="utf-8")
-
-# 2. Asset'ler — placeholder içermeyenler değişmeden kopyalanır
-ASSETS = ["tokens.css", "mobile.css", "i18n.js"]
+# 1. Asset'ler — placeholder içermeyenler değişmeden kopyalanır
+ASSETS = ["tokens.css", "mobile.css"]
 for f in ASSETS:
-    shutil.copy(HERE / f, DIST / f)
+    if (HERE / f).exists():
+        shutil.copy(HERE / f, DIST / f)
 
-# 3. Placeholder enjeksiyonu — auth.js + nav.js + her HTML sayfasında çalışır
+# 2. Placeholder enjeksiyonu — Pro UI Supabase anon JWT akışı kullanır
 PLACEHOLDERS = {
     "__SUPABASE_URL__": URL,
     "__SUPABASE_ANON_KEY__": ANON_KEY,
-    "__ADMIN_PANEL_URL__": ADMIN_PANEL_URL,
-    "__BEEHIIV_SUBSCRIBE_URL__": BEEHIIV_SUBSCRIBE_URL,
 }
 
 
@@ -66,51 +42,11 @@ def inject(src: str) -> str:
     return src
 
 
-# Placeholder içeren JS'leri inject ile yaz
-for js_file in ("auth.js", "nav.js"):
-    src = inject((HERE / js_file).read_text(encoding="utf-8"))
-    (DIST / js_file).write_text(src, encoding="utf-8")
-
-# 4. HTML sayfaları
-# landing.html → index.html (anasayfa)
+# 3. Public sayfalar (yalnızca landing + hakkinda)
 PAGE_MAP = {
     "landing.html": "index.html",
-    "reader.html": "reader.html",
-    "admin.html": "admin.html",
-    "editorial.html": "editorial.html",
-    "dashboard.html": "dashboard.html",
-    "abonelik.html": "abonelik.html",
-    "ayarlar.html": "ayarlar.html",
     "hakkinda.html": "hakkinda.html",
 }
-
-# <base href="/"> — Vercel rewrite'larından (örn. /b/:id) gelen sayfalarda
-# relative asset path'lerinin kök'e göre çözülmesini sağlar. <head>'in EN BAŞINA
-# inject edilmeli — yoksa browser ilk <link href="tokens.css">'i base'i görmeden
-# /b/tokens.css olarak istemeye çalışır ve 404 alır.
-BASE_TAG = '<head>\n<base href="/">'
-
-# FOUC-free tercih bootstrap'i — her sayfanın <head>'ine inject edilir.
-# Render'dan ÖNCE çalışıp data-theme/density/accent attribute'larını uygular.
-# Cross-tab sync için 'storage' event listener ekler.
-PREFS_BOOTSTRAP = """<script>
-(function(){
-  var h=document.documentElement;
-  function apply(){
-    var t=localStorage.getItem('sov_theme');
-    if(t&&t!=='system')h.setAttribute('data-theme',t);else h.removeAttribute('data-theme');
-    var d=localStorage.getItem('sov_density');
-    if(d)h.setAttribute('data-density',d);else h.removeAttribute('data-density');
-    var a=localStorage.getItem('sov_accent');
-    if(a)h.setAttribute('data-accent',a);else h.removeAttribute('data-accent');
-  }
-  apply();
-  window.addEventListener('storage',function(e){
-    if(e.key&&e.key.indexOf('sov_')===0)apply();
-  });
-})();
-</script>
-</head>"""
 
 for src_name, dst_name in PAGE_MAP.items():
     src_file = HERE / src_name
@@ -118,17 +54,9 @@ for src_name, dst_name in PAGE_MAP.items():
         print(f"⚠️ kaynak yok, atlandı: {src_name}")
         continue
     html = inject(src_file.read_text(encoding="utf-8"))
-    # <base href="/"> <head>'in EN BAŞINA — link/script'lerden önce
-    if '<base href="/">' not in html.split("</head>")[0]:
-        html = html.replace("<head>", BASE_TAG, 1)
-    # Bootstrap script'i </head>'den önce
-    if "sov_theme" not in html.split("</head>")[0]:
-        html = html.replace("</head>", PREFS_BOOTSTRAP, 1)
     (DIST / dst_name).write_text(html, encoding="utf-8")
 
-# 4b. Sovereign Pro — SaaS UI (web/pro/*.html → dist/pro/*.html)
-# Pro sayfaları auth/login + niş onboarding + brief dashboard içerir.
-# Bunlar Supabase Auth + REST kullanır; aynı placeholder enjeksiyonu.
+# 4. Sovereign Pro — kişiselleştirilmiş SaaS UI (web/pro/*.html → dist/pro/*.html)
 PRO_DIR = HERE / "pro"
 if PRO_DIR.is_dir():
     PRO_DIST = DIST / "pro"
@@ -136,27 +64,9 @@ if PRO_DIR.is_dir():
     pro_pages = sorted(PRO_DIR.glob("*.html"))
     for src_file in pro_pages:
         html = inject(src_file.read_text(encoding="utf-8"))
-        # Pro sayfaları kendi <link href="../tokens.css"> kullanır — base/bootstrap
-        # eklemeye gerek yok; Pro alt dizininde ayrı yaşar.
         (PRO_DIST / src_file.name).write_text(html, encoding="utf-8")
     print(f"✓ Pro UI: {len(pro_pages)} sayfa → dist/pro/")
 
-# 5. Legacy yönetim sayfası — geriye dönük link uyumu için
-if (HERE / "yonetim.html").exists():
-    (DIST / "yonetim.html").write_text(
-        inject((HERE / "yonetim.html").read_text(encoding="utf-8")), encoding="utf-8"
-    )
-if (HERE / "admin.js").exists():
-    shutil.copy(HERE / "admin.js", DIST / "admin.js")
-
-print(f"✓ {len(rows)} bülten + {len(PAGE_MAP)} sayfa + {len(ASSETS)} asset → dist/")
+print(f"✓ {len(PAGE_MAP)} public sayfa + {len(ASSETS)} asset → dist/")
 if not ANON_KEY:
-    print("⚠️  SUPABASE_ANON_KEY env yok — login akışı çalışmaz.")
-
-# i18n audit: data-i18n olmayan görünür Türkçe metni listele (build'i kırmaz)
-try:
-    import subprocess
-    print()
-    subprocess.run(["python3", str(HERE / "i18n_audit.py")], check=False)
-except Exception as exc:
-    print(f"⚠️ i18n audit çalışamadı: {exc}")
+    print("⚠️  SUPABASE_ANON_KEY env yok — Pro UI login çalışmaz.")
