@@ -12,7 +12,7 @@
     { "source": "/yonetim.html", "destination": "/admin", "permanent": true }
   ],
   "rewrites": [
-    { "source": "/b/:id", "destination": "/reader.html?bulten=:id" },
-    { "source": "/bulten/:id", "destination": "/reader.html?bulten=:id" }
+    { "source": "/b/:id", "destination": "/reader?bulten=:id" },
+    { "source": "/bulten/:id", "destination": "/reader?bulten=:id" }
   ]
 }
