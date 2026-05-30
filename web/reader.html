@@ -601,10 +601,14 @@
       return;
     }
 
-    // URL ?bulten=ID varsa: tek-edisyon okuma modu (haber sitesi gibi).
+    // URL ?bulten=ID veya /b/:id veya /bulten/:id varsa: tek-edisyon modu.
     // Yoksa: arşiv listesi modu — içerik gösterilmez, sadece liste.
     const params = new URLSearchParams(location.search);
-    const bid = params.get("bulten");
+    let bid = params.get("bulten");
+    if (!bid) {
+      const m = location.pathname.match(/^\/(?:b|bulten)\/([^/?#]+)/);
+      if (m) bid = decodeURIComponent(m[1]);
+    }
     if (bid) {
       const idx = data.findIndex(n => String(n.id) === bid);
       renderList(bid);
