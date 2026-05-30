@@ -104,28 +104,57 @@
 .sov-admin-bar {
   display: flex; gap: 6px; align-items: center;
   margin-left: 8px;
+  flex-wrap: wrap;
 }
 .sov-admin-btn {
-  display: inline-flex; align-items: center; gap: 5px;
+  display: inline-flex; align-items: center; gap: 6px;
   font-size: 12px; font-weight: 600;
-  padding: 6px 10px; border: 1px solid var(--line, #d1d9e0);
+  padding: 7px 11px; border: 1px solid var(--line, #d1d9e0);
   background: var(--surface, #fff); color: var(--ink, #1F2328);
   border-radius: var(--radius, 6px); cursor: pointer; text-decoration: none;
   font-family: inherit; white-space: nowrap;
+  min-height: 34px;
 }
 .sov-admin-btn:hover { background: var(--bg-2, #f8f9fa); text-decoration: none; }
 .sov-admin-btn.primary { background: var(--cyan, #1F6FEB); color: #fff; border-color: var(--cyan, #1F6FEB); }
 .sov-admin-btn.primary:hover { background: var(--cyan-ink, #0969DA); color: #fff; }
-.sov-admin-btn.ghost { background: transparent; }
+.sov-admin-btn.ghost { background: transparent; border-color: transparent; color: var(--mid, #59636E); }
+.sov-admin-btn.ghost:hover { background: var(--bg-2, #f8f9fa); color: var(--ink, #1F2328); }
 .sov-admin-btn:disabled { opacity: .5; cursor: not-allowed; }
+/* Durum-renkli: cron AÇIK (yeşil) / KAPALI (kırmızı) — emoji bağımsız net gösterge */
+.sov-admin-btn.state-on {
+  background: var(--ok-soft, #DAFBE1); color: var(--ok, #1A7F37);
+  border-color: rgba(26, 127, 55, 0.3);
+}
+.sov-admin-btn.state-on:hover { background: #c6f1d0; }
+.sov-admin-btn.state-off {
+  background: var(--alert-soft, #FFEBE9); color: var(--alert, #CF222E);
+  border-color: rgba(207, 34, 46, 0.3);
+}
+.sov-admin-btn.state-off:hover { background: #ffd6d2; }
+.sov-admin-btn .state-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: currentColor; flex-shrink: 0;
+  display: inline-block;
+}
 .sov-user-email {
   font-size: 11.5px; color: var(--mid, #59636E);
   max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   padding: 0 4px;
 }
+/* Mobil: label gizleme YOK — sadece çok dar ekranda email gizle.
+   Butonların durumu emoji'yle değil, RENK + LABEL ile anlatılır. */
 @media (max-width: 720px) {
   .sov-user-email { display: none; }
-  .sov-admin-btn .label { display: none; }
+  .sov-admin-bar { gap: 5px; }
+  .sov-admin-btn { font-size: 11.5px; padding: 6px 9px; gap: 5px; }
+}
+@media (max-width: 420px) {
+  /* Çok dar ekranda label kısaltma */
+  .sov-admin-btn .label-long { display: none; }
+}
+@media (min-width: 421px) {
+  .sov-admin-btn .label-short { display: none; }
 }
 `;
     document.head.appendChild(style);
@@ -200,17 +229,23 @@
   }
 
   function paintCron(btn, state) {
+    // Tüm durum sınıflarını temizle
+    btn.classList.remove("primary", "ghost", "state-on", "state-off");
     if (state === "active") {
-      btn.innerHTML = '⏸️ <span class="label">Cron Açık</span>';
+      btn.innerHTML =
+        '<span class="state-dot"></span>' +
+        '<span class="label"><span class="label-long">Cron AÇIK</span><span class="label-short">AÇIK</span></span>';
       btn.title = "Otomatik cron çalışıyor (08:00 ve 18:00 İstanbul) — tıkla durdur.";
-      btn.classList.remove("primary"); btn.classList.add("ghost");
+      btn.classList.add("state-on");
     } else if (state === "unknown") {
       btn.innerHTML = '⚠️ <span class="label">Cron ?</span>';
       btn.title = "Cron durumu okunamadı.";
     } else {
-      btn.innerHTML = '▶️ <span class="label">Cron Kapalı</span>';
+      btn.innerHTML =
+        '<span class="state-dot"></span>' +
+        '<span class="label"><span class="label-long">Cron KAPALI</span><span class="label-short">KAPALI</span></span>';
       btn.title = "Otomatik cron durduruldu — tıkla başlat.";
-      btn.classList.remove("ghost"); btn.classList.add("primary");
+      btn.classList.add("state-off");
     }
     btn.disabled = false;
   }
@@ -295,11 +330,15 @@
     bar.className = "sov-admin-bar";
 
     if (role === "admin") {
-      const triggerBtn = makeBtn('🚀 <span class="label">Bülten Tetikle</span>', "primary");
+      const triggerBtn = makeBtn(
+        '🚀 <span class="label"><span class="label-long">Bülten Tetikle</span><span class="label-short">Tetikle</span></span>',
+        "primary"
+      );
+      triggerBtn.title = "Worker'ı şimdi tetikle — yeni haberler çekilir";
       triggerBtn.onclick = () => triggerWorkflow(triggerBtn);
       bar.appendChild(triggerBtn);
 
-      const cronBtn = makeBtn('⏳ <span class="label">Cron…</span>');
+      const cronBtn = makeBtn('<span class="label">Cron…</span>');
       cronBtn.disabled = true;
       cronBtn.onclick = () => toggleCron(cronBtn);
       bar.appendChild(cronBtn);
@@ -311,6 +350,7 @@
       adminLink.target = "_blank";
       adminLink.rel = "noopener";
       adminLink.innerHTML = '⚙️ <span class="label">Admin</span>';
+      adminLink.title = "Editöryal admin paneli (yeni sekmede)";
       bar.appendChild(adminLink);
     }
 
@@ -320,7 +360,7 @@
     bar.appendChild(emailSpan);
 
     const logoutBtn = makeBtn('⎋ <span class="label">Çıkış</span>', "ghost");
-    logoutBtn.title = "Çıkış";
+    logoutBtn.title = "Çıkış yap";
     logoutBtn.onclick = logout;
     bar.appendChild(logoutBtn);
 
