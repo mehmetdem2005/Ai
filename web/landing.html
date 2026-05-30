@@ -331,14 +331,14 @@
   }
 </style>
 </head>
-<body>
+<body data-cms-page="landing">
 
 <div id="topnav-mount"></div>
 
 <section class="hero-min">
   <div class="inner">
-    <h1 data-i18n="landing.hero_h1">Sovereign — günlük biyoteknoloji &amp; yapay zekâ brief'i.</h1>
-    <p class="sub" data-i18n="landing.hero_sub">Yayınları tarayan, tekrarları eleyen, sade bir Türkçe brief'e dönüştüren deneysel bir yapay zekâ motoru.</p>
+    <h1 data-i18n="landing.hero_h1" data-cms-key="hero.h1">Sovereign — günlük biyoteknoloji &amp; yapay zekâ brief'i.</h1>
+    <p class="sub" data-i18n="landing.hero_sub" data-cms-key="hero.sub">Yayınları tarayan, tekrarları eleyen, sade bir Türkçe brief'e dönüştüren deneysel bir yapay zekâ motoru.</p>
     <div class="cta-row">
       <a class="btn primary lg" href="reader.html" data-i18n="landing.cta_today">Bugünün brief'ini oku</a>
       <a class="btn lg" href="abonelik.html" data-i18n="landing.cta_subscribe">Abonelik</a>
@@ -517,6 +517,7 @@
 <script src="nav.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="auth.js"></script>
+<script src="cms-client.js"></script>
 
 </body>
 </html>
