@@ -212,14 +212,32 @@ def _trim_body(text: str) -> str:
 
 def fetch_for_item(*, source_type: str, source_id: str, doi: str | None, url: str | None,
                    ncbi_api_key: str | None = None) -> Optional[str]:
-    """Item için en uygun yöntemi dene; bulamazsa None."""
+    """Item için en uygun yöntemi dene; bulamazsa None.
+
+    Öncelik sırası:
+      1. PMC (PubMed Central XML) — açık erişim, en güvenilir
+      2. bioRxiv/medRxiv JATS XML
+      3. **PDF fetch** — Nature/npj, arXiv, preprint için PDF'ten metin (asıl makale içeriği)
+      4. HTML body (sadece abstract içerebilir — son çare)
+    """
+    from . import pdf_fetch
+
     body: str | None = None
 
+    # 1. PMC XML (en güvenilir full text)
     if source_type == "pubmed" and source_id:
         body = fetch_pmc_fulltext(source_id, api_key=ncbi_api_key)
         time.sleep(0.12)  # rate limit dostu
+
+    # 2. bioRxiv/medRxiv JATS XML
     if not body and source_type in ("biorxiv", "medrxiv") and doi:
         body = fetch_biorxiv_fulltext(doi, server=source_type)
+
+    # 3. PDF — Nature/npj/arXiv için DOĞRULANDI yöntem
+    if not body and url:
+        body = pdf_fetch.try_pdf_for_url(url)
+
+    # 4. HTML body — son çare (sadece abstract içerebilir)
     if not body and url:
         body = fetch_html_body(url)
 

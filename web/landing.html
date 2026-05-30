@@ -3,520 +3,316 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Sovereign · Anasayfa</title>
+<title>Sovereign · Kişisel tıbbi literatür brief'i</title>
+<meta name="description" content="Kendi niş konularına göre PubMed + ClinicalTrials + medRxiv + bioRxiv'i her sabah tarayıp Türkçe brief olarak alın. Sağlık profesyonelleri için kişiselleştirilmiş AI araştırma asistanı." />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:wght@400;500;600&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="tokens.css" />
 <link rel="stylesheet" href="mobile.css" />
 <style>
-  /* Hero — minimal */
-  .hero-min {
-    padding: 64px 32px 48px;
+  body { background: var(--bg); }
+
+  /* Hero */
+  .hero {
+    padding: 80px 32px 64px;
     border-bottom: 1px solid var(--line);
     background: var(--surface);
   }
-  .hero-min .inner { max-width: 1280px; margin: 0 auto; }
-  .hero-min h1 {
-    margin: 0 0 14px;
-    font-size: 44px; font-weight: 700; line-height: 1.1; letter-spacing: -0.025em;
-    color: var(--ink); max-width: 820px;
+  .hero .inner { max-width: 880px; margin: 0 auto; }
+  .hero .tagline {
+    font-family: var(--font-mono); font-size: 11.5px;
+    color: var(--cyan-ink); letter-spacing: 0.14em; text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+  .hero h1 {
+    margin: 0 0 18px;
+    font-family: 'Newsreader', serif;
+    font-size: 52px; font-weight: 500; line-height: 1.08; letter-spacing: -0.025em;
+    color: var(--ink);
     text-wrap: balance;
   }
-  .hero-min .sub {
-    margin: 0; font-size: 17px; line-height: 1.55; color: var(--mid);
-    max-width: 640px;
+  .hero h1 em { font-style: italic; color: var(--cyan-ink); }
+  .hero .sub {
+    margin: 0 0 32px;
+    font-size: 18px; line-height: 1.55; color: var(--ink-2);
+    max-width: 660px;
   }
-  .hero-min .cta-row {
-    margin-top: 28px; display: flex; gap: 10px; flex-wrap: wrap;
+  .hero .cta-row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .btn-primary {
+    padding: 13px 22px; font: inherit; font-size: 15px; font-weight: 600;
+    background: var(--cyan); color: white; border: none; border-radius: var(--radius);
+    cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+    transition: opacity .15s, transform .12s;
   }
+  .btn-primary:hover { opacity: 0.92; transform: translateY(-1px); }
+  .btn-secondary {
+    padding: 13px 22px; font: inherit; font-size: 15px; font-weight: 500;
+    background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: var(--radius);
+    text-decoration: none; display: inline-flex; align-items: center;
+    transition: border-color .15s;
+  }
+  .btn-secondary:hover { border-color: var(--cyan); }
 
-  /* Today's brief callout — Supabase-vari sade yapı */
-  .today-bar {
+  /* How it works */
+  .how {
+    padding: 72px 32px;
     background: var(--bg-2);
     border-bottom: 1px solid var(--line);
-    padding: 16px 32px;
   }
-  .today-inner {
-    max-width: 1280px; margin: 0 auto;
-    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  .how-inner { max-width: 1100px; margin: 0 auto; }
+  .how-label {
+    font-family: var(--font-mono); font-size: 11px;
+    color: var(--mid); letter-spacing: 0.14em; text-transform: uppercase;
+    margin-bottom: 8px;
   }
-  .today-bar .today-meta {
-    display: flex; align-items: center; gap: 12px;
-    flex-shrink: 0;
+  .how h2 {
+    margin: 0 0 32px;
+    font-family: 'Newsreader', serif;
+    font-size: 32px; font-weight: 500; letter-spacing: -0.02em;
   }
-  .today-bar .pill { font-size: 11.5px; }
-  .today-bar .stamp {
-    font-family: var(--font-mono); font-size: 12px; color: var(--mid);
-    white-space: nowrap;
+  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .step {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg);
+    padding: 24px;
   }
-  .today-bar .today-link {
-    flex: 1; min-width: 0;
-    display: flex; align-items: center; gap: 14px;
-    color: var(--ink); text-decoration: none; border: none;
-    padding: 4px 0;
+  .step-num {
+    font-family: var(--font-mono); font-size: 32px; color: var(--cyan); letter-spacing: -0.02em;
+    line-height: 1; margin-bottom: 12px;
   }
-  .today-bar .today-link:hover { color: var(--cyan); text-decoration: none; }
-  .today-bar .title {
-    flex: 1; min-width: 0;
-    font-size: 14px; font-weight: 500;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  .step h3 {
+    margin: 0 0 8px;
+    font-size: 17px; font-weight: 600; letter-spacing: -0.005em;
   }
-  .today-bar .arrow {
-    font-size: 13.5px; font-weight: 500; color: var(--cyan);
-    flex-shrink: 0; white-space: nowrap;
-  }
-  .today-bar .today-link:hover .arrow { color: var(--cyan-ink); }
-
-  /* Modules */
-  .modules {
-    padding: 64px 32px 64px;
-    background: var(--bg);
-  }
-  .modules-inner { max-width: 1280px; margin: 0 auto; }
-  .modules-head { margin-bottom: 32px; }
-  .modules-head .label {
-    font-size: 12px; font-weight: 600; letter-spacing: 0.04em;
-    text-transform: uppercase; color: var(--cyan-ink);
-    margin-bottom: 10px;
-  }
-  .modules-head h2 {
+  .step p {
     margin: 0;
-    font-size: 28px; font-weight: 700; letter-spacing: -0.02em;
-    color: var(--ink);
-  }
-  .module-grid {
-    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
-  }
-  .module-card {
-    display: flex; flex-direction: column;
-    padding: 22px;
-    background: var(--surface);
-    border: 1px solid var(--line);
-    border-radius: var(--radius-lg);
-    color: var(--ink); text-decoration: none;
-    transition: border-color .15s, box-shadow .15s, transform .12s;
-  }
-  .module-card:hover {
-    border-color: var(--cyan);
-    box-shadow: 0 0 0 1px var(--cyan), var(--shadow);
-    text-decoration: none;
-    color: var(--ink);
-  }
-  .mc-icon {
-    width: 36px; height: 36px; border-radius: 8px;
-    background: var(--cyan-soft); color: var(--cyan-ink);
-    display: grid; place-items: center;
-    font-size: 18px; font-weight: 600;
-  }
-  .mc-icon svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; }
-  .module-card h3 {
-    margin: 16px 0 6px;
-    font-size: 15.5px; font-weight: 600; letter-spacing: -0.005em;
-  }
-  .module-card p {
-    margin: 0; font-size: 13.5px; color: var(--mid); line-height: 1.5;
-    flex: 1;
-  }
-  .module-card .arrow {
-    margin-top: 14px;
-    font-size: 13px; font-weight: 500; color: var(--cyan);
-    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 14px; line-height: 1.55; color: var(--ink-2);
   }
 
-  /* Latest briefs strip */
-  .latest {
-    padding: 56px 32px 64px;
-    border-top: 1px solid var(--line);
+  /* Sources */
+  .sources {
+    padding: 64px 32px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+  }
+  .sources-inner { max-width: 880px; margin: 0 auto; }
+  .sources h2 {
+    margin: 0 0 16px;
+    font-family: 'Newsreader', serif;
+    font-size: 26px; font-weight: 500; letter-spacing: -0.015em;
+  }
+  .sources .lede {
+    margin: 0 0 24px;
+    font-size: 15.5px; color: var(--mid);
+  }
+  .src-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
+  }
+  .src-item {
+    padding: 14px 18px;
+    background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--radius);
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .src-item .name {
+    font-size: 14px; font-weight: 600; color: var(--ink);
+  }
+  .src-item .desc {
+    font-size: 12.5px; color: var(--mid);
+    font-family: var(--font-mono);
+  }
+
+  /* Sample */
+  .sample {
+    padding: 72px 32px;
     background: var(--bg-2);
   }
-  .latest-inner { max-width: 1280px; margin: 0 auto; }
-  .latest-head {
-    display: flex; justify-content: space-between; align-items: end;
-    margin-bottom: 24px;
+  .sample-inner { max-width: 760px; margin: 0 auto; }
+  .sample-label {
+    font-family: var(--font-mono); font-size: 11px;
+    color: var(--mid); letter-spacing: 0.14em; text-transform: uppercase;
+    margin-bottom: 8px;
   }
-  .latest-head h2 {
-    margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.015em;
+  .sample h2 {
+    margin: 0 0 24px;
+    font-family: 'Newsreader', serif;
+    font-size: 28px; font-weight: 500; letter-spacing: -0.02em;
   }
-  .latest-head a {
-    font-size: 13.5px; font-weight: 500; color: var(--cyan);
+  .sample-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg);
+    padding: 26px;
   }
-  .latest-list {
+  .sample-card .stamp {
+    font-family: var(--font-mono); font-size: 11px; color: var(--cyan-ink);
+    letter-spacing: 0.1em; text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .sample-card h3 {
+    margin: 0 0 4px;
+    font-size: 16px; font-weight: 600; letter-spacing: -0.005em;
+  }
+  .sample-card .journal {
+    font-family: var(--font-mono); font-size: 12px; color: var(--mid);
+    margin-bottom: 14px;
+  }
+  .sample-card .summary {
+    font-family: 'Newsreader', serif;
+    font-size: 15.5px; line-height: 1.6; color: var(--ink-2);
+  }
+  .sample-card .summary p { margin: 0 0 10px; }
+  .sample-card .summary p:last-child { margin-bottom: 0; }
+  .sample-card .summary .num { color: var(--ink); font-weight: 500; }
+
+  /* CTA */
+  .cta {
+    padding: 80px 32px;
+    background: var(--ink);
+    color: white;
+    text-align: center;
+  }
+  .cta h2 {
+    margin: 0 0 12px;
+    font-family: 'Newsreader', serif;
+    font-size: 36px; font-weight: 500; letter-spacing: -0.02em;
+    color: white;
+  }
+  .cta p {
+    margin: 0 0 24px;
+    font-size: 16px; color: rgba(255,255,255,0.7);
+    max-width: 540px; margin-left: auto; margin-right: auto;
+  }
+  .cta .btn-primary {
+    background: var(--cyan); font-size: 16px; padding: 14px 28px;
+  }
+
+  /* Footer */
+  footer {
+    padding: 28px 32px;
+    border-top: 1px solid var(--line);
     background: var(--surface);
-    border: 1px solid var(--line); border-radius: var(--radius-lg);
-    overflow: hidden;
+    font-size: 13px; color: var(--mid);
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;
+    gap: 12px;
   }
-  .latest-item {
-    display: grid; grid-template-columns: 130px 1fr auto;
-    gap: 16px; padding: 14px 20px;
-    border-bottom: 1px solid var(--line-2);
-    color: var(--ink); text-decoration: none;
-    align-items: center;
-    transition: background .12s;
-  }
-  .latest-item:hover { background: var(--bg-2); text-decoration: none; color: var(--ink); }
-  .latest-item:last-child { border-bottom: none; }
-  .latest-item .when {
-    font-family: var(--font-mono); font-size: 12px; color: var(--mid);
-  }
-  .latest-item .t {
-    font-size: 14px; font-weight: 500; color: var(--ink);
-    line-height: 1.4;
-  }
-  .latest-item .meta-r {
-    font-family: var(--font-mono); font-size: 12px; color: var(--mid);
-    text-align: right; white-space: nowrap;
-  }
+  footer a { color: var(--ink-2); text-decoration: none; }
+  footer a:hover { color: var(--cyan-ink); }
+  footer .brand { font-weight: 600; color: var(--ink); }
+  footer .brand .dot { color: var(--cyan); }
 
-  @media (max-width: 900px) {
-    .hero-min { padding: 48px 20px 36px; }
-    .hero-min h1 { font-size: 30px; }
-    .hero-min .sub { font-size: 15.5px; }
-    .today-bar { padding: 14px 20px; }
-    .modules { padding: 48px 20px; }
-    .modules-head h2 { font-size: 24px; }
-    .module-grid { grid-template-columns: 1fr 1fr; }
-    .latest { padding: 40px 20px 48px; }
-    .latest-item { grid-template-columns: 100px 1fr; }
-    .latest-item .meta-r { grid-column: 1 / -1; text-align: left; }
-  }
-  /* Supabase-tarzı mobil: compact 2-kolon grid + yatay scroll carousel, az scroll */
-  @media (max-width: 640px) {
-    /* Hero: çok kısa, hızlı CTA'ya */
-    .hero-min { padding: 24px 18px 20px; }
-    .hero-min h1 { font-size: 24px; line-height: 1.18; letter-spacing: -0.02em; }
-    .hero-min .sub { font-size: 14.5px; margin-top: 10px; line-height: 1.5; }
-    .hero-min .cta-row { margin-top: 16px; gap: 8px; }
-    .hero-min .cta-row .btn { flex: 1; justify-content: center; min-width: 0; }
-
-    /* Today-bar: dikey stack ama compact */
-    .today-bar { padding: 12px 16px; }
-    .today-inner { flex-direction: column; align-items: stretch; gap: 8px; }
-    .today-bar .today-meta { gap: 8px; }
-    .today-bar .stamp { font-size: 11.5px; }
-    .today-bar .today-link { gap: 8px; padding: 6px 0; justify-content: space-between; }
-    .today-bar .title { font-size: 14.5px; }
-    .today-bar .arrow { font-size: 13px; }
-
-    /* Modüller: KOMPAKT 2-KOLON BENTO GRİD + tutarlı kart hizası */
-    .modules {
-      padding: 28px 16px 32px;
-      background: var(--bg-2);
-      border-top: 1px solid var(--line);
-      border-bottom: 1px solid var(--line);
-    }
-    .modules-head { margin-bottom: 16px; text-align: left; }
-    .modules-head .label {
-      font-size: 10.5px; margin-bottom: 6px;
-      letter-spacing: 0.08em; color: var(--mid);
-    }
-    .modules-head h2 {
-      font-size: 22px; line-height: 1.2;
-      letter-spacing: -0.02em;
-    }
-    .module-grid {
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-    .module-card {
-      padding: 16px 14px;
-      min-height: 120px;
-      display: flex !important;
-      flex-direction: column;
-      gap: 6px;
-      background: var(--surface);
-      border: 1px solid var(--line);
-      border-radius: var(--radius-lg);
-    }
-    /* Tek kalan 9. kart 2 kolon kaplar — simetri korunur */
-    .module-card.module-card-wide {
-      grid-column: 1 / -1;
-      flex-direction: row !important;
-      align-items: center;
-      min-height: 0;
-      padding: 14px 16px;
-      gap: 14px;
-    }
-    .module-card-wide .mc-icon { margin: 0; flex-shrink: 0; }
-    .module-card-wide h3 { margin: 0; flex: 0 0 auto; }
-    .module-card-wide p { flex: 1; -webkit-line-clamp: 1; }
-    .module-card-wide .arrow { margin: 0 0 0 4px; }
-
-    .module-card .mc-icon {
-      width: 32px; height: 32px;
-      margin-bottom: 4px;
-      display: inline-flex; align-items: center; justify-content: center;
-      background: var(--cyan-soft);
-      border-radius: var(--radius);
-    }
-    .module-card .mc-icon svg { width: 16px; height: 16px; stroke: var(--cyan-ink); }
-    .module-card h3 {
-      font-size: 14px; margin: 0; line-height: 1.25;
-      font-weight: 600;
-    }
-    .module-card p {
-      font-size: 11.5px; line-height: 1.4;
-      color: var(--mid); margin: 0;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-      flex: 1;
-    }
-    .module-card .arrow {
-      font-size: 11px; margin-top: auto;
-      color: var(--cyan-ink); font-weight: 600;
-    }
-
-    /* Son edisyonlar: YATAY SCROLL CAROUSEL (uzun list yerine) */
-    .latest { padding: 24px 0 28px; }
-    .latest-inner { padding: 0 16px; }
-    .latest-head { margin-bottom: 12px; }
-    .latest-head h2 { font-size: 18px; }
-    .latest-list {
-      display: flex !important;
-      flex-direction: row !important;
-      gap: 10px;
-      overflow-x: auto;
-      scroll-snap-type: x mandatory;
-      -webkit-overflow-scrolling: touch;
-      padding: 0 16px 4px;
-      margin: 0 -16px;
-      scrollbar-width: none;
-    }
-    .latest-list::-webkit-scrollbar { display: none; }
-    .latest-item {
-      display: flex !important;
-      flex-direction: column !important;
-      flex: 0 0 78%;
-      max-width: 78%;
-      padding: 14px 16px !important;
-      scroll-snap-align: start;
-      border: 1px solid var(--line);
-      border-radius: var(--radius-lg);
-      gap: 6px;
-      grid-template-columns: none !important;
-    }
-    .latest-item .when {
-      font-size: 11px; color: var(--mid);
-      font-family: var(--font-mono);
-      letter-spacing: 0.04em;
-    }
-    .latest-item .t {
-      font-size: 14px; line-height: 1.35;
-      color: var(--ink);
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-    .latest-item .meta-r {
-      font-size: 11.5px; color: var(--cyan-ink);
-      font-weight: 600; margin-top: auto;
-    }
-  }
-
-  /* Tiny phones — daha sıkı */
-  @media (max-width: 380px) {
-    .hero-min { padding: 20px 14px 16px; }
-    .hero-min h1 { font-size: 22px; }
-    .hero-min .sub { font-size: 14px; }
-    .modules { padding: 20px 14px 24px; }
-    .module-grid { gap: 8px; }
-    .module-card { padding: 12px 10px; }
-    .module-card h3 { font-size: 13px; }
-    .latest { padding: 20px 0 24px; }
-    .latest-inner { padding: 0 14px; }
-    .latest-list { padding: 0 14px 4px; margin: 0 -14px; }
-    .latest-item { flex: 0 0 82%; max-width: 82%; padding: 12px 14px !important; }
+  @media (max-width: 720px) {
+    .hero { padding: 48px 20px 40px; }
+    .hero h1 { font-size: 34px; }
+    .hero .sub { font-size: 15.5px; }
+    .how, .sources, .sample, .cta { padding: 48px 20px; }
+    .how h2, .sample h2 { font-size: 24px; }
+    .cta h2 { font-size: 28px; }
+    .steps { grid-template-columns: 1fr; }
+    .src-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
 <body>
 
-<div id="topnav-mount"></div>
-
-<section class="hero-min">
+<section class="hero">
   <div class="inner">
-    <h1 data-i18n="landing.hero_h1">Sovereign — günlük biyoteknoloji &amp; yapay zekâ brief'i.</h1>
-    <p class="sub" data-i18n="landing.hero_sub">Yayınları tarayan, tekrarları eleyen, sade bir Türkçe brief'e dönüştüren deneysel bir yapay zekâ motoru.</p>
+    <div class="tagline">Sovereign · PRO</div>
+    <h1>Senin için seçilmiş <em>tıbbi literatür</em>. Her sabah, niş başına 3 satır.</h1>
+    <p class="sub">Yüzlerce dergiyi takip etmek imkansız. Sen kendi alanını tanımla — sistem her sabah PubMed, ClinicalTrials.gov, medRxiv ve bioRxiv'i tarar, makalelerin PDF'ini okur ve Türkçe brief olarak senin için derler.</p>
     <div class="cta-row">
-      <a class="btn primary lg" href="reader.html" data-i18n="landing.cta_today">Bugünün brief'ini oku</a>
-      <a class="btn lg" href="abonelik.html" data-i18n="landing.cta_subscribe">Abonelik</a>
+      <a class="btn-primary" href="/pro">Pro ile başla →</a>
+      <a class="btn-secondary" href="#nasil">Nasıl çalışıyor</a>
     </div>
   </div>
 </section>
 
-<section class="today-bar">
-  <div class="today-inner">
-    <div class="today-meta">
-      <span class="pill ok"><span class="dot"></span><span data-i18n="common.published">YAYINDA</span></span>
-      <span class="stamp">Bugün</span>
-    </div>
-    <a class="today-link" href="reader.html">
-      <span class="title">En son brief yükleniyor…</span>
-      <span class="arrow" data-i18n="common.read">Oku →</span>
-    </a>
-  </div>
-</section>
-
-<section class="modules">
-  <div class="modules-inner">
-    <div class="modules-head">
-      <div class="label" data-i18n="landing.modules_label">Modüller</div>
-      <h2 data-i18n="landing.modules_h2">Sovereign'de neler var.</h2>
-    </div>
-
-    <div class="module-grid">
-
-      <a class="module-card" href="reader.html">
-        <div class="mc-icon">
-          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 8h10M7 12h10M7 16h6"/></svg>
-        </div>
-        <h3 data-i18n="modules.title_briefs">Bültenler</h3>
-        <p data-i18n="modules.briefs_desc">Sabah ve akşam edisyonları, geçmiş arşivle birlikte.</p>
-        <span class="arrow" data-i18n="common.open">Aç →</span>
-      </a>
-
-      <a class="module-card" href="editorial.html">
-        <div class="mc-icon">
-          <svg viewBox="0 0 24 24"><path d="M5 5l4 4-4 4M14 5h5v14H5v-5"/><path d="M14 12h5"/></svg>
-        </div>
-        <h3 data-i18n="modules.title_long">Uzun okumalar</h3>
-        <p data-i18n="modules.long_desc">Haftalık derinlemesine analiz, editoryal sentez.</p>
-        <span class="arrow" data-i18n="common.open">Aç →</span>
-      </a>
-
-      <a class="module-card" href="reader.html#konular">
-        <div class="mc-icon">
-          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/></svg>
-        </div>
-        <h3 data-i18n="modules.title_topics">Konu kümeleri</h3>
-        <p data-i18n="modules.topics_desc">Regulasyon · Klinik AI · CRISPR · Wearables · Funding.</p>
-        <span class="arrow" data-i18n="common.open">Aç →</span>
-      </a>
-
-      <a class="module-card" href="hakkinda.html">
-        <div class="mc-icon">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg>
-        </div>
-        <h3 data-i18n="modules.title_team">Künye</h3>
-        <p data-i18n="modules.team_desc">Tek kişilik bir yayın ve yapay zekâ — kim hazırlıyor, nasıl üretiliyor.</p>
-        <span class="arrow" data-i18n="common.open">Aç →</span>
-      </a>
-
-      <a class="module-card" href="hakkinda.html#metodoloji">
-        <div class="mc-icon">
-          <svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
-        </div>
-        <h3 data-i18n="modules.title_method">Metodoloji</h3>
-        <p data-i18n="modules.method_desc">Brief'in altı adımlık üretim süreci.</p>
-        <span class="arrow" data-i18n="common.open">Aç →</span>
-      </a>
-
-      <a class="module-card" href="hakkinda.html#kaynaklar">
-        <div class="mc-icon">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18"/></svg>
-        </div>
-        <h3 data-i18n="modules.title_sources">Kaynaklar</h3>
-        <p data-i18n="modules.sources_desc">İzlenen yayınların kategori bazlı listesi.</p>
-        <span class="arrow" data-i18n="common.open">Aç →</span>
-      </a>
-
-      <a class="module-card" href="abonelik.html">
-        <div class="mc-icon">
-          <svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18"/></svg>
-        </div>
-        <h3 data-i18n="modules.title_subscribe">Abonelik</h3>
-        <p data-i18n="modules.subscribe_desc">E-posta listesine katıl. Günde 2 kez yeni brief, doğrudan kutuna.</p>
-        <span class="arrow" data-i18n="common.open">Aç →</span>
-      </a>
-
-      <a class="module-card" href="hakkinda.html#sss">
-        <div class="mc-icon">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9 9a3 3 0 116 0c0 1.5-1.5 2-2 2.5v1M12 17h.01"/></svg>
-        </div>
-        <h3 data-i18n="modules.title_faq">SSS</h3>
-        <p data-i18n="modules.faq_desc">Sınırlar, hatalar, içerik üretim süreci.</p>
-        <span class="arrow" data-i18n="common.open">Aç →</span>
-      </a>
-
-      <a class="module-card module-card-wide" href="hakkinda.html#iletisim">
-        <div class="mc-icon">
-          <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
-        </div>
-        <h3 data-i18n="modules.title_contact">İletişim</h3>
-        <p data-i18n="modules.contact_desc">Geri bildirim, hata raporu, sorular.</p>
-        <span class="arrow" data-i18n="common.open">Aç →</span>
-      </a>
-
+<section class="how" id="nasil">
+  <div class="how-inner">
+    <div class="how-label">Süreç</div>
+    <h2>Üç adım.</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <h3>Niş tanımla</h3>
+        <p>Hangi konuları takip ettiğini serbest metinle anlat — "HER2+ metastatik meme · ADC ve direnç" gibi. Sistem niş tanımından embedding üretir.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <h3>Sistem okur</h3>
+        <p>Her gece yeni makaleler taranır, açık erişim PDF'ler indirilir ve okunur. Senin nişine en yakın 4-5 makale seçilir.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <h3>Brief gelir</h3>
+        <p>Her sabah dashboard'unda 3 satırlık Türkçe özet: somut sayı + bağlam + Türkiye pratik etkisi. Klişe yok, sadece veri.</p>
+      </div>
     </div>
   </div>
 </section>
 
-<section class="latest">
-  <div class="latest-inner">
-    <div class="latest-head">
-      <h2 data-i18n="landing.latest_h2">Son edisyonlar</h2>
-      <a href="reader.html" data-i18n="common.allarchive">Tüm arşiv →</a>
-    </div>
-    <div class="latest-list" id="latestList">
-      <!-- data.json'dan dinamik doldurulur (en son 6 bülten) -->
+<section class="sources">
+  <div class="sources-inner">
+    <h2>Hangi kaynaklardan?</h2>
+    <p class="lede">Hepsi açık erişim resmi API'ler — peer-reviewed dergiler ve regülatör veritabanları. RSS değil, gerçek metin.</p>
+    <div class="src-grid">
+      <div class="src-item">
+        <div class="name">PubMed</div>
+        <div class="desc">NCBI E-utilities · Tüm tıbbi dergiler</div>
+      </div>
+      <div class="src-item">
+        <div class="name">ClinicalTrials.gov</div>
+        <div class="desc">v2 API · Faz I-IV, status updates</div>
+      </div>
+      <div class="src-item">
+        <div class="name">medRxiv</div>
+        <div class="desc">Klinik preprint · Cold Spring Harbor</div>
+      </div>
+      <div class="src-item">
+        <div class="name">bioRxiv</div>
+        <div class="desc">Yaşam bilimleri preprint</div>
+      </div>
+      <div class="src-item">
+        <div class="name">PubMed Central</div>
+        <div class="desc">Açık erişim full text · JATS XML</div>
+      </div>
+      <div class="src-item">
+        <div class="name">Nature / npj</div>
+        <div class="desc">PDF full text indirme · açık erişim</div>
+      </div>
     </div>
   </div>
 </section>
 
-<div id="footer-mount"></div>
+<section class="sample">
+  <div class="sample-inner">
+    <div class="sample-label">Örnek brief satırı</div>
+    <h2>"Onkolog Dr. A" nişi için bu sabah:</h2>
+    <div class="sample-card">
+      <div class="stamp">HER2+ metastatik meme · ADC ve direnç · Eşleşme %94</div>
+      <h3>Survival outcomes with trastuzumab deruxtecan in HER2-positive vs. HER2-low breast cancer patients with brain metastases</h3>
+      <div class="journal">Scientific Reports · Mayıs 2026</div>
+      <div class="summary">
+        <p>T-DXd ile beyin metastazlı meme kanserinde medyan OS, HER2-pozitif grupta <span class="num">35,2 ay</span> iken HER2-low grupta <span class="num">12,8 ay</span> (n=<span class="num">111</span>).</p>
+        <p>≥3 ön kemoterapi hattı alanlarda OS anlamlı kısa (aHR <span class="num">9,95</span>; p=<span class="num">0,033</span>) — ağır ön tedavinin direnç ve kötü prognoz göstergesi.</p>
+        <p>Türkiye'de HER2-pozitif beyin metastazlı hastalarda T-DXd önceliklendirilmeli; HER2-low alt grupta daha erken basamaklarda değerlendirilmesi klinik kararı değiştirebilir.</p>
+      </div>
+    </div>
+  </div>
+</section>
 
-<script>
-// Today bar + Latest list: data.json'dan dinamik render.
-(function () {
-  const TR_MONTHS_SHORT = ["Oca","Şub","Mar","Nis","May","Haz","Tem","Ağu","Eyl","Eki","Kas","Ara"];
-  const ED = { sabah: "Sabah", aksam: "Akşam" };
-  function ed(d) { return d.getHours() < 12 ? "sabah" : "aksam"; }
-  function shortTitle(content) {
-    const m = (content || "").match(/^#\s+(.+)$/m);
-    let t = m ? m[1] : "Bülten";
-    t = t.replace(/^[\u{1F000}-\u{1FFFF}\u{2600}-\u{27BF}]+\s*/u, "");
-    return t.length > 86 ? t.slice(0, 84) + "…" : t;
-  }
-  function shortDate(d) { return `${d.getDate()} ${TR_MONTHS_SHORT[d.getMonth()]}`; }
-  async function load() {
-    let data = [];
-    try { data = await (await fetch("./data.json", { cache: "no-store" })).json(); }
-    catch { return; }
-    if (!data.length) return;
-    // Today bar — en güncel bülten
-    const top = data[0];
-    const td = new Date(top.created_at);
-    const tStamp = document.querySelector(".today-bar .stamp");
-    const tTitle = document.querySelector(".today-bar .title");
-    const tLink = document.querySelector(".today-bar .today-link");
-    if (tStamp) tStamp.textContent = `${td.getDate()} ${TR_MONTHS_SHORT[td.getMonth()]} · ${ED[ed(td)]} edisyonu`;
-    if (tTitle) tTitle.textContent = shortTitle(top.content);
-    if (tLink) tLink.href = `/b/${encodeURIComponent(top.id)}`;
-    // Latest list — son 6 bülten
-    const wrap = document.getElementById("latestList");
-    wrap.innerHTML = "";
-    data.slice(0, 6).forEach(nl => {
-      const d = new Date(nl.created_at);
-      const a = document.createElement("a");
-      a.className = "latest-item";
-      a.href = `/b/${encodeURIComponent(nl.id)}`;
-      a.innerHTML =
-        `<span class="when">${shortDate(d)} · ${ED[ed(d)]}</span>` +
-        `<span class="t">${shortTitle(nl.content).replace(/</g,"&lt;")}</span>` +
-        `<span class="meta-r" data-i18n="common.open">Aç →</span>`;
-      wrap.appendChild(a);
-    });
-  }
-  load();
-})();
-</script>
+<section class="cta">
+  <h2>Kendi alanına göre bir brief al.</h2>
+  <p>Beş dakikada hesap aç, niş tanımla, yarın sabah kutuna ilk brief gelsin.</p>
+  <a class="btn-primary" href="/pro">Hesap oluştur →</a>
+</section>
 
-<script src="i18n.js"></script>
-<script src="nav.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="auth.js"></script>
+<footer>
+  <div><span class="brand">Sovereign<span class="dot">.</span></span> · Kişisel tıbbi literatür brief'i</div>
+  <div>
+    <a href="/hakkinda">Hakkında</a>
+    &nbsp; · &nbsp;
+    <a href="https://github.com/mehmetdem2005/Ai">GitHub</a>
+    &nbsp; · &nbsp;
+    <a href="/pro">Giriş</a>
+  </div>
+</footer>
 
 </body>
 </html>
