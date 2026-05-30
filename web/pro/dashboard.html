@@ -142,12 +142,13 @@ function renderBrief(brief, items, nichesMap) {
       // Whitelist: izinli kaynak tipleri dışında "unknown" — class injection riski sıfırlanır
       const srcType = SRC_LABELS[it.source_type] ? it.source_type : 'unknown';
       const srcLabel = SRC_LABELS[srcType] || 'Kaynak';
+      const readerUrl = `./read.html?brief=${encodeURIComponent(brief.id)}&item=${encodeURIComponent(m.item_id)}`;
       sec.insertAdjacentHTML('beforeend', `<div class="item">
         <div class="item-head">
           <span class="src-badge ${srcType}">${escapeHtml(srcLabel)}</span>
           <span class="score">eşleşme ${(m.score * 100).toFixed(0)}%</span>
         </div>
-        <h3><a href="${escapeHtml(it.url || '#')}" target="_blank" rel="noopener">${escapeHtml(it.title)}</a></h3>
+        <h3><a href="${escapeHtml(readerUrl)}">${escapeHtml(it.title)}</a></h3>
         <div class="journal">${escapeHtml(it.journal || '')}</div>
         <div class="summary">${summary}</div>
       </div>`);
@@ -193,7 +194,7 @@ function renderBrief(brief, items, nichesMap) {
     `${brief.item_count} makale · ${brief.status === 'draft' ? 'taslak' : brief.status}`;
 
   const { data: items, error } = await sb.from('brief_items')
-    .select('niche_id,score,summary_tr,position,items(source_type,title,journal,url)')
+    .select('item_id,niche_id,score,summary_tr,position,items(source_type,title,journal,url)')
     .eq('brief_id', brief.id).order('position');
 
   if (error) {

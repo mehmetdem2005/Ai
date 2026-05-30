@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Sovereign Pro · Makale</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Newsreader:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../tokens.css" />
+<link rel="stylesheet" href="../mobile.css" />
+<style>
+  body { background: var(--bg-2); }
+  .page-wrap { max-width: 760px; margin: 0 auto; padding: 24px 20px 64px; }
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 28px; padding-bottom: 16px; border-bottom: 1px solid var(--line);
+  }
+  .topbar .brand { font-size: 17px; font-weight: 700; letter-spacing: -0.01em; }
+  .topbar .brand .dot { color: var(--cyan); }
+  .topbar .actions { display: flex; gap: 16px; align-items: center; font-size: 13px; }
+  .topbar .actions a { color: var(--mid); text-decoration: none; }
+  .topbar .actions a:hover { color: var(--ink); }
+  .topbar button { background: none; border: none; color: var(--mid); cursor: pointer; font: inherit; font-size: 13px; }
+
+  .niche-chip {
+    display: inline-block;
+    font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.1em;
+    text-transform: uppercase; padding: 3px 10px; border-radius: 4px;
+    background: #ecfdf5; color: #047857; margin-bottom: 14px;
+  }
+  .head { margin-bottom: 8px; }
+  .head h1 {
+    margin: 0 0 14px; font-family: 'Newsreader', serif; font-size: 30px;
+    font-weight: 500; letter-spacing: -0.015em; line-height: 1.25;
+  }
+  .meta-row {
+    font-size: 13px; color: var(--mid); line-height: 1.6;
+    padding-bottom: 16px; border-bottom: 1px solid var(--line); margin-bottom: 24px;
+  }
+  .meta-row .pipe { margin: 0 8px; color: var(--line); }
+  .meta-row .src-badge {
+    font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.1em;
+    text-transform: uppercase; padding: 2px 8px; border-radius: 4px;
+    background: var(--bg-2); color: var(--ink-2); margin-right: 8px;
+  }
+  .meta-row .src-badge.pubmed { background: #ecfdf5; color: #047857; }
+  .meta-row .src-badge.medrxiv, .meta-row .src-badge.biorxiv { background: #fef3c7; color: #92400e; }
+  .meta-row .src-badge.clinicaltrials { background: #ddd6fe; color: #5b21b6; }
+
+  section.block { margin-bottom: 32px; }
+  section.block h2 {
+    margin: 0 0 14px;
+    font-family: var(--font-mono); font-size: 11.5px; letter-spacing: 0.14em;
+    text-transform: uppercase; color: var(--cyan-ink); font-weight: 500;
+  }
+  .summary {
+    font-family: 'Newsreader', serif; font-size: 17px; line-height: 1.7; color: var(--ink);
+  }
+  .summary p { margin: 0 0 14px; }
+  .abstract {
+    font-size: 14.5px; line-height: 1.65; color: var(--ink-2);
+    padding: 18px 22px; background: var(--surface);
+    border: 1px solid var(--line); border-radius: var(--radius-lg);
+  }
+  .abstract p { margin: 0 0 10px; }
+  .links {
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .links a {
+    display: flex; align-items: baseline; justify-content: space-between;
+    padding: 12px 16px; background: var(--surface);
+    border: 1px solid var(--line); border-radius: var(--radius-lg);
+    color: var(--ink); text-decoration: none;
+    font-size: 14px;
+  }
+  .links a:hover { border-color: var(--cyan); color: var(--cyan-ink); }
+  .links a .arr { color: var(--mid); font-family: var(--font-mono); font-size: 12px; }
+  .links a .label { font-weight: 500; }
+  .links a .url { color: var(--mid); font-size: 12px; font-family: var(--font-mono); margin-top: 2px; display: block; }
+
+  .empty, .skeleton {
+    padding: 32px; text-align: center; color: var(--mid);
+    background: var(--surface); border: 1px dashed var(--line); border-radius: var(--radius-lg);
+  }
+  .score-pill {
+    display: inline-block; padding: 2px 8px; background: var(--bg-2);
+    color: var(--mid); font-family: var(--font-mono); font-size: 11px;
+    border-radius: 4px; margin-left: 10px;
+  }
+</style>
+</head>
+<body>
+
+<div class="page-wrap">
+  <div class="topbar">
+    <div class="brand">Sovereign<span class="dot">.</span> <span style="font-family:var(--font-mono);font-size:11px;color:var(--mid);letter-spacing:0.12em">PRO</span></div>
+    <div class="actions">
+      <a href="./dashboard.html">← Brief'e dön</a>
+      <button onclick="signOut()">Çıkış</button>
+    </div>
+  </div>
+
+  <div id="content">
+    <div class="skeleton">Yükleniyor…</div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+const SUPABASE_URL = "__SUPABASE_URL__";
+const SUPABASE_ANON_KEY = "__SUPABASE_ANON_KEY__";
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const SRC_LABELS = {
+  pubmed: 'PubMed', medrxiv: 'medRxiv', biorxiv: 'bioRxiv',
+  clinicaltrials: 'ClinicalTrials', openfda: 'FDA', arxiv: 'arXiv',
+};
+const TR_MONTHS = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+
+function escapeHtml(s) {
+  return (s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function fmtDate(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d)) return '';
+  return `${d.getDate()} ${TR_MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+}
+function fmtAuthors(authors) {
+  if (!authors || !Array.isArray(authors) || !authors.length) return '';
+  if (authors.length <= 3) return authors.join(', ');
+  return `${authors.slice(0, 3).join(', ')}, +${authors.length - 3}`;
+}
+async function signOut() {
+  await sb.auth.signOut();
+  window.location.href = './index.html';
+}
+
+function buildExternalLinks(item) {
+  const links = [];
+  // Birincil URL — kaynak ne olursa olsun direkt o sayfaya
+  if (item.url) {
+    const srcLabel = SRC_LABELS[item.source_type] || 'Kaynak';
+    links.push({ label: `${srcLabel} sayfası`, url: item.url, note: 'Orijinal kaynak' });
+  }
+  // PubMed item → Europe PMC fulltext denemesi
+  if (item.source_type === 'pubmed' && item.source_id) {
+    links.push({
+      label: 'Europe PMC (varsa tam metin)',
+      url: `https://europepmc.org/abstract/MED/${encodeURIComponent(item.source_id)}`,
+      note: 'PMC mirror, OA ise tam metin açık',
+    });
+  }
+  // DOI → doi.org
+  if (item.doi) {
+    links.push({
+      label: 'DOI',
+      url: `https://doi.org/${encodeURIComponent(item.doi)}`,
+      note: 'Yayıncı sayfası',
+    });
+  }
+  return links;
+}
+
+function render(brief, biRow, item, niche) {
+  const content = document.getElementById('content');
+  const srcType = SRC_LABELS[item.source_type] ? item.source_type : 'unknown';
+  const srcLabel = SRC_LABELS[srcType] || 'Kaynak';
+
+  const summaryHtml = (biRow.summary_tr || '').trim()
+    .split(/\n+/)
+    .filter(p => p.trim())
+    .map(p => `<p>${escapeHtml(p.replace(/^[-*•]\s*/, ''))}</p>`)
+    .join('') || '<p style="color:var(--mid)">Özet üretilmedi.</p>';
+
+  const abstractHtml = (item.abstract || '').trim()
+    .split(/\n\n+/).filter(p => p.trim())
+    .map(p => `<p>${escapeHtml(p)}</p>`)
+    .join('') || '<p style="color:var(--mid)">Abstract sağlanmamış (örn. ClinicalTrials kaydı, vaka raporu).</p>';
+
+  const links = buildExternalLinks(item);
+  const linksHtml = links.map(l => `
+    <a href="${escapeHtml(l.url)}" target="_blank" rel="noopener">
+      <span><span class="label">${escapeHtml(l.label)}</span><span class="url">${escapeHtml(l.url)}</span></span>
+      <span class="arr">aç →</span>
+    </a>`).join('');
+
+  const meta = [
+    fmtAuthors(item.authors),
+    item.journal ? escapeHtml(item.journal) : '',
+    fmtDate(item.published_at),
+    item.doi ? `DOI: ${escapeHtml(item.doi)}` : '',
+  ].filter(Boolean).join('<span class="pipe">·</span>');
+
+  content.innerHTML = `
+    <div class="niche-chip">${escapeHtml(niche?.label || 'Konu')} <span class="score-pill">eşleşme ${(biRow.score * 100).toFixed(0)}%</span></div>
+    <div class="head">
+      <h1>${escapeHtml(item.title)}</h1>
+    </div>
+    <div class="meta-row">
+      <span class="src-badge ${srcType}">${escapeHtml(srcLabel)}</span>
+      ${meta}
+    </div>
+
+    <section class="block">
+      <h2>Türkçe Özet</h2>
+      <div class="summary">${summaryHtml}</div>
+    </section>
+
+    <section class="block">
+      <h2>Orijinal Abstract</h2>
+      <div class="abstract">${abstractHtml}</div>
+    </section>
+
+    <section class="block">
+      <h2>Tam Metin İçin</h2>
+      <div class="links">${linksHtml || '<div class="empty">Doğrudan link bulunamadı.</div>'}</div>
+    </section>
+  `;
+}
+
+function showError(msg) {
+  document.getElementById('content').innerHTML =
+    `<div class="empty"><p><strong>Yükleme hatası</strong></p><p>${escapeHtml(msg)}</p>
+     <p><a href="./dashboard.html">← Brief'e dön</a></p></div>`;
+}
+
+(async () => {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = './index.html'; return; }
+
+  const params = new URLSearchParams(location.search);
+  const briefId = params.get('brief');
+  const itemId = params.get('item');
+  if (!briefId || !itemId) {
+    showError('Eksik parametre. brief ve item URL parametreleri gerekli.');
+    return;
+  }
+
+  const { data: brows, error: berr } = await sb
+    .from('brief_items')
+    .select('brief_id,item_id,niche_id,score,summary_tr,position,items(id,source_type,source_id,doi,title,abstract,authors,journal,published_at,url),niches(id,label,description)')
+    .eq('brief_id', briefId)
+    .eq('item_id', itemId)
+    .limit(1);
+
+  if (berr) { showError(berr.message); return; }
+  if (!brows || !brows.length) { showError('Bu makale brief\'inizde bulunamadı.'); return; }
+
+  const bi = brows[0];
+  const item = bi.items;
+  const niche = bi.niches;
+  if (!item) { showError('Makale verisi alınamadı.'); return; }
+
+  // Brief metadata (tarih başlığı için)
+  const { data: briefRows } = await sb
+    .from('briefs')
+    .select('id,brief_date,status')
+    .eq('id', briefId)
+    .limit(1);
+  const brief = (briefRows && briefRows[0]) || null;
+
+  document.title = `Sovereign Pro · ${item.title.slice(0, 60)}`;
+  render(brief, bi, item, niche);
+})();
+</script>
+<script src="../auth.js" onerror=""></script>
+</body>
+</html>
