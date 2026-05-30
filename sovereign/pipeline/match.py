@@ -11,12 +11,6 @@ from __future__ import annotations
 
 import logging
 import os
-from datetime import date, datetime, timedelta, timezone
-from typing import Iterable
-
-from ..db import SupabaseClient
-from ..sources.base import RawItem
-from ..sources import fulltext as ft
 from . import embed, summarize
 
 log = logging.getLogger(__name__)
@@ -185,30 +179,6 @@ def build_brief_for_user(
             "select": "id,source_type,source_id,doi,url",
         })
         item_extra = {r["id"]: r for r in rows}
-
-    # Her item için niş bağlamıyla TR özet üret
-    niche_map = {n["id"]: n for n in niches}
-    brief_items_rows = []
-    position = 0
-    ncbi_key = os.environ.get("NCBI_API_KEY")
-    for niche_id, items in sections.items():
-        niche = niche_map[niche_id]
-        for m in items:
-            # Lazy fulltext — sadece bu top-k için (5-10 makale max)
-            meta = item_extra.get(m["id"], {})
-            fulltext = None
-            try:
-                fulltext = ft.fetch_for_item(
-                    source_type=meta.get("source_type", m["source_type"]),
-                    source_id=meta.get("source_id", ""),
-                    doi=meta.get("doi"),
-                    url=meta.get("url", m.get("url")),
-                    ncbi_api_key=ncbi_key,
-                )
-                if fulltext:
-                    log.info("Fulltext: item %s, %d char", m["id"], len(fulltext))
-            except Exception as e:
-                log.debug("Fulltext çekilemedi (item %s): %s", m["id"], e)
 
             summary_tr = ""
             try:
