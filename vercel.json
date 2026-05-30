@@ -8,16 +8,11 @@
   "redirects": [
     { "source": "/landing", "destination": "/", "permanent": true },
     { "source": "/landing.html", "destination": "/", "permanent": true },
-    { "source": "/reader", "destination": "/pro", "permanent": true },
-    { "source": "/reader.html", "destination": "/pro", "permanent": true },
-    { "source": "/b/:id", "destination": "/pro", "permanent": true },
-    { "source": "/bulten/:id", "destination": "/pro", "permanent": true },
-    { "source": "/admin", "destination": "/pro", "permanent": false },
-    { "source": "/editorial", "destination": "/", "permanent": true },
-    { "source": "/dashboard", "destination": "/pro/dashboard", "permanent": true },
-    { "source": "/abonelik", "destination": "/pro", "permanent": true },
-    { "source": "/ayarlar", "destination": "/pro/onboarding", "permanent": true },
-    { "source": "/yonetim", "destination": "/pro", "permanent": false },
-    { "source": "/yonetim.html", "destination": "/pro", "permanent": false }
+    { "source": "/yonetim", "destination": "/admin", "permanent": true },
+    { "source": "/yonetim.html", "destination": "/admin", "permanent": true }
+  ],
+  "rewrites": [
+    { "source": "/b/:id", "destination": "/reader.html?bulten=:id" },
+    { "source": "/bulten/:id", "destination": "/reader.html?bulten=:id" }
   ]
 }
