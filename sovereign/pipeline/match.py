@@ -17,7 +17,7 @@ from typing import Iterable
 from ..db import SupabaseClient
 from ..sources.base import RawItem
 from ..sources import fulltext as ft
-from . import embed, summarize
+from . import embed, rerank, summarize
 
 log = logging.getLogger(__name__)
 
@@ -27,6 +27,7 @@ DEFAULT_THRESHOLD = 0.55  # text-embedding-3-small medical literature için kali
 DEFAULT_TOP_K_PER_NICHE = 5
 DEFAULT_LOOKBACK_HOURS = 48
 DEFAULT_DEDUP_WINDOW_DAYS = 7  # son 7 gün başka briefde gönderilmiş item'ları ele
+CANDIDATE_POOL_PER_NICHE = 20  # embedding aday havuzu; LLM rerank buradan top_k seçer
 
 
 def fetch_user_niches(db: SupabaseClient, user_id: str) -> list[dict]:
@@ -146,20 +147,63 @@ def build_brief_for_user(
         log.info("Kullanıcı %s için aktif niş yok, brief atlandı", user_id)
         return {"user_id": user_id, "item_count": 0, "status": "no_niches"}
 
-    # Tüm niş × match'leri topla (dedup için item_id seti)
+    # Niş başına: embedding ile cömert aday havuzu → LLM rerank → top_k seç.
+    # Embedding tek başına "T-DXd in gastric" vs "HER2+ meme + T-DXd" ayrımını
+    # yapamıyor (ortak ilaç adı 0.6+ cosine veriyor); LLM bunu tümör tipi /
+    # popülasyon / klinik soru ekseninde temizliyor.
     sections: dict[int, list[dict]] = {}
+    section_reasons: dict[int, dict[int, str]] = {}  # niche_id -> {item_id: reason}
     seen_items: set[int] = set()
     for niche in niches:
-        matches = match_niche(db, user_id, niche, top_k=top_k, lookback_hours=lookback_hours)
-        # Aynı item birden fazla nişte top'taysa en yüksek skorlu olana ata
+        candidates = match_niche(db, user_id, niche,
+                                  top_k=CANDIDATE_POOL_PER_NICHE,
+                                  lookback_hours=lookback_hours)
+        if not candidates:
+            continue
+
+        # Rerank için abstract'lar lazım — items'dan metadata zenginleştir
+        cand_ids = [c["id"] for c in candidates]
+        meta_rows = db.select("items", params={
+            "id": f"in.({','.join(str(i) for i in cand_ids)})",
+            "select": "id,title,abstract,journal,source_type",
+        })
+        meta_map = {r["id"]: r for r in meta_rows}
+        rerank_input = []
+        for c in candidates:
+            m = meta_map.get(c["id"], {})
+            rerank_input.append({
+                "id": c["id"],
+                "title": m.get("title") or c.get("title"),
+                "abstract": m.get("abstract"),
+                "journal": m.get("journal") or c.get("journal"),
+                "source_type": m.get("source_type") or c.get("source_type"),
+            })
+
+        selected, rejected = rerank.rerank_candidates(
+            niche_label=niche["label"],
+            niche_description=niche["description"],
+            candidates=rerank_input,
+            max_select=top_k,
+        )
+
+        # Selected'i orijinal candidate dict'leriyle eşle (score'u korumak için)
+        cand_by_id = {c["id"]: c for c in candidates}
         filtered = []
-        for m in matches:
-            if m["id"] in seen_items:
+        reasons_for_niche: dict[int, str] = {}
+        for sel in selected:
+            sid = sel["id"]
+            if sid in seen_items or sid not in cand_by_id:
                 continue
-            seen_items.add(m["id"])
-            filtered.append(m)
+            seen_items.add(sid)
+            filtered.append(cand_by_id[sid])
+            reasons_for_niche[sid] = sel.get("reason", "")
         if filtered:
             sections[niche["id"]] = filtered
+            section_reasons[niche["id"]] = reasons_for_niche
+        # İlk 3 reject'i log'a — debug için
+        for rej in rejected[:3]:
+            log.info("Rerank elendi (niş %s): id=%s — %s",
+                     niche["id"], rej["id"], (rej.get("reason") or "")[:120])
 
     if not sections:
         log.info("Kullanıcı %s: hiç eşleşme yok", user_id)
