@@ -32,18 +32,28 @@ if DIST.exists():
 DIST.mkdir(parents=True, exist_ok=True)
 
 # 1. Supabase'den bültenleri çek → data.json
-resp = requests.get(
-    f"{URL}/rest/v1/newsletters"
-    "?select=id,filename,article_count,content,created_at&order=created_at.desc&limit=200",
-    headers={
-        "apikey": KEY,
-        "Authorization": f"Bearer {KEY}",
-        "User-Agent": "Mozilla/5.0 (compatible; SovereignBio-Pages/1.0)",
-    },
-    timeout=30,
-)
-resp.raise_for_status()
-rows = resp.json()
+# Tablo yoksa veya erişim 401/403 verirse build'i KRASH ETTİRME — eski v1
+# newsletters arşivi opsiyonel. Pro UI (web/pro/*) için Supabase erişimi
+# zorunlu değil, sadece anon-key placeholder enjeksiyonu yeter.
+try:
+    resp = requests.get(
+        f"{URL}/rest/v1/newsletters"
+        "?select=id,filename,article_count,content,created_at&order=created_at.desc&limit=200",
+        headers={
+            "apikey": KEY,
+            "Authorization": f"Bearer {KEY}",
+            "User-Agent": "Mozilla/5.0 (compatible; SovereignBio-Pages/1.0)",
+        },
+        timeout=30,
+    )
+    if resp.ok:
+        rows = resp.json()
+    else:
+        print(f"⚠️  newsletters çekilemedi (HTTP {resp.status_code}) — data.json boş array ile devam")
+        rows = []
+except Exception as e:
+    print(f"⚠️  newsletters fetch exception: {e} — data.json boş array ile devam")
+    rows = []
 (DIST / "data.json").write_text(json.dumps(rows, ensure_ascii=False), encoding="utf-8")
 
 # 2. Asset'ler — placeholder içermeyenler değişmeden kopyalanır
