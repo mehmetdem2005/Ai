@@ -21,9 +21,11 @@ from . import embed, rerank, summarize
 
 log = logging.getLogger(__name__)
 
-DEFAULT_THRESHOLD = 0.55  # text-embedding-3-small medical literature için kalibre edilmiş;
-                          # gerçek brief skor dağılımı (v3 deneme) 0.50-0.58 bandında, 0.72 boş
-                          # döndürüyordu. top_k=5 sıkı niş-başı limiti zaten gürültüyü kesiyor.
+DEFAULT_THRESHOLD = 0.45  # v3.6'da LLM rerank devreye girdi → embedding artık filter
+                          # değil "kaba candidate havuzu" işlevi görüyor. Dar tanımlı nişler
+                          # için 0.55 LLM'i candidate'siz bırakıyordu (örn. "STK11 KEAP1"
+                          # alakalı item'lar 0.48-0.52'de takılıyor). LLM 5'i 1'e indiriyor
+                          # zaten — embedding'i gevşetmek toplam isabeti artırır.
 DEFAULT_TOP_K_PER_NICHE = 5
 DEFAULT_LOOKBACK_HOURS = 48
 DEFAULT_DEDUP_WINDOW_DAYS = 7  # son 7 gün başka briefde gönderilmiş item'ları ele
