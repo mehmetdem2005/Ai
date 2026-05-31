@@ -25,7 +25,7 @@ if _env_file.exists():
             os.environ.setdefault(k.strip(), v.strip())
 
 from .db import SupabaseClient
-from .pipeline import embed_niches, fetch, match
+from .pipeline import email as email_mod, embed_niches, fetch, match
 
 logging.basicConfig(
     level=logging.INFO,
@@ -81,6 +81,8 @@ def cmd_brief(args: argparse.Namespace) -> int:
         return 2
 
     log.info("Brief üretilecek kullanıcı sayısı: %d", len(users))
+    sent = 0
+    skipped = 0
     for u in users:
         try:
             res = match.build_brief_for_user(db, u, top_k=args.top_k,
@@ -88,6 +90,23 @@ def cmd_brief(args: argparse.Namespace) -> int:
             log.info("✓ user=%s -> %s", u.get("email") or u["id"], res)
         except Exception as e:
             log.error("✗ user=%s hata: %s", u.get("email") or u["id"], e, exc_info=True)
+            continue
+
+        # Email gönderimi — brief boş veya 'no_matches' ise SKIP
+        brief_id = res.get("brief_id") if isinstance(res, dict) else None
+        item_count = res.get("item_count") if isinstance(res, dict) else 0
+        if args.no_email:
+            continue
+        if not brief_id or not item_count:
+            skipped += 1
+            continue
+        ok = email_mod.send_brief_email(db, u, brief_id)
+        if ok:
+            sent += 1
+        else:
+            skipped += 1
+    if not args.no_email:
+        log.info("Email özeti: %d gönderildi, %d atlandı (boş brief veya SMTP yok)", sent, skipped)
     return 0
 
 
@@ -103,6 +122,9 @@ def cmd_daily(args: argparse.Namespace) -> int:
         return rc
     args.all = True
     args.user = None
+    # daily akışında --no-email default False (mail gönderim açık)
+    if not hasattr(args, "no_email"):
+        args.no_email = False
     return cmd_brief(args)
 
 
@@ -119,18 +141,20 @@ def main(argv: list[str] | None = None) -> int:
     pf.add_argument("--per-server", type=int, default=200, help="Preprint sunucu başına max")
     pf.set_defaults(func=cmd_fetch)
 
-    pb = sub.add_parser("brief", help="Kullanıcı(lar) için brief üret")
+    pb = sub.add_parser("brief", help="Kullanıcı(lar) için brief üret + email gönder")
     pb.add_argument("--all", action="store_true")
     pb.add_argument("--user")
     pb.add_argument("--top-k", type=int, default=5)
     pb.add_argument("--lookback-hours", type=int, default=48)
+    pb.add_argument("--no-email", action="store_true", help="Email gönderimini atla (sadece DB'ye yaz)")
     pb.set_defaults(func=cmd_brief)
 
-    pd = sub.add_parser("daily", help="fetch + brief --all (cron)")
+    pd = sub.add_parser("daily", help="embed-niches + fetch + brief --all + email (cron)")
     pd.add_argument("--lookback-hours", type=int, default=48)
     pd.add_argument("--per-source", type=int, default=25)
     pd.add_argument("--per-server", type=int, default=200)
     pd.add_argument("--top-k", type=int, default=5)
+    pd.add_argument("--no-email", action="store_true", help="Email gönderimini atla")
     pd.set_defaults(func=cmd_daily)
 
     args = p.parse_args(argv)

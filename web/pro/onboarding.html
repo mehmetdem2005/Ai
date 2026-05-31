@@ -457,7 +457,7 @@ async function saveNiches() {
       }
     }
 
-    showMsg(`Kaydedildi (${valid.length} aktif konu${removedIds.length ? `, ${removedIds.length} devre dışı` : ''}). Embedding sync sonraki cron'da otomatik.`, 'ok');
+    showMsg(`Kaydedildi (${valid.length} aktif konu${removedIds.length ? `, ${removedIds.length} devre dışı` : ''}). İlk brief sabah 06:30 cron'unda email olarak gelir (SMTP set ise) ve dashboard'da görünür.`, 'ok');
     setTimeout(() => { window.location.href = './dashboard.html'; }, 1500);
   } catch (err) {
     showMsg(err.message || String(err), 'err');

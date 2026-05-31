@@ -30,6 +30,13 @@ jobs:
       SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
       # Opsiyonel: NCBI API key (PubMed rate limit 3→10 rps)
       NCBI_API_KEY: ${{ secrets.NCBI_API_KEY }}
+      # Email delivery — SMTP env'leri set değilse gönderim sessizce skip
+      SMTP_HOST: ${{ secrets.SMTP_HOST }}
+      SMTP_PORT: ${{ secrets.SMTP_PORT }}
+      SMTP_USER: ${{ secrets.SMTP_USER }}
+      SMTP_PASS: ${{ secrets.SMTP_PASS }}
+      EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
+      FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
