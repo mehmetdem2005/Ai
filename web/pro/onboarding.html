@@ -3,34 +3,82 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Sovereign Pro · Konu tanımla</title>
+<title>Sovereign Pro · Konular</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="../tokens.css" />
 <link rel="stylesheet" href="../mobile.css" />
 <style>
   body { background: var(--bg-2); }
-  .ob-wrap { max-width: 720px; margin: 32px auto 64px; padding: 0 20px; }
+  .ob-wrap { max-width: 760px; margin: 32px auto 64px; padding: 0 20px; }
   .ob-header { margin-bottom: 24px; }
   .ob-header .crumb { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cyan-ink); margin-bottom: 8px; }
   .ob-header h1 { margin: 0 0 8px; font-size: 28px; font-weight: 700; letter-spacing: -0.02em; }
-  .ob-header .dek { color: var(--mid); font-size: 15px; margin: 0; max-width: 580px; }
+  .ob-header .dek { color: var(--mid); font-size: 15px; margin: 0; max-width: 620px; }
+  .ob-header .back { font-size: 13px; color: var(--mid); text-decoration: none; margin-bottom: 16px; display: inline-block; }
+  .ob-header .back:hover { color: var(--ink); }
+
   .specialty-row { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 16px 20px; margin-bottom: 20px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
   .specialty-row label { font-size: 13px; font-weight: 600; color: var(--ink-2); }
   .specialty-row select { padding: 8px 12px; font: inherit; font-size: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+
   .niche-card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 22px; margin-bottom: 14px; position: relative; }
+  .niche-card.dirty { border-color: var(--cyan); box-shadow: 0 0 0 3px var(--cyan-soft); }
   .niche-card .badge { font-family: var(--font-mono); font-size: 11px; color: var(--mid); letter-spacing: 0.1em; text-transform: uppercase; }
+  .niche-card .badge .id-pill { background: var(--bg-2); color: var(--ink-2); padding: 1px 6px; border-radius: 3px; margin-left: 6px; font-size: 10px; }
   .niche-card .field { margin-top: 10px; }
   .niche-card label { display: block; font-size: 12px; font-weight: 600; color: var(--ink-2); margin-bottom: 5px; }
   .niche-card input, .niche-card textarea {
     width: 100%; padding: 10px 12px; font: inherit; font-size: 14px;
     background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
-    color: var(--ink);
+    color: var(--ink); box-sizing: border-box;
   }
   .niche-card textarea { min-height: 90px; resize: vertical; font-family: var(--font-sans, 'Inter'); line-height: 1.5; }
   .niche-card input:focus, .niche-card textarea:focus { outline: none; border-color: var(--cyan); box-shadow: 0 0 0 3px var(--cyan-soft); }
   .niche-card .hint { font-size: 11.5px; color: var(--mid); margin-top: 4px; }
-  .niche-card .remove { position: absolute; top: 16px; right: 16px; background: none; border: none; color: var(--mid); cursor: pointer; font-size: 18px; }
+  .niche-card .remove { position: absolute; top: 16px; right: 16px; background: none; border: none; color: var(--mid); cursor: pointer; font-size: 18px; padding: 4px 8px; }
+  .niche-card .remove:hover { color: #b91c1c; }
+
+  .slider-row { display: flex; align-items: center; gap: 14px; }
+  .slider-row input[type=range] { flex: 1; }
+  .slider-row .val { font-family: var(--font-mono); font-size: 13px; color: var(--cyan-ink); min-width: 48px; text-align: right; }
+  .slider-row .scale { font-family: var(--font-mono); font-size: 10.5px; color: var(--mid); display: flex; justify-content: space-between; }
+
+  .inline-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+  .inline-actions button {
+    padding: 6px 12px; font: inherit; font-size: 12.5px;
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    color: var(--ink-2); cursor: pointer;
+  }
+  .inline-actions button:hover { border-color: var(--cyan); color: var(--cyan-ink); }
+  .inline-actions button:disabled { opacity: 0.5; cursor: wait; }
+
+  .preview-panel {
+    margin-top: 12px; padding: 12px 16px;
+    background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--radius);
+    font-size: 13px;
+  }
+  .preview-panel .pcount { font-family: var(--font-mono); font-size: 13px; font-weight: 600; color: var(--ink); }
+  .preview-panel .pcount.zero { color: #b91c1c; }
+  .preview-panel .pcount.low { color: #b45309; }
+  .preview-panel .pcount.good { color: #047857; }
+  .preview-panel .psample { margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--line); }
+  .preview-panel .psample-item { font-size: 12.5px; line-height: 1.5; color: var(--ink-2); padding: 4px 0; }
+  .preview-panel .psample-item .src { font-family: var(--font-mono); font-size: 10.5px; color: var(--mid); margin-right: 6px; }
+  .preview-panel .psample-item .sc { font-family: var(--font-mono); font-size: 10.5px; color: var(--cyan-ink); margin-left: 6px; }
+
+  .suggestions {
+    margin-top: 10px; padding: 12px 14px;
+    background: #fef9e7; border: 1px solid #fde68a; border-radius: var(--radius); font-size: 12.5px;
+  }
+  .suggestions .stitle { font-weight: 600; color: #78350f; margin-bottom: 6px; font-size: 12px; }
+  .suggestions .sopt {
+    font-family: var(--font-mono); font-size: 11.5px; line-height: 1.5;
+    padding: 6px 8px; background: white; border: 1px solid #fde68a; border-radius: 4px;
+    margin-bottom: 4px; cursor: pointer; word-break: break-word;
+  }
+  .suggestions .sopt:hover { background: #fef3c7; border-color: #f59e0b; }
+
   .add-btn {
     width: 100%; padding: 14px; background: transparent; border: 2px dashed var(--line);
     border-radius: var(--radius-lg); cursor: pointer; font: inherit; font-size: 14px; font-weight: 500;
@@ -58,9 +106,10 @@
 
 <div class="ob-wrap">
   <div class="ob-header">
-    <div class="crumb">Sovereign Pro · Kurulum 1/1</div>
-    <h1>Takip edeceğin konuları tanımla.</h1>
-    <p class="dek">Spesifik bir tedavi, ilaç, mekanizma, klinik soru — ne olursa olsun. Sistem her sabah PubMed + ClinicalTrials.gov + medRxiv + bioRxiv havuzunu tarayıp <strong>sadece bu konulara</strong> dokunan yeni makaleleri Türkçe özetle önüne koyar.</p>
+    <a class="back" href="./dashboard.html">← Brief'e dön</a>
+    <div class="crumb">Sovereign Pro · Konular</div>
+    <h1>Takip ettiğin konuları yönet.</h1>
+    <p class="dek">Her konu için: serbest açıklama (sistem buradan embedding üretir) + opsiyonel PubMed sorgusu + eşleşme eşiği. Tanımı yazdıktan sonra <strong>"Önizle"</strong> ile son 7 günde kaç makale eşleşir gör; <strong>"PubMed önerisi"</strong> butonu ile MeSH terimli sorgu üretebilirsin.</p>
   </div>
 
   <div class="specialty-row">
@@ -86,8 +135,8 @@
   <button class="add-btn" onclick="addNiche()" id="addBtn">+ Yeni konu ekle</button>
 
   <div class="actions">
-    <button class="btn-secondary" onclick="window.location.href='./index.html'">İptal</button>
-    <button class="btn-primary" onclick="saveNiches()" id="saveBtn">Kaydet ve ilk brief'i üret</button>
+    <button class="btn-secondary" onclick="window.location.href='./dashboard.html'">İptal</button>
+    <button class="btn-primary" onclick="saveNiches()" id="saveBtn">Kaydet</button>
   </div>
 </div>
 
@@ -115,10 +164,83 @@ const EXAMPLES = {
   ],
 };
 
+const DEFAULT_THRESHOLD = 0.55;
 let niches = [];
+let originalIds = [];   // İlk yüklenen niş ID'leri — silinmiş olanları tespit için
+let accessToken = null; // /api/* çağrıları için Bearer
 
 function newNiche(label = '', desc = '', query = '') {
-  return { label, description: desc, pubmed_query: query };
+  return {
+    id: null,
+    label, description: desc, pubmed_query: query,
+    threshold: DEFAULT_THRESHOLD,
+    _preview: null,
+    _previewLoading: false,
+    _suggestions: null,
+    _suggestLoading: false,
+    _dirty: true,
+  };
+}
+function fromDbRow(n) {
+  return {
+    id: n.id,
+    label: n.label,
+    description: n.description,
+    pubmed_query: n.pubmed_query || '',
+    threshold: typeof n.threshold === 'number' ? n.threshold : DEFAULT_THRESHOLD,
+    _preview: null,
+    _previewLoading: false,
+    _suggestions: null,
+    _suggestLoading: false,
+    _dirty: false,
+  };
+}
+
+function escapeHtml(s) {
+  return (s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function markDirty(idx) {
+  niches[idx]._dirty = true;
+  const el = document.querySelector(`[data-niche-idx="${idx}"]`);
+  if (el) el.classList.add('dirty');
+}
+
+function previewClass(count) {
+  if (count === 0) return 'zero';
+  if (count < 3) return 'low';
+  return 'good';
+}
+
+function renderPreviewPanel(p) {
+  if (!p) return '';
+  if (p.error) return `<div class="preview-panel"><span style="color:#b91c1c">Önizleme hatası: ${escapeHtml(p.error)}</span></div>`;
+  const cls = previewClass(p.count);
+  const verdict = p.count === 0
+    ? 'Sıkı eşik — son 7 günde hiç eşleşme yok. Eşiği düşür veya tanımı genişlet.'
+    : p.count < 3
+      ? 'Az — hafta başına 1-3 makale. Genişletmek istersen tanıma alt-başlık ekle.'
+      : `İyi — hafta başına ${p.count} eşleşme. Brief günlük top-5 alır.`;
+  const samples = (p.samples || []).map(s => `
+    <div class="psample-item">
+      <span class="src">${escapeHtml(s.source_type || '?')}</span>${escapeHtml(s.title || '')}<span class="sc">${(s.score * 100).toFixed(0)}%</span>
+    </div>`).join('');
+  return `<div class="preview-panel">
+    <div><span class="pcount ${cls}">${p.count} eşleşme</span> · son 168 saat · eşik ${(p.threshold * 100).toFixed(0)}%</div>
+    <div style="font-size:12px;color:var(--mid);margin-top:4px">${verdict}</div>
+    ${samples ? `<div class="psample"><div style="font-family:var(--font-mono);font-size:10.5px;color:var(--mid);margin-bottom:4px">EN YAKIN ÖRNEKLER</div>${samples}</div>` : ''}
+  </div>`;
+}
+
+function renderSuggestionsPanel(idx, s) {
+  if (!s) return '';
+  if (s.error) return `<div class="suggestions"><span style="color:#b91c1c">Öneri hatası: ${escapeHtml(s.error)}</span></div>`;
+  const opts = (s.queries || []).map((q, qi) => `
+    <div class="sopt" onclick="acceptQuery(${idx}, ${qi})">${escapeHtml(q)}</div>`).join('');
+  return `<div class="suggestions">
+    <div class="stitle">PubMed sorgu önerileri — birine tıkla, "PubMed sorgusu" alanına yerleşir:</div>
+    ${opts}
+  </div>`;
 }
 
 function render() {
@@ -126,37 +248,60 @@ function render() {
   list.innerHTML = '';
   niches.forEach((n, idx) => {
     const card = document.createElement('div');
-    card.className = 'niche-card';
+    card.className = 'niche-card' + (n._dirty ? ' dirty' : '');
+    card.setAttribute('data-niche-idx', String(idx));
+    const idPill = n.id ? `<span class="id-pill">#${n.id}</span>` : '<span class="id-pill" style="background:#fef3c7;color:#78350f">YENİ</span>';
     card.innerHTML = `
-      <div class="badge">Konu ${idx + 1}</div>
-      <button class="remove" onclick="removeNiche(${idx})" title="Sil">✕</button>
+      <div class="badge">Konu ${idx + 1} ${idPill}</div>
+      <button class="remove" onclick="removeNiche(${idx})" title="${n.id ? 'Devre dışı bırak (geçmiş korunur)' : 'Sil'}">✕</button>
+
       <div class="field">
         <label>Kısa etiket</label>
-        <input type="text" value="${escapeHtml(n.label)}" oninput="niches[${idx}].label=this.value" placeholder="örn. HER2+ metastatik meme · ADC" />
+        <input type="text" value="${escapeHtml(n.label)}" oninput="niches[${idx}].label=this.value; markDirty(${idx})" placeholder="örn. HER2+ metastatik meme · ADC" />
       </div>
+
       <div class="field">
-        <label>Konu tanımı (serbest metin) <span style="color:var(--mid);font-weight:400">— sistem buradan embedding üretir</span></label>
-        <textarea oninput="niches[${idx}].description=this.value" placeholder="Konuyu somut alt-başlıklarla tanımla. Tedavi, popülasyon, mekanizma, hedef molekül, klinik soru — ne kadar spesifik o kadar iyi match.">${escapeHtml(n.description)}</textarea>
-        <div class="hint">İpucu: 2-4 cümle. Hedef hasta grubu + ilaç/mekanizma + spesifik klinik soru.</div>
+        <label>Konu tanımı (serbest metin) <span style="color:var(--mid);font-weight:400">— embedding kaynağı</span></label>
+        <textarea oninput="niches[${idx}].description=this.value; markDirty(${idx})" placeholder="Konuyu somut alt-başlıklarla tanımla. Tedavi + popülasyon + mekanizma + spesifik klinik soru. Spesifiklik = daha az gürültü.">${escapeHtml(n.description)}</textarea>
+        <div class="hint">2-4 cümle yeterli. Hedef hasta + ilaç/cihaz + klinik soru.</div>
       </div>
+
       <div class="field">
-        <label>PubMed sorgusu (opsiyonel)</label>
-        <input type="text" value="${escapeHtml(n.pubmed_query || '')}" oninput="niches[${idx}].pubmed_query=this.value" placeholder='örn. (trastuzumab deruxtecan OR T-DXd) AND HER2' />
-        <div class="hint">Boş bırakırsan konu tanımı kullanılır.</div>
+        <label>PubMed sorgusu (opsiyonel ama önerilen)</label>
+        <input type="text" id="pq-${idx}" value="${escapeHtml(n.pubmed_query || '')}" oninput="niches[${idx}].pubmed_query=this.value; markDirty(${idx})" placeholder='(MeSH OR sinonim) AND popülasyon AND ("last 2 years"[PDat])' />
+        <div class="hint">Boş bırakırsan sadece embedding match çalışır. MeSH'li sorgu kesinliği artırır.</div>
       </div>
+
+      <div class="field">
+        <label>Eşleşme eşiği · niş başına</label>
+        <div class="slider-row">
+          <input type="range" min="0.40" max="0.85" step="0.01" value="${n.threshold}"
+                 oninput="niches[${idx}].threshold=Number(this.value); document.getElementById('thv-${idx}').textContent=(this.value*100).toFixed(0)+'%'; markDirty(${idx})" />
+          <span class="val" id="thv-${idx}">${(n.threshold * 100).toFixed(0)}%</span>
+        </div>
+        <div class="slider-row scale"><span>40% (cömert)</span><span>55% (denge)</span><span>85% (sıkı)</span></div>
+        <div class="hint">Düşük eşik = daha çok ama gürültülü; yüksek eşik = az ama temiz. Önizle ile kalibre et.</div>
+      </div>
+
+      <div class="inline-actions">
+        <button type="button" onclick="previewMatch(${idx})" ${n._previewLoading ? 'disabled' : ''}>
+          ${n._previewLoading ? 'Önizleniyor…' : 'Önizle (son 7 gün)'}
+        </button>
+        <button type="button" onclick="suggestQuery(${idx})" ${n._suggestLoading ? 'disabled' : ''}>
+          ${n._suggestLoading ? 'Öneri üretiliyor…' : 'PubMed sorgusu öner'}
+        </button>
+      </div>
+
+      ${renderPreviewPanel(n._preview)}
+      ${renderSuggestionsPanel(idx, n._suggestions)}
     `;
     list.appendChild(card);
   });
 }
 
-function escapeHtml(s) {
-  return (s || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
-
 function addNiche() {
   niches.push(newNiche());
   render();
-  // Son karta scroll
   setTimeout(() => {
     const cards = document.querySelectorAll('.niche-card');
     if (cards.length) cards[cards.length - 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -164,8 +309,91 @@ function addNiche() {
 }
 
 function removeNiche(idx) {
+  const n = niches[idx];
+  if (n.id) {
+    if (!confirm(`"${n.label || 'Bu konu'}" devre dışı bırakılacak (geçmiş brief'ler korunur). Emin misin?`)) return;
+  }
   niches.splice(idx, 1);
   render();
+}
+
+function acceptQuery(idx, qi) {
+  const sg = niches[idx]._suggestions;
+  if (!sg || !sg.queries) return;
+  const q = sg.queries[qi];
+  if (!q) return;
+  niches[idx].pubmed_query = q;
+  markDirty(idx);
+  render();
+}
+
+async function previewMatch(idx) {
+  const n = niches[idx];
+  if (!n.description || n.description.trim().length < 20) {
+    n._preview = { error: 'Açıklama en az 20 karakter olmalı.' };
+    render();
+    return;
+  }
+  n._previewLoading = true;
+  render();
+  try {
+    const r = await fetch('/api/preview-match', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+      body: JSON.stringify({
+        label: n.label,
+        description: n.description,
+        pubmed_query: n.pubmed_query,
+        threshold: n.threshold,
+        lookback_hours: 168,
+      }),
+    });
+    const data = await r.json();
+    if (!r.ok) {
+      n._preview = { error: data.error || `HTTP ${r.status}` };
+    } else {
+      n._preview = data;
+    }
+  } catch (e) {
+    n._preview = { error: e.message || String(e) };
+  } finally {
+    n._previewLoading = false;
+    render();
+  }
+}
+
+async function suggestQuery(idx) {
+  const n = niches[idx];
+  if (!n.description || n.description.trim().length < 20) {
+    n._suggestions = { error: 'Önce açıklamayı yaz (en az 20 karakter).' };
+    render();
+    return;
+  }
+  if (!n.label || n.label.trim().length < 3) {
+    n._suggestions = { error: 'Etiketi de doldur.' };
+    render();
+    return;
+  }
+  n._suggestLoading = true;
+  render();
+  try {
+    const r = await fetch('/api/suggest-pubmed-query', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${accessToken}` },
+      body: JSON.stringify({ label: n.label, description: n.description }),
+    });
+    const data = await r.json();
+    if (!r.ok) {
+      n._suggestions = { error: data.error || `HTTP ${r.status}` };
+    } else {
+      n._suggestions = data;
+    }
+  } catch (e) {
+    n._suggestions = { error: e.message || String(e) };
+  } finally {
+    n._suggestLoading = false;
+    render();
+  }
 }
 
 function showMsg(text, type) {
@@ -177,18 +405,8 @@ function showMsg(text, type) {
   if (type === 'err') window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-document.getElementById('specialty').addEventListener('change', e => {
-  const sp = e.target.value;
-  if (sp && EXAMPLES[sp] && niches.length === 0) {
-    if (confirm(`${sp} için 1-2 örnek konu yükleyeyim mi? Sonra düzenleyebilirsin.`)) {
-      niches = EXAMPLES[sp].slice(0, 2).map(x => newNiche(x.label, x.desc));
-      render();
-    }
-  }
-});
-
 async function saveNiches() {
-  showMsg('', null);
+  showMsg('');
   const valid = niches.filter(n => n.label.trim() && n.description.trim().length >= 30);
   if (!valid.length) {
     showMsg('En az 1 konu tanımı gerekli (etiket + en az 30 karakter açıklama).', 'err');
@@ -203,34 +421,60 @@ async function saveNiches() {
     const { data: { user }, error: userErr } = await sb.auth.getUser();
     if (userErr || !user) throw new Error('Oturum bulunamadı, lütfen tekrar giriş yap.');
 
-    // Specialty kaydet
     const sp = document.getElementById('specialty').value;
     if (sp) {
       await sb.from('profiles').update({ specialty: sp }).eq('id', user.id);
     }
 
-    // Eski nişleri sil, yenilerini ekle
-    await sb.from('niches').delete().eq('user_id', user.id);
-    const rows = valid.map(n => ({
-      user_id: user.id,
-      label: n.label.trim(),
-      description: n.description.trim(),
-      pubmed_query: (n.pubmed_query || '').trim() || null,
-      is_active: true,
-      // threshold: DB default (0.55) kullanılır. UI'da slider eklenince override gelir.
-    }));
-    const { error: insErr } = await sb.from('niches').insert(rows);
-    if (insErr) throw insErr;
+    // 1. Soft-delete: orijinal ID'lerden silinmiş olanları is_active=false yap
+    const stillExisting = new Set(valid.map(n => n.id).filter(Boolean));
+    const removedIds = originalIds.filter(id => !stillExisting.has(id));
+    if (removedIds.length) {
+      const { error: delErr } = await sb.from('niches')
+        .update({ is_active: false })
+        .in('id', removedIds);
+      if (delErr) throw delErr;
+    }
 
-    // Embedding sync ve ilk brief, arka taraftaki cron (06:30 İstanbul) ile veya admin "Trigger" ile çalışır
-    showMsg(`${valid.length} konu kaydedildi. İlk brief'in sabah 06:30'da kutuna düşecek (deneme için /api/brief tetiklenebilir).`, 'ok');
+    // 2. Update existing + insert new
+    for (const n of valid) {
+      const payload = {
+        user_id: user.id,
+        label: n.label.trim(),
+        description: n.description.trim(),
+        pubmed_query: (n.pubmed_query || '').trim() || null,
+        threshold: n.threshold,
+        is_active: true,
+      };
+      if (n.id) {
+        if (n._dirty) {
+          const { error: updErr } = await sb.from('niches').update(payload).eq('id', n.id);
+          if (updErr) throw updErr;
+        }
+      } else {
+        const { error: insErr } = await sb.from('niches').insert(payload);
+        if (insErr) throw insErr;
+      }
+    }
+
+    showMsg(`Kaydedildi (${valid.length} aktif konu${removedIds.length ? `, ${removedIds.length} devre dışı` : ''}). Embedding sync sonraki cron'da otomatik.`, 'ok');
     setTimeout(() => { window.location.href = './dashboard.html'; }, 1500);
   } catch (err) {
     showMsg(err.message || String(err), 'err');
     btn.disabled = false;
-    btn.textContent = 'Kaydet ve ilk brief\'i üret';
+    btn.textContent = 'Kaydet';
   }
 }
+
+document.getElementById('specialty').addEventListener('change', e => {
+  const sp = e.target.value;
+  if (sp && EXAMPLES[sp] && niches.length === 0) {
+    if (confirm(`${sp} için 1-2 örnek konu yükleyeyim mi? Sonra düzenleyebilirsin.`)) {
+      niches = EXAMPLES[sp].slice(0, 2).map(x => newNiche(x.label, x.desc));
+      render();
+    }
+  }
+});
 
 // Auth guard + mevcut nişleri yükle
 (async () => {
@@ -239,12 +483,26 @@ async function saveNiches() {
     window.location.href = './index.html';
     return;
   }
-  // Mevcut nişler varsa düzenleme modunda göster
-  const { data } = await sb.from('niches').select('*').eq('is_active', true).order('id');
+  accessToken = session.access_token;
+
+  const { data, error } = await sb.from('niches')
+    .select('id,label,description,pubmed_query,threshold,is_active')
+    .eq('is_active', true)
+    .order('id');
+  if (error) {
+    showMsg('Niş yükleme hatası: ' + error.message, 'err');
+  }
   if (data && data.length) {
-    niches = data.map(n => ({ label: n.label, description: n.description, pubmed_query: n.pubmed_query || '' }));
+    niches = data.map(fromDbRow);
+    originalIds = data.map(n => n.id);
   } else {
     niches = [newNiche()];
+    originalIds = [];
+  }
+  // Mevcut profile.specialty'yi seç
+  const { data: prof } = await sb.from('profiles').select('specialty').eq('id', session.user.id).limit(1);
+  if (prof && prof[0] && prof[0].specialty) {
+    document.getElementById('specialty').value = prof[0].specialty;
   }
   render();
 })();
