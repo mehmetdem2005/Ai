@@ -115,11 +115,21 @@ def fetch_unpaywall_oa_url(doi: str) -> Optional[str]:
         return None
 
     def _pick_html(loc: dict) -> Optional[str]:
-        # Tercih sırası: landing page > generic url. PDF link'leri atla.
+        # Tercih sırası: landing > generic url. PDF link'leri ve doi.org
+        # resolver'ları atla — doi.org redirect zinciri çoğu zaman yayıncı
+        # paywall'una gider, bs4 selektörlerimiz bu sayfaları tanımıyor.
         for k in ("url_for_landing_page", "url"):
             u = loc.get(k)
-            if u and not u.lower().endswith(".pdf"):
-                return u
+            if not u:
+                continue
+            ul = u.lower()
+            if ul.endswith(".pdf"):
+                continue
+            if "doi.org/" in ul:
+                continue  # resolver — yayıncıya redirect, parse şansı düşük
+            if "pubmed.ncbi.nlm.nih.gov" in ul:
+                continue  # PubMed abstract sayfası — fulltext yok
+            return u
         return None
 
     best = data.get("best_oa_location") or {}
@@ -134,8 +144,16 @@ def fetch_unpaywall_oa_url(doi: str) -> Optional[str]:
 
 
 def fetch_biorxiv_fulltext(doi: str, server: str = "biorxiv") -> Optional[str]:
-    """bioRxiv/medRxiv JATS XML endpoint'i."""
-    # JATS XML doğrudan: https://www.biorxiv.org/content/{doi}.full.xml
+    """bioRxiv/medRxiv JATS XML endpoint'i.
+
+    Yapısal gerçek: bioRxiv Cloudflare CAPTCHA arkasında, headless scraping
+    her variantta 403 dönüyor (.full.xml, .full, v1.full.xml). medRxiv'de
+    bazen geçer. Yine de deniyoruz; medRxiv için ara sıra başarılı, bioRxiv
+    için neredeyse hep boşa — ama düşük maliyetli (tek HTTP isteği) ve
+    medRxiv'de işe yarayanı kaçırmak istemiyoruz.
+
+    İlerideki çözüm: PDF parsing (pypdf) veya browserless headless service.
+    """
     if not doi:
         return None
     url = f"https://www.{server}.org/content/{doi}.full.xml"
@@ -224,9 +242,10 @@ def _extract_text_from_html(html: str) -> str:
                      "noscript", "form", "button"]):
         tag.decompose()
 
-    # Tercih sırası — yayıncı bazlı en spesifik selektör en başta
+    # Tercih sırası — yayıncı bazlı en spesifik selektör en başta;
+    # en sondaki seçiciler geniş "OA yayıncı" şablonlarını yakalar.
     candidates = [
-        # Nature / npj (Springer-Nature platformu)
+        # Nature / npj (Springer-Nature)
         {"name": "div", "class_": "c-article-body"},
         # NEJM
         {"name": "section", "class_": "article-body"},
@@ -238,13 +257,38 @@ def _extract_text_from_html(html: str) -> str:
         {"name": "div", "class_": "article-fulltext"},
         # PMC HTML
         {"name": "div", "class_": "article"},
+        # PLOS, Frontiers, eLife — Article container'ları
+        {"name": "div", "class_": "article-text"},
+        {"name": "div", "class_": "JournalFullText"},
+        {"name": "div", "class_": "fulltext-view"},
+        # BMC / SpringerOpen
+        {"name": "main", "id": "main-content"},
+        # MDPI
+        {"name": "div", "class_": "html-body"},
+        # Wiley Online Library
+        {"name": "section", "class_": "article-section__full"},
+        # Taylor & Francis
+        {"name": "div", "class_": "hlFld-Fulltext"},
+        # ARIA role tabanlı son seçenek
+        {"name": "main", "role": "main"},
         # Generic son çare
         {"name": "article"},
+        {"name": "main"},
     ]
 
     body_el = None
     for sel in candidates:
-        body_el = soup.find(**sel)
+        # role/id gibi attr-bazlı seçimleri attrs sözlüğüne yerleştir
+        kw = {}
+        attrs = {}
+        for k, v in sel.items():
+            if k in ("name", "class_"):
+                kw[k] = v
+            else:
+                attrs[k] = v
+        if attrs:
+            kw["attrs"] = attrs
+        body_el = soup.find(**kw)
         if body_el:
             txt = body_el.get_text(" ", strip=True)
             if len(txt) >= 800:  # minimum body uzunluğu
