@@ -1,11 +1,12 @@
 """Full-text fetcher — open-access makaleler için abstract'ın ötesi.
 
 Strateji öncelik sırası:
-  1) PubMed Central (PMC) — PMID → PMC ID → JATS XML (en güvenilir)
-  2) bioRxiv/medRxiv API JATS XML (preprint sunucuları için)
-  3) Nature/npj (HTML body extraction) — Nature açık erişimli journal'lar
-  4) Generic HTML — readability-vari heuristic body extraction
-  5) Fallback: abstract'la devam et
+  1) PubMed Central (PMC) — PMID → PMC ID → NCBI efetch JATS XML
+  2) Europe PMC fullTextXML — PMID ile direkt (PMC'siz OA makaleler için ek kanal)
+  3) Unpaywall OA URL — DOI → OA HTML landing page → bs4 body extraction
+  4) bioRxiv/medRxiv API JATS XML (preprint sunucuları için)
+  5) Generic HTML — orijinal URL → bs4 heuristic body extraction
+  6) Fallback: abstract'la devam et
 
 Paywalled içerik için body fetch denenmez (gereksiz başarısız HTTP).
 """
@@ -20,8 +21,12 @@ from xml.etree import ElementTree as ET
 import requests
 
 log = logging.getLogger(__name__)
-UA = "Sovereign/1.0 (mailto:mehmetdem7878@gmail.com)"
+CONTACT_EMAIL = "mehmetdem7878@gmail.com"
+UA = f"Sovereign/1.0 (mailto:{CONTACT_EMAIL})"
 TIMEOUT = 30
+
+EUROPEPMC_BASE = "https://www.ebi.ac.uk/europepmc/webservices/rest"
+UNPAYWALL_BASE = "https://api.unpaywall.org/v2"
 
 # Yaklaşık 4 token / kelime — LLM'e 6K kelime ≈ 24K token verirsek
 # DeepSeek-chat 128K context'inde rahat sığar, makaleyi kapsar.
@@ -65,6 +70,67 @@ def fetch_pmc_fulltext(pmid: str, api_key: str | None = None) -> Optional[str]:
     except Exception as e:
         log.warning("PMC efetch hatası (%s): %s", pmcid, e)
         return None
+
+
+def fetch_europepmc_fulltext(pmid: str) -> Optional[str]:
+    """Europe PMC fullTextXML endpoint — PMID veya PMC ID için JATS XML.
+
+    NCBI PMC mirror'ı dışında PMC-listed olmayan OA dergiler (örn. PLOS,
+    Frontiers'ın bazı versiyonları) için de fulltext sunabilir; PMC efetch
+    başarısız olduğunda ek bir kanaldır.
+    """
+    if not pmid:
+        return None
+    url = f"{EUROPEPMC_BASE}/MED/{pmid}/fullTextXML"
+    try:
+        r = requests.get(url, headers={"User-Agent": UA}, timeout=TIMEOUT)
+        if r.status_code != 200 or len(r.content) < 500:
+            return None
+        return _extract_text_from_jats(r.content)
+    except Exception as e:
+        log.debug("Europe PMC fullTextXML hata (PMID %s): %s", pmid, e)
+        return None
+
+
+def fetch_unpaywall_oa_url(doi: str) -> Optional[str]:
+    """DOI → OA versiyonu HTML landing URL'i. PDF link'leri atlanır
+    (PDF parsing ek bağımlılık gerektirir; bu sprintta sadece HTML kanalı).
+
+    Unpaywall serbest ve geniş — Sci-Hub'la karıştırma; Unpaywall sadece
+    yayıncı veya repo tarafından OA olarak yayınlanmış sürümleri toplar."""
+    if not doi:
+        return None
+    try:
+        r = requests.get(
+            f"{UNPAYWALL_BASE}/{doi}",
+            params={"email": CONTACT_EMAIL},
+            headers={"User-Agent": UA},
+            timeout=TIMEOUT,
+        )
+        if r.status_code != 200:
+            return None
+        data = r.json()
+    except Exception as e:
+        log.debug("Unpaywall hata (DOI %s): %s", doi, e)
+        return None
+
+    def _pick_html(loc: dict) -> Optional[str]:
+        # Tercih sırası: landing page > generic url. PDF link'leri atla.
+        for k in ("url_for_landing_page", "url"):
+            u = loc.get(k)
+            if u and not u.lower().endswith(".pdf"):
+                return u
+        return None
+
+    best = data.get("best_oa_location") or {}
+    u = _pick_html(best)
+    if u:
+        return u
+    for loc in (data.get("oa_locations") or []):
+        u = _pick_html(loc)
+        if u:
+            return u
+    return None
 
 
 def fetch_biorxiv_fulltext(doi: str, server: str = "biorxiv") -> Optional[str]:
@@ -212,14 +278,37 @@ def _trim_body(text: str) -> str:
 
 def fetch_for_item(*, source_type: str, source_id: str, doi: str | None, url: str | None,
                    ncbi_api_key: str | None = None) -> Optional[str]:
-    """Item için en uygun yöntemi dene; bulamazsa None."""
+    """Item için en uygun yöntemi dene; bulamazsa None.
+
+    Sıralama isabet sırasına göre — her seviye bir öncekinin çıktı veremediği
+    durumlarda devreye girer. Loglardan görüldü: PMC-only akış 5 makaleden
+    1'inde fulltext üretiyordu. Europe PMC + Unpaywall bu oranı ciddi artırır.
+    """
     body: str | None = None
 
+    # 1) PubMed item → NCBI PMC efetch (en yüksek kaliteli JATS)
     if source_type == "pubmed" and source_id:
         body = fetch_pmc_fulltext(source_id, api_key=ncbi_api_key)
-        time.sleep(0.12)  # rate limit dostu
+        time.sleep(0.12)  # NCBI rate limit dostu (10 rps API key'li, 3 rps'siz)
+
+    # 2) PubMed item PMC'de yoksa → Europe PMC fullTextXML
+    if not body and source_type == "pubmed" and source_id:
+        body = fetch_europepmc_fulltext(source_id)
+        time.sleep(0.1)
+
+    # 3) Preprint item'lar için doğrudan JATS endpoint
     if not body and source_type in ("biorxiv", "medrxiv") and doi:
         body = fetch_biorxiv_fulltext(doi, server=source_type)
+
+    # 4) DOI varsa Unpaywall ile OA URL keşfi → HTML body extraction
+    #    Yayıncı paywall'lı olsa bile self-archived bir versiyon olabilir.
+    if not body and doi:
+        oa_url = fetch_unpaywall_oa_url(doi)
+        if oa_url:
+            body = fetch_html_body(oa_url)
+
+    # 5) Son çare: orijinal kaynak URL'i (yayıncı sayfası — çoğunlukla paywall'lı
+    #    ama bazı OA dergiler veya self-hosted preprintler işe yarar).
     if not body and url:
         body = fetch_html_body(url)
 

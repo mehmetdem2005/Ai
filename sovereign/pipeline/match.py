@@ -216,9 +216,13 @@ def build_brief_for_user(
                     ncbi_api_key=ncbi_key,
                 )
                 if fulltext:
-                    log.info("Fulltext: item %s, %d char", m["id"], len(fulltext))
+                    log.info("Fulltext: item %s, %d char [%s]", m["id"], len(fulltext),
+                             meta.get("source_type", m["source_type"]))
+                else:
+                    log.info("Fulltext yok, abstract'a düşüldü: item %s [%s]",
+                             m["id"], meta.get("source_type", m["source_type"]))
             except Exception as e:
-                log.debug("Fulltext çekilemedi (item %s): %s", m["id"], e)
+                log.warning("Fulltext fetch exception (item %s): %s", m["id"], e)
 
             summary_tr = ""
             try:
