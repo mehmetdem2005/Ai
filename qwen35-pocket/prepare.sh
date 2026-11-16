@@ -12,14 +12,14 @@ p=Path(sys.argv[1])
 a=p/'app/build.gradle.kts'
 s=a.read_text()
 assert 'minSdk = 33' in s, 'Upstream app minSdk changed; patch needs review'
-s=s.replace('minSdk = 33', 'minSdk = 26').replace('targetSdk = 36', 'targetSdk = 35')
+s=s.replace('minSdk = 33', 'minSdk = 30').replace('targetSdk = 36', 'targetSdk = 35')
 s=s.replace('applicationId = "com.example.llama.aichat"', 'applicationId = "dev.qwen.pocket"')
 s=s.replace('versionName = "1.0"', 'versionName = "1.0.0"')
 a.write_text(s)
 b=p/'lib/build.gradle.kts'
 s=b.read_text()
 assert 'minSdk = 33' in s, 'Upstream library minSdk changed; patch needs review'
-s=s.replace('minSdk = 33', 'minSdk = 26')
+s=s.replace('minSdk = 33', 'minSdk = 30')
 s=s.replace('listOf("arm64-v8a", "x86_64")', 'listOf("arm64-v8a")')
 s=s.replace('"-DGGML_CPU_ALL_VARIANTS=ON"', '"-DGGML_CPU_ALL_VARIANTS=OFF"')
 b.write_text(s)
