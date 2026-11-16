@@ -80,7 +80,7 @@ class MainActivity : AppCompatActivity() {
     private fun buildUI() {
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setBackgroundColor(background)
+            setBackgroundColor(this@MainActivity.background)
             setPadding(dp(14), dp(14), dp(14), dp(12))
         }
         setContentView(root)
